@@ -1,0 +1,1 @@
+.kenburning-container{position:relative;overflow:hidden}.kenburning-container .img{position:absolute;max-width:none;top:0;left:0;z-index:6;opacity:0;transform:scale(1)}.kenburning-container .img.active{z-index:10}.kenburning-container .img.last-active{z-index:9}

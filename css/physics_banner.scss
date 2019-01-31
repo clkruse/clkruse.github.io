@@ -1,0 +1,56 @@
+$md: 992px;
+$sm: 768px;
+
+@mixin responcive($breakpoint) {
+  @media only screen and (max-width: $breakpoint) {
+    @content;
+  }
+}
+
+
+/* PHYSICS BANNER */
+.physics-banner {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  min-height: 100vh;
+  margin: 0 -15px;
+  padding: 85px 0;
+
+  .title {
+    font-size: 10vw;
+    font-weight: 700;
+    color: #ffffff;
+    text-align: center;
+    margin: 0 0 35px;
+    pointer-events: none;
+    @include responcive($sm) {
+      font-size: 50px;
+      margin-bottom: 25px;
+    }
+  }
+
+  .subtitle {
+    font-size: 1.25em;
+    color: #ffffff;
+    padding: 0 0.75em;
+    margin: 0;
+    letter-spacing: 0.2px;
+    text-indent: 0.5em;
+    text-align: center;
+    font-weight: bold;
+    @include responcive($sm) {
+      font-size: 18px;
+    }
+  }
+
+  .scene {
+    position: absolute;
+    top: 85px;
+    width: 100%;
+    height: calc(100% - 170px);
+  }
+}
+
