@@ -1069,11 +1069,11 @@
     // ---------------------------------
     $(window).on('load', function () {
         portfolioSliderHeight();
-        $("img[data-lazy-src]").foxlazy();
+        // $("img[data-lazy-src]").foxlazy();
         initIsotop();
-        $("img[data-lazy-src]").foxlazy('', function(){
-            setTimeout(initIsotop, 500);
-        });
+        //$("img[data-lazy-src]").foxlazy('', function(){
+        //    setTimeout(initIsotop, 500);
+        /// });
         // fix
         setTimeout(function () {
             $(window).scroll();
