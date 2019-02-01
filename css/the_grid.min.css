@@ -1889,6 +1889,21 @@
   width: 20px
 }
 
+.awa-portfolio-4 body h3 button {
+  font-family: 'Major Mono Display', monospace;
+  font-weight: 400;
+  font-size: 14px;
+  color: #222222;
+}
+
+.home-button {
+  font-family: 'Major Mono Display', monospace;
+  font-weight: 400;
+  font-size: 14px;
+  color: #222222;
+}
+
+
 .awa-portfolio-4 .grid-item {
   padding-bottom: calc(100% / 3 - 23px);
   margin-bottom: 30px;
@@ -1986,11 +2001,11 @@
 
 @media only screen and (max-width: 1200px) {
   .awa-portfolio-4 .grid-sizer, .awa-portfolio-4 .grid-item {
-    width: calc(100% / 4 - 12px)
+    width: calc(100% / 3 - 12px)
   }
 
   .awa-portfolio-4 .grid-item {
-    padding-bottom: calc(100% / 4 - 12px);
+    padding-bottom: calc(100% / 3 - 12px);
     margin-bottom: 15px
   }
 
