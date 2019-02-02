@@ -1999,6 +1999,10 @@
   text-decoration: none
 }
 
+.awa-portfolio-4 .mobile-title {
+  display: none;
+}
+
 @media only screen and (max-width: 1200px) {
   .awa-portfolio-4 .grid-sizer, .awa-portfolio-4 .grid-item {
     width: calc(100% / 3 - 12px)
@@ -2013,6 +2017,7 @@
     width: calc(100% / 2 - 10px);
     padding-bottom: calc(100% / 2)
   }
+
 }
 
 @media only screen and (max-width: 991px) {
@@ -2042,6 +2047,17 @@
   .awa-portfolio-4 .grid-item.big {
     width: 100%;
     padding-bottom: 100%
+  }
+
+  .awa-portfolio-4 .mobile-title {
+    background-color : #ffffff;
+    text-align: left;
+    position: absolute;
+    margin: 0 auto;
+    bottom: 0px;
+    padding-right: 5%;
+    font-weight: bold;
+    display: inline;
   }
 }
 
