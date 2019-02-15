@@ -16186,6 +16186,15 @@ body.search {
   position: relative
 }
 
+.bg_img_ng {
+  background-image: url("../img/1Y2A2125 - Version 2.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 60%;
+  height: 35vw
+}
+
 .body_bg {
   background-color: #00113c
 }
