@@ -69,6 +69,10 @@ a {
   text-decoration: underline
 }
 
+.button-group a {
+  text-decoration: none
+}
+
 .text-light a {
   color: #ffffff
 }
