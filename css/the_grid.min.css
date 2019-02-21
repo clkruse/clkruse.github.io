@@ -1912,6 +1912,10 @@
   background-position: center
 }
 
+.awa-portfolio-4 .grid-item:hover {
+  opacity: 0.7
+}
+
 .awa-portfolio-4 .grid-item.big {
   width: calc(100% / 2 - 15px);
   padding-bottom: calc(100% / 2 - 15px)
@@ -1999,9 +2003,99 @@
   text-decoration: none
 }
 
-.awa-portfolio-4 .mobile-title {
-  display: none;
+.awa-portfolio-4 .grid-item .content-no-hover {
+  opacity: 1
 }
+
+.awa-portfolio-4 .content-no-hover {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: calc(100% - 30px);
+  height: calc(100% - 30px);
+  left: 15px;
+  top: 15px;
+  opacity: 0;
+  -webkit-transition: all 700ms ease;
+  -moz-transition: all 700ms ease;
+  -ms-transition: all 700ms ease;
+  transition: all 700ms ease
+}
+
+
+.awa-portfolio-4 .content-no-hover .link-icon {
+  position: absolute;
+  background-color: transparent;
+  top: 15px;
+  width: 50px;
+  height: 50px;
+  right: 15px;
+  margin: 0;
+  -webkit-transition: all 450ms ease;
+  transition: all 450ms ease
+}
+
+.awa-portfolio-4 .content-no-hover .link-icon:hover {
+  right: 10px
+}
+
+.awa-portfolio-4 .content-no-hover .link-icon::before {
+  content: "\f178";
+  font-family: FontAwesome;
+  color: #111;
+  top: 50%;
+  position: absolute;
+  left: 50%;
+  font-size: 16px;
+  -webkit-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%)
+}
+
+.awa-portfolio-4 .content-item {
+  bottom: 0;
+  top: auto;
+  position: absolute;
+  padding: 0px 0px
+}
+
+.awa-portfolio-4 .content-no-hover .category {
+  color: #f54ea2;
+  margin-bottom: 10px;
+  font-weight: 800;
+  font-size: 13px;
+  line-height: 16px
+}
+
+.awa-portfolio-4 .content-no-hover .title {
+  font-weight: 800;
+  margin: 0;
+  font-size: 18px;
+  line-height: 22px;
+  color: #111111;
+  letter-spacing: 0.2px;
+  transition: all 700ms ease
+}
+
+.awa-portfolio-4 .content-no-hover .title:hover {
+  opacity: .7
+}
+
+.awa-portfolio-4 .content-no-hover a {
+  text-decoration: none
+}
+
+.awa-portfolio-4 .mobile-title {
+  background-color : #ffffff;
+  text-align: left;
+  position: absolute;
+  margin: 0 auto;
+  bottom: 0px;
+  padding-right: 5%;
+  font-weight: bold;
+  display: inline;
+}
+
 
 @media only screen and (max-width: 1200px) {
   .awa-portfolio-4 .grid-sizer, .awa-portfolio-4 .grid-item {
@@ -2027,6 +2121,10 @@
 
   .awa-portfolio-4 .grid-item {
     padding-bottom: calc(100% / 2 - 8px)
+  }
+
+  .awa-portfolio-4 .grid-item:hover {
+    opacity: 0.7
   }
 
   .awa-portfolio-4 .grid-item.big {
