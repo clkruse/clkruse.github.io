@@ -16199,6 +16199,16 @@ body.search {
   height: 35vw
 }
 
+.bg_img_ml {
+  background-image: url("../img/tiltShiftScreenshot.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 65%;
+  height: 20vw
+}
+
+
 .body_bg {
   background-color: #00113c
 }
