@@ -168,7 +168,7 @@ footer.zindex {
 	z-index: 999;
 	left: 0;
 	top: 50px;
-	min-width: 250px;
+	/*min-width: 250px;*/
 	display: none;
 	box-sizing: border-box;
 }
@@ -1226,7 +1226,7 @@ header .logo:hover {
 	}
 
 	header {
-		padding: 10px 45px;
+		padding: 30px 45px;
 	}
 
 	#topmenu ul li ul {
@@ -2038,7 +2038,7 @@ header .logo:hover {
 		padding: 0;
 	}
 	.right-menu.left {
-		padding: 0 85px;
+		padding: 0 0px;
 	}
 	.unit .right-menu.left {
 		padding: 0 15px;
@@ -2107,7 +2107,7 @@ header .logo:hover {
 		-o-transform: translateY(-4px) rotate(-45deg);
 		transform: translateY(-4px) rotate(-45deg);
 	}
-	
+
 	.header_trans-fixed.header_top_bg .right-menu.left #topmenu  ul  li  a {
 		padding: 0;
 	}
@@ -2125,8 +2125,8 @@ header .logo:hover {
 
 	.right-menu.left #topmenu .sub-menu {
 		top: 75px;
-		left: -35px;
-		min-width: 270px;
+		left: -200%;
+		/*min-width: 270px;*/
 		padding: 30px 0;
 		background-color: #ffffff;
 		-webkit-box-shadow: 3px 1px 20px 0 rgba(0, 0, 0, 0.07);
