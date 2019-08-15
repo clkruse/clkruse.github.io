@@ -6,6 +6,11 @@ html.js {
   font-size: 14px
 }
 
+.text .subtitle {
+  font-style: italic;
+  font-weight: 700
+}
+
 body {
   min-height: 100vh;
   overflow-x: hidden;
