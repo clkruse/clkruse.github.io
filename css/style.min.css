@@ -11,6 +11,10 @@ html.js {
   font-weight: 700
 }
 
+.text p {
+  font-family: 'Raleway', sans-serif
+}
+
 body {
   min-height: 100vh;
   overflow-x: hidden;
