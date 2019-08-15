@@ -94,55 +94,63 @@
       </div>
     </div>
 
-    <div class="row">
-      <div class="container">
-        <div class="row margin-lg-100t margin-md-80t margin-sm-40t margin-xs-30t margin-lg-80b margin-md-55b margin-sm-40b margin-xs-20b">
-          <div class="col-xs-12">
-            <div class="headings-wrap not-bg-title">
-              <div class="headings style2">
-                <div class="content">
-                  <div class="info">
-                    <h5 class="subtitle" style="color:#4384d9">old faithful</h5>
-                    <h3 class="title" style="color:#222222">neural-network based time series prediction to model geyser eruptions</h3>
+    <div class="container-fluid">
+        <div class="container">
+          <div class="row col-xs-12 margin-lg-100t margin-md-80t margin-sm-40t margin-xs-30t margin-lg-80b margin-md-55b margin-sm-40b margin-xs-20b">
+            <!--<div class="row margin-lg-100t margin-md-80t margin-sm-40t margin-xs-30t margin-lg-80b margin-md-55b margin-sm-40b margin-xs-20b">-->
+            <div class="">
+              <div class="headings-wrap not-bg-title">
+                <div class="headings style2">
+                  <div class="content">
+                    <div class="info">
+                      <h5 class="subtitle" style="color:#4384d9">old faithful</h5>
+                      <h3 class="title" style="color:#222222">neural-network based time series prediction to model geyser eruptions</h3>
+                    </div>
                   </div>
                 </div>
-              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <div class="container-fluid portfolio-single-content menio ">
+    <div class="container-fluid ">
       <div class="row">
-
         <div class="container">
-          <div class="row ">
-
-            <!--<div class="blockquote">this is an excellent company ! i personally enjoyed the energy and the professional. <cite>insightstudio</cite></div>!-->
-            <div class="text-wrap margin-lg-0t margin-md-0t margin-sm-0t margin-xs-0t">
+          <div class="row row margin-xs-20b margin-md-20b margin-lg-40b">
+            <div class="col-md-offset-1 col-md-5">
               <div class="text">
                 <h5>background</h5>
                 <p>
                   Old Faithful has long been known for its large geyser plume, and its frequence and regularity of eruptions. Though common lore suggests that it erupts every hour, on the hour, it actually erupts closer to every 90 minutes.
-                </br>
-                  Predicting the geyser's next time of eruption is important to the Yellowstone park service as it allows visitors to get in position to watch the geyser eruption. The current forecasting algorithm for the time until next eruption is based on a simple regression based on the duration of the previous eruption. The distribution of time to next eruption is bimodal, with a peak at 65 minutes for short eruptions, and 92 minutes for long eruptions.
-                </br>
+                  </br></br>
+                  Predicting the geyser's next time of eruption is important to the Yellowstone park service as it allows visitors to get in position to watch the geyser eruption. The current forecasting algorithm for the time until next eruption is
+                  based on a simple regression based on the duration of the previous eruption. The distribution of time to next eruption is bimodal, with a peak at 65 minutes for short eruptions, and 92 minutes for long eruptions.
+                  </br></br>
                   I visited Yellowstone in 2018, and wondered if a neural network might be able to tease out more subtle correlations in the eruption patterns to be able to forecast more accurately.
                 </p>
-                <p>
-                  <img src="img/Distribution of Eruption Times.png" />
-                </p>
               </div>
+            </div>
+            <div class="col-md-5 right">
+              <img src="img/Distribution of Eruption Times.png" />
+            </div>
+          </div>
+          <div class="row">
+
+            <div class="col-md-offset-1 col-md-5">
+
               <div class="text">
                 <h5>data format</h5>
                 <p>
                   Though the best dataset to use
-                  Old Faithful is closely monitored by the park service in Yellowstone with the time and rough duration of the eruption logged. The duration of the previous eruption is one of the main features used by the park to predict when the next eruption will occur. Additionally, the temperature at geyser mouth was monitored every minute from April through October of 2015. Given that temperature at the mouth of the geyser captures the duration of the eruption in the most rich and consistent of a manner, I used this dataset for this model.
+                  Old Faithful is closely monitored by the park service in Yellowstone with the time and rough duration of the eruption logged. The duration of the previous eruption is one of the main features used by the park to predict when the
+                  next eruption will occur. Additionally, the temperature at geyser mouth was monitored every minute from April through October of 2015. Given that temperature at the mouth of the geyser captures the duration of the eruption in the
+                  most rich and consistent of a manner, I used this dataset for this model.
                 </p>
-                <p>
-                  <img src="img/Temperature vs. Time.png" />
-                </p>
+              </div>
+            </div>
+            <div class="col-md-5 right">
+              <img src="img/Temperature vs. Time.png" />
             </div>
           </div>
         </div>
