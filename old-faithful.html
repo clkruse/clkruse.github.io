@@ -122,24 +122,40 @@
           <img src="img/Distribution of Eruption Times.png" />
         </div>
       </div>
-      <div class="row">
 
+      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
         <div class="col-md-offset-1 col-md-5">
-
           <div class="text">
             <h5 class="subtitle">data format</h5>
             <p>
               The ideal dataset for prediction would be temperature of the mouth of the geyser sampled frequently. This would capture the precise time of each eruption, as well as the duration of that eruption. Unfortunately, there are no public datasets of this nature available for Old Faithful.
             </br></br>
-              For this model, I found a dataset that logged the time of each eruption from 2000-2011, and a dataset that logged the temperature in a channel away from the mouth of the geyser every minute from April through October of 2015. The eruption time dataset contains ~58,000 eruptions, wheras the shorter duration of the eruption temperature dataset means it only has ~7,100 eruptions.
+              For this model, I found a dataset from <a href="geyserstudy.org/geyser.aspx?pGeyserNo=OLDFAITHFUL">geyserstudy.org</a> that logged the time of each eruption from 2000-2011, and a dataset from <a href="https://geysertimes.org/geyser.php?id=Old+Faithful">geysertimes.org</a> that logged the temperature in a channel away from the mouth of the geyser every minute from April through October of 2015. The eruption time dataset contains ~58,000 eruptions, wheras the shorter duration of the eruption temperature dataset means it only has ~7,100 eruptions.
             </br></br>
-              <!--Old Faithful is closely monitored by the park service in Yellowstone with the time and rough duration of the eruption logged. The duration of the previous eruption is one of the main features used by the park to predict when the next eruption will occur. Additionally, the temperature at geyser mouth was monitored every minute from April through October of 2015. Given that temperature at the mouth of the geyser captures the duration of the eruption in the
-              most rich and consistent of a manner, I used this dataset for this model.-->
+              Unfortunately, neither of these datasets capture the duration of each eruption, which is the most notable predictor of next eruption time. The geyser time dataset only logs that time at which the eruption started. The channel temperature dataset comes closer, but the low sampling frequency (sampled once per minute) and dependence on the volume of water in the channel makes it more difficult to explicitly find the duration of an eruption.
             </p>
           </div>
         </div>
         <div class="col-md-5 right">
           <img src="img/Temperature vs. Time.png" />
+        </div>
+      </div>
+
+      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
+        <div class="col-md-offset-1 col-md-5">
+          <div class="text">
+            <h5 class="subtitle">model design - objective</h5>
+            <p>
+              With the datasets in hand, I needed to structure an appropriate objective for the model to optimize towards. Trying to frame your question in the best possible way for the network to learn is one of the most interesting parts of machine learning for me. As described in earlier, the overall goal is to be able to predict what time the next eruption will take place. Using the temperature dataset, I could ask the network to implicitly give me this answer in a few different ways.
+            </br></br>
+              &nbsp&nbsp•  Objective 1: Using temperature spikes in the input data to indicate when an eruption has occured, ask the network to directly predict the time until the next eruption given a set of previous temperature readings.
+            </br>
+              &nbsp&nbsp• Objective 2: Ask the network to predict the next <i>n</i> temperature readings. Take the time of the next predicted temperature spike to be the time of eruption.
+            </p>
+          </div>
+        </div>
+        <div class="col-md-5 right">
+          <img src="img/Distribution of Eruption Times.png" />
         </div>
       </div>
     </div>
