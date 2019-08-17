@@ -17,7 +17,8 @@ html.js {
 
 .text li {
   color: #595959;
-  margin-left: 5%
+  margin-left: 5%;
+  font-family: "Muli", sans-serif
 }
 
 body {
