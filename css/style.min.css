@@ -15,6 +15,11 @@ html.js {
   color: #595959;
 }
 
+.text li {
+  color: #595959;
+  margin-left: 5%
+}
+
 body {
   min-height: 100vh;
   overflow-x: hidden;
