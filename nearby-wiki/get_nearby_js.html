@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=Playfair+Display|Roboto+Slab&display=swap" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="style.css">
+</head>
+
+<body>
+  <div class="card">
+    <h2 id="location">Click to show articles in your location
+    </h2>
+    <button id="button" onclick="getArticles(getLocation)">Get Articles</button>
+    <p id="articles"></p>
+  </div>
+
+
+
+</body>
+<script>
+  function getArticles() {
+    getLocation(function(lat_lng) {
+      var pos = lat_lng;
+
+      document.getElementById("location").innerHTML = "Your location is " + pos.lat.toString() + " N, " + pos.lng.toString() + " W";
+      document.getElementById("button").innerHTML = "Get new articles";
+      //var location = position.lat + "|" + getLocation().lng
+
+      var url = "https://en.wikipedia.org/w/api.php";
+
+      var params = {
+        action: "query",
+        list: "geosearch",
+        gscoord: pos.lat.toString() + "|" +  pos.lng.toString(),
+        gsradius: "10000",
+        gslimit: "10",
+        format: "json"
+      };
+
+      // We're appending the keys and info to create an api query url. e.g. https://en.wikipedia.org/w/api.php?origin=*&action=query&list=geosearch&gscoord=37.7891838|-122.4033522&gsradius=10000&gslimit=10&format=json
+      url = url + "?origin=*";
+
+      // For each key in the params, append the key and value to the url
+      Object.keys(params).forEach(function(key) {
+        url += "&" + key + "=" + params[key];
+      });
+
+
+      // Use the URL defined above to make a query to the wikipedia api and return the json response
+      fetch(url)
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(response) {
+          var pages = response.query.geosearch;
+          for (var place in pages) {
+            console.log(pages[place].title);
+            getArticleIntro(pages[place].title, writeCard);
+          };
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+      });
+  }
+</script>
+
+<script>
+  var x = document.getElementById("location");
+
+  function getLocation(callback) {
+    if (navigator.geolocation) {
+      var lat_lng = navigator.geolocation.getCurrentPosition(function(position) {
+        console.log(position);
+        var user_position = {};
+        user_position.lat = position.coords.latitude;
+        user_position.lng = position.coords.longitude;
+        callback(user_position);
+      });
+    } else {
+      alert("Geolocation is not supported by this browser.");
+    }
+  }
+
+</script>
+
+<script>
+  function getArticleIntro(title, callback) {
+    var url = "https://en.wikipedia.org/w/api.php";
+    var params = {
+      action: "query",
+      format: "json",
+      titles: title,
+      prop: "extracts",
+      exintro: "True",
+      explaintext: "True"
+    };
+
+    // We're appending the keys and info to create an api query url. e.g. https://en.wikipedia.org/w/api.php?origin=*&action=query&list=geosearch&gscoord=37.7891838|-122.4033522&gsradius=10000&gslimit=10&format=json
+    url = url + "?origin=*";
+
+    // For each key in the params, append the key and value to the url
+    Object.keys(params).forEach(function(key) {
+      url += "&" + key + "=" + params[key];
+    });
+
+    fetch(url)
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(response) {
+        var pages = response.query.pages;
+        var articleID = Object.keys(pages);
+        var article = pages[articleID];
+        var text = article["extract"];
+        var title = article.title;
+        console.log(title)
+        callback(title, text);
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
+
+
+
+  }
+
+  function writeCard(title, text) {
+    console.log(title)
+    console.log(text)
+
+    var newDiv = document.createElement("div");
+    newDiv.setAttribute("class", "card");
+    var header = document.createElement("h2")
+    var newContent = document.createTextNode(title);
+    header.appendChild(newContent);
+    newDiv.appendChild(header);
+    var intro = document.createElement("p")
+    var articleText = document.createTextNode(text);
+    intro.appendChild(articleText);
+    newDiv.appendChild(intro);
+    var currentDiv = document.getElementById("card");
+    document.body.insertBefore(newDiv, currentDiv);
+  }
+
+</script>
+</html>
