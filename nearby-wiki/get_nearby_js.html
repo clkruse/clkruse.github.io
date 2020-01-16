@@ -2,22 +2,37 @@
 <html>
 
 <head>
+  <title>Wikitrip</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://fonts.googleapis.com/css?family=Playfair+Display|Roboto+Slab&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css?family=Crimson+Text:400,400i,600,600i,700,700i|Playfair+Display|Roboto+Slab&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="style.css">
+
 </head>
 
 <body>
-  <div class="card">
-    <h2 id="location">Click to show articles in your location
-    </h2>
-    <button id="button" onclick="getArticles(getLocation)">Get Articles</button>
-    <p id="articles"></p>
+  <div class="container-fluid" id="main-container">
+      <div class="row title">
+        <h1 class="mx-4 my-2">Wikitrip</h1>
+      </div>
+      <div class="container px-2">
+      <div class="row pt-5">
+        <div class="col card">
+          <h2 class="" id="location">Click to show articles in your location
+          </h2>
+          <button id="button" onclick="getArticles(getLocation)">Get Articles</button>
+          <p id="articles"></p>
+        </div>
+      </div>
+      <div class="row pt-3" id="content">
+      </div>
+    </div>
   </div>
 
 
 
 </body>
+
 <script>
   function getArticles() {
     getLocation(function(lat_lng) {
@@ -32,7 +47,7 @@
       var params = {
         action: "query",
         list: "geosearch",
-        gscoord: pos.lat.toString() + "|" +  pos.lng.toString(),
+        gscoord: pos.lat.toString() + "|" + pos.lng.toString(),
         gsradius: "10000",
         gslimit: "10",
         format: "json"
@@ -54,6 +69,7 @@
         })
         .then(function(response) {
           var pages = response.query.geosearch;
+
           for (var place in pages) {
             console.log(pages[place].title);
             getArticleIntro(pages[place].title, writeCard);
@@ -62,7 +78,7 @@
         .catch(function(error) {
           console.log(error);
         });
-      });
+    });
   }
 </script>
 
@@ -82,7 +98,6 @@
       alert("Geolocation is not supported by this browser.");
     }
   }
-
 </script>
 
 <script>
@@ -129,9 +144,8 @@
   function writeCard(title, text) {
     console.log(title)
     console.log(text)
-
     var newDiv = document.createElement("div");
-    newDiv.setAttribute("class", "card");
+    newDiv.setAttribute("class", "col-6 my-2 card");
     var header = document.createElement("h2")
     var newContent = document.createTextNode(title);
     header.appendChild(newContent);
@@ -140,9 +154,11 @@
     var articleText = document.createTextNode(text);
     intro.appendChild(articleText);
     newDiv.appendChild(intro);
-    var currentDiv = document.getElementById("card");
-    document.body.insertBefore(newDiv, currentDiv);
-  }
 
+    var currentDiv = document.getElementById("content");
+    currentDiv.appendChild(newDiv);
+  }
 </script>
+
+
 </html>
