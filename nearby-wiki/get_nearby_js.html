@@ -38,7 +38,7 @@
     getLocation(function(lat_lng) {
       var pos = lat_lng;
 
-      document.getElementById("location").innerHTML = "Your location is " + pos.lat.toString() + " N, " + pos.lng.toString() + " W";
+      document.getElementById("location").innerHTML = "Your location is " + pos.lat.toFixed(2) + " N, " + pos.lng.toFixed(2) + " W";
       document.getElementById("button").innerHTML = "Get new articles";
       //var location = position.lat + "|" + getLocation().lng
 
@@ -107,7 +107,9 @@
       action: "query",
       format: "json",
       titles: title,
-      prop: "extracts",
+      prop: "extracts|pageimages",
+      piprop: "thumbnail",
+      pithumbsize: "250",
       exintro: "True",
       explaintext: "True"
     };
@@ -129,9 +131,11 @@
         var articleID = Object.keys(pages);
         var article = pages[articleID];
         var text = article["extract"];
+        var img = article["thumbnail"].source;
+        console.log(img);
         var title = article.title;
         console.log(title)
-        callback(title, text);
+        callback(title, text, img);
       })
       .catch(function(error) {
         console.log(error);
@@ -141,19 +145,31 @@
 
   }
 
-  function writeCard(title, text) {
+  function writeCard(title, text, img) {
     console.log(title)
     console.log(text)
     var newDiv = document.createElement("div");
-    newDiv.setAttribute("class", "col-6 my-2 card");
-    var header = document.createElement("h2")
+    newDiv.setAttribute("class", "col-md-6 col-xs-12 my-2");
+    var intDiv = document.createElement("div");
+    intDiv.setAttribute("class", "col-12 card");
+    newDiv.appendChild(intDiv);
+
+    var header = document.createElement("h2");
+    intDiv.appendChild(header);
+
     var newContent = document.createTextNode(title);
     header.appendChild(newContent);
-    newDiv.appendChild(header);
+
+    var image = document.createElement("img");
+
+
     var intro = document.createElement("p")
+    image.setAttribute("src", img);
+    image.setAttribute("style", "width: 50%; float: left; padding-right: 5%");
+    intro.appendChild(image);
     var articleText = document.createTextNode(text);
     intro.appendChild(articleText);
-    newDiv.appendChild(intro);
+    intDiv.appendChild(intro);
 
     var currentDiv = document.getElementById("content");
     currentDiv.appendChild(newDiv);
