@@ -35,6 +35,12 @@
 
 <script>
   function getArticles() {
+
+    var existingArticles = document.getElementById('content');
+    while (existingArticles.firstChild) {
+      existingArticles.removeChild(existingArticles.firstChild);
+    }
+
     getLocation(function(lat_lng) {
       var pos = lat_lng;
 
@@ -131,10 +137,9 @@
         var articleID = Object.keys(pages);
         var article = pages[articleID];
         var text = article["extract"];
-        var img = article["thumbnail"].source;
-        console.log(img);
+        var img = article["thumbnail"];
+        img = img["source"];
         var title = article.title;
-        console.log(title)
         callback(title, text, img);
       })
       .catch(function(error) {
