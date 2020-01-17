@@ -3,7 +3,7 @@
 
 <head>
   <title>Wikitrip</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css?family=Crimson+Text:400,400i,600,600i,700,700i|Playfair+Display|Roboto+Slab&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="style.css">
@@ -12,12 +12,12 @@
 
 <body>
   <div class="container-fluid" id="main-container">
-      <div class="row title">
+      <div class="row page-title">
         <h1 class="mx-4 my-2">Wikitrip</h1>
       </div>
       <div class="container px-2">
       <div class="row pt-5 px-3">
-        <div class="col card">
+        <div id="titleBox" class="col card">
           <h2 class="" id="location">Click to show articles in your location
           </h2>
           <button id="button" onclick="getArticles(getLocation)">Get Articles</button>
@@ -44,9 +44,18 @@
     getLocation(function(lat_lng) {
       var pos = lat_lng;
 
-      document.getElementById("location").innerHTML = "Your location is " + pos.lat.toFixed(2) + " N, " + pos.lng.toFixed(2) + " W";
-      document.getElementById("button").innerHTML = "Get new articles";
+      // document.getElementById("location").innerHTML = "Your location is " + pos.lat.toFixed(2) + " N, " + pos.lng.toFixed(2) + " W";
+      // document.getElementById("button").innerHTML = "Get new articles";
       //var location = position.lat + "|" + getLocation().lng
+
+      var locationTitle = document.createElement("h1");
+      locationTitle.setAttribute("class", "jumbo");
+
+      var location = document.createTextNode(pos.lat.toFixed(2) + "° N " + pos.lng.toFixed(2) + "° W");
+      locationTitle.appendChild(location);
+
+      var oldTitle = document.getElementById("titleBox");
+      oldTitle.parentNode.replaceChild(locationTitle, oldTitle);
 
       var url = "https://en.wikipedia.org/w/api.php";
 
@@ -78,7 +87,9 @@
 
           for (var place in pages) {
             console.log(pages[place].title);
-            getArticleIntro(pages[place].title, writeCard);
+            var distance = pages[place].dist / 1000
+            distance = distance.toFixed(1);
+            getArticleIntro(pages[place].title, distance, writecardContainer);
           };
         })
         .catch(function(error) {
@@ -107,13 +118,13 @@
 </script>
 
 <script>
-  function getArticleIntro(title, callback) {
+  function getArticleIntro(title, distance, callback) {
     var url = "https://en.wikipedia.org/w/api.php";
     var params = {
       action: "query",
       format: "json",
       titles: title,
-      prop: "extracts|pageimages",
+      prop: "extracts|pageimages|categories",
       piprop: "thumbnail",
       pithumbsize: "250",
       exintro: "True",
@@ -139,8 +150,10 @@
         var text = article["extract"];
         var img = article["thumbnail"];
         img = img["source"];
+        var cat = article["categories"][0].title;
+        cat = cat.substring(9);
         var title = article.title;
-        callback(title, text, img);
+        callback(title, distance, text, cat, img);
       })
       .catch(function(error) {
         console.log(error);
@@ -150,34 +163,63 @@
 
   }
 
-  function writeCard(title, text, img) {
+  function writecardContainer(title, distance, text, cat, img) {
     console.log(title)
     console.log(text)
-    var newDiv = document.createElement("div");
-    newDiv.setAttribute("class", "col-md-6 col-xs-12 my-2");
-    var intDiv = document.createElement("div");
-    intDiv.setAttribute("class", "col-12 card");
-    newDiv.appendChild(intDiv);
-
-    var header = document.createElement("h2");
-    intDiv.appendChild(header);
-
-    var newContent = document.createTextNode(title);
-    header.appendChild(newContent);
-
-    var image = document.createElement("img");
-
-
-    var intro = document.createElement("p")
-    image.setAttribute("src", img);
-    image.setAttribute("style", "width: 50%; float: left; padding-right: 5%; padding-top: 1.5%");
-    intro.appendChild(image);
-    var articleText = document.createTextNode(text);
-    intro.appendChild(articleText);
-    intDiv.appendChild(intro);
+    var cardContainer = document.createElement("div");
+    cardContainer.setAttribute("class", "col-md-4 col-xs-12 my-2 article-card");
 
     var currentDiv = document.getElementById("content");
-    currentDiv.appendChild(newDiv);
+    currentDiv.appendChild(cardContainer);
+
+    var card = document.createElement("div");
+    card.setAttribute("class", "col-12 ");
+    cardContainer.appendChild(card);
+
+    var info = document.createElement("div");
+    info.setAttribute("class", "info");
+    card.appendChild(info);
+
+    var bullet = document.createElement("h3");
+    bullet.setAttribute("class", "bullet mr-2");
+    info.appendChild(bullet);
+
+    dist = document.createTextNode(distance);
+    bullet.appendChild(dist);
+
+    var bullet = document.createElement("h3");
+    bullet.setAttribute("class", "bullet direction");
+    info.appendChild(bullet);
+    direction = document.createTextNode("NW");
+    bullet.appendChild(direction);
+
+    var header = document.createElement("h2");
+    card.appendChild(header);
+    var titleText = document.createTextNode(title);
+    header.appendChild(titleText);
+
+    var subtext = document.createElement("h5");
+    subtext.setAttribute("class", "subtext");
+    card.appendChild(subtext);
+
+
+
+    var category = document.createTextNode(cat);
+    subtext.appendChild(category);
+
+    var imageContainer = document.createElement("div")
+    imageContainer.setAttribute("class", "thumbnail");
+    card.appendChild(imageContainer);
+
+    var image = document.createElement("img");
+    image.setAttribute("src", img);
+    imageContainer.appendChild(image);
+
+    var intro = document.createElement("p")
+    var articleText = document.createTextNode(text);
+    intro.appendChild(articleText);
+
+    card.appendChild(intro);
   }
 </script>
 
