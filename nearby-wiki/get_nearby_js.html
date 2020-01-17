@@ -4,13 +4,16 @@
 <head>
   <title>Wikitrip</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon"
+      type="image/png"
+      href="favicon.jpg">
   <link href="https://fonts.googleapis.com/css?family=Crimson+Text:400,400i,600,600i,700,700i|Playfair+Display|Roboto+Slab&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="style.css">
 
 </head>
 
-<body>
+<body onload="getArticles(getLocation)">
   <div class="container-fluid" id="main-container">
       <div class="row page-title">
         <h1 class="mx-4 my-2">Wikitrip</h1>
@@ -64,7 +67,7 @@
         list: "geosearch",
         gscoord: pos.lat.toString() + "|" + pos.lng.toString(),
         gsradius: "10000",
-        gslimit: "10",
+        gslimit: "12",
         format: "json"
       };
 
@@ -222,6 +225,16 @@
     card.appendChild(intro);
   }
 </script>
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-105607174-2"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
 
+		function gtag() {
+			dataLayer.push(arguments);
+		}
+		gtag('js', new Date());
+
+		gtag('config', 'UA-105607174-2');
+	</script>
 
 </html>
