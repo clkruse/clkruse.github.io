@@ -129,7 +129,7 @@
       action: "query",
       format: "json",
       titles: title,
-      prop: "extracts|pageimages|categories",
+      prop: "extracts|pageimages|categories|description",
       piprop: "thumbnail",
       pithumbsize: "250",
       exintro: "True",
@@ -155,8 +155,13 @@
         var text = article["extract"];
         var img = article["thumbnail"];
         img = img.source;
-        var cat = article["categories"][0].title;
-        cat = cat.substring(9);
+        if (article["description"]) {
+          var cat = article["description"];
+          cat = cat.charAt(0).toUpperCase() + cat.slice(1);
+        }
+        else {
+          var cat = ""
+        }
         var title = article.title;
         callback(title, distance, dirInfo, text, cat, img);
       })
@@ -178,9 +183,9 @@
     }
 
     var colorN = [67, 185, 215];
-    var colorE = [136, 177, 79];
-    var colorS = [242, 137, 53];
-    var colorW = [195, 33, 48];
+    var colorE = [80, 204, 78];
+    var colorS = [244, 193, 16];
+    var colorW = [204, 66, 66];
 
     var direction = degToCompass(angle);
 
