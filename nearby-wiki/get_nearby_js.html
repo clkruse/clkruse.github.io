@@ -226,7 +226,7 @@
 function degToCompass(num) {
     var val = Math.floor((num / 45) + 0.5);
     var arr = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-    return arr[(val % 16)];
+    return arr[(val % 8)];
 }
 
 
