@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Wikitrip</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="favicon.jpg">
+  <link href="https://fonts.googleapis.com/css?family=Crimson+Text:400,400i,600,600i,700,700i&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+  <link rel="stylesheet" type="text/css" href="style.css">
+
+</head>
+
+<body onload="getArticles(getLocation)">
+  <div class="container-fluid" id="main-container">
+    <div class="row page-title">
+      <h1 class="mx-4 my-2">Wikitrip</h1>
+    </div>
+    <div class="container px-2">
+      <div class="row pt-5 px-3">
+        <div id="titleBox" class="col card">
+          <h2 class="" id="location">Click to show articles in your location
+          </h2>
+          <button id="button" onclick="getArticles(getLocation)">Get Articles</button>
+          <p id="articles"></p>
+        </div>
+      </div>
+      <div class="card-columns mx-n3 pt-3" id="content">
+      </div>
+    </div>
+  </div>
+
+
+
+</body>
+
+<script>
+  function getArticles() {
+
+    var existingArticles = document.getElementById('content');
+    while (existingArticles.firstChild) {
+      existingArticles.removeChild(existingArticles.firstChild);
+    }
+
+    getLocation(function(lat_lng) {
+      var pos = lat_lng;
+      console.log("Getting location");
+      // document.getElementById("location").innerHTML = "Your location is " + pos.lat.toFixed(2) + " N, " + pos.lng.toFixed(2) + " W";
+      // document.getElementById("button").innerHTML = "Get new articles";
+      //var location = position.lat + "|" + getLocation().lng
+
+      var locationTitle = document.createElement("h1");
+      locationTitle.setAttribute("class", "jumbo");
+
+      var location = document.createTextNode(pos.lat.toFixed(2) + "° N " + pos.lng.toFixed(2) + "° W");
+      locationTitle.appendChild(location);
+
+      var oldTitle = document.getElementById("titleBox");
+      oldTitle.parentNode.replaceChild(locationTitle, oldTitle);
+
+      var url = "https://en.wikipedia.org/w/api.php";
+
+      var params = {
+        action: "query",
+        list: "geosearch",
+        gscoord: pos.lat.toString() + "|" + pos.lng.toString(),
+        gsradius: "10000",
+        gslimit: "12",
+        format: "json"
+      };
+
+      // We're appending the keys and info to create an api query url. e.g. https://en.wikipedia.org/w/api.php?origin=*&action=query&list=geosearch&gscoord=37.7891838|-122.4033522&gsradius=10000&gslimit=10&format=json
+      url = url + "?origin=*";
+
+      // For each key in the params, append the key and value to the url
+      Object.keys(params).forEach(function(key) {
+        url += "&" + key + "=" + params[key];
+      });
+
+
+      // Use the URL defined above to make a query to the wikipedia api and return the json response
+      fetch(url)
+        .then(function(response) {
+          return response.json();
+        })
+        .then(function(response) {
+          var pages = response.query.geosearch;
+
+          for (var place in pages) {
+            var distance = pages[place].dist / 1000
+            distance = distance.toFixed(1);
+            var articleLat = pages[place].lat;
+            var articleLon = pages[place].lon;
+
+            var dirInfo = getColorFromAngle(pos.lat, pos.lng, articleLat, articleLon);
+
+
+            getArticleIntro(pages[place].title, distance, dirInfo, writecardContainer);
+          };
+        })
+        .catch(function(error) {
+          console.log(error);
+        });
+    });
+  }
+</script>
+
+<script>
+  var x = document.getElementById("location");
+
+  function getLocation(callback) {
+    if (navigator.geolocation) {
+      var lat_lng = navigator.geolocation.getCurrentPosition(function(position) {
+        var user_position = {};
+        user_position.lat = position.coords.latitude;
+        user_position.lng = position.coords.longitude;
+        callback(user_position);
+      });
+    } else {
+      alert("Geolocation is not supported by this browser.");
+    }
+  }
+</script>
+
+<script>
+  function getArticleIntro(title, distance, dirInfo, callback) {
+    var url = "https://en.wikipedia.org/w/api.php";
+    var params = {
+      action: "query",
+      format: "json",
+      titles: title,
+      prop: "extracts|pageimages|categories|description",
+      piprop: "thumbnail",
+      pithumbsize: "250",
+      exintro: "True",
+      explaintext: "True"
+    };
+
+    // We're appending the keys and info to create an api query url. e.g. https://en.wikipedia.org/w/api.php?origin=*&action=query&list=geosearch&gscoord=37.7891838|-122.4033522&gsradius=10000&gslimit=10&format=json
+    url = url + "?origin=*";
+
+    // For each key in the params, append the key and value to the url
+    Object.keys(params).forEach(function(key) {
+      url += "&" + key + "=" + params[key];
+    });
+
+    fetch(url)
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(response) {
+        var pages = response.query.pages;
+        var articleID = Object.keys(pages);
+        var article = pages[articleID];
+        var text = article["extract"];
+        var img = article["thumbnail"];
+        img = img.source;
+        if (article["description"]) {
+          var cat = article["description"];
+          cat = cat.charAt(0).toUpperCase() + cat.slice(1);
+        }
+        else {
+          var cat = ""
+        }
+        var title = article.title;
+        callback(title, distance, dirInfo, text, cat, img);
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
+  }
+
+  function getColorFromAngle(user_lat, user_lon, article_lat, article_lon) {
+    var y = article_lat - user_lat;
+    var x = article_lon - user_lon;
+
+    if (x >= 0) {
+      var angle = 90 - Math.atan(y / x) * 180 / Math.PI;
+    }
+
+    if (x < 0) {
+      var angle = 270 - Math.atan(y / x) * 180 / Math.PI ;
+    }
+
+    var colorN = [67, 185, 215];
+    var colorE = [80, 204, 78];
+    var colorS = [244, 193, 16];
+    var colorW = [204, 66, 66];
+
+    var direction = degToCompass(angle);
+
+    if (angle >= 0 && angle < 90) {
+      var color = [];
+      for (var i = 0; i < colorN.length; i++) {
+        color.push((colorN[i] - colorE[i]) * angle / 90 + colorN[i]);
+      }
+      var color = "rgb(" + color.toString() + ")";
+    }
+
+    if (angle >= 90 && angle < 180) {
+      var color = [];
+      for (var i = 0; i < colorN.length; i++) {
+        color.push((colorW[i] - colorN[i]) * ((angle - 90) / 90) + colorN[i]);
+      }
+      var color = "rgb(" + color.toString() + ")";
+    }
+
+    if (angle >= 180 && angle < 270) {
+      var color = [];
+      for (var i = 0; i < colorN.length; i++) {
+        color.push((colorS[i] - colorW[i]) * ((angle - 180) / 90) + colorW[i]);
+      }
+      var color = "rgb(" + color.toString() + ")";
+    }
+
+    if (angle >= 270 && angle < 360) {
+      var color = [];
+      for (var i = 0; i < colorN.length; i++) {
+        color.push((colorE[i] - colorS[i]) * ((angle - 270) / 90) + colorS[i]);
+      }
+      var color = "rgb(" + color.toString() + ")";
+    }
+    console.log("Angle: " + angle);
+    console.log("Color: " + color);
+    return([color, direction]);
+  }
+
+
+
+
+function degToCompass(num) {
+    var val = Math.floor((num / 45) + 0.5);
+    var arr = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+    return arr[(val % 8)];
+}
+
+
+  function writecardContainer(title, distance, dirInfo, text, cat, img) {
+    var cardContainer = document.createElement("div");
+    // cardContainer.setAttribute("class", "col-md-4 col-xs-12 my-2 article-card");
+    cardContainer.setAttribute("class", "article-card");
+
+    var currentDiv = document.getElementById("content");
+    currentDiv.appendChild(cardContainer);
+
+    var card = document.createElement("div");
+    card.setAttribute("class", "article-card-2 px-4 col-12");
+    cardContainer.appendChild(card);
+
+    var info = document.createElement("div");
+    info.setAttribute("class", "info");
+    card.appendChild(info);
+
+    var bullet = document.createElement("h3");
+    bullet.setAttribute("class", "bullet mr-2");
+    info.appendChild(bullet);
+
+    dist = document.createTextNode(distance);
+    bullet.appendChild(dist);
+
+    var bullet = document.createElement("h3");
+    bullet.setAttribute("class", "bullet direction");
+    info.appendChild(bullet);
+    direction = document.createTextNode(dirInfo[1]);
+    bullet.style.backgroundColor = dirInfo[0];
+    bullet.appendChild(direction);
+
+
+    var header = document.createElement("h2");
+    card.appendChild(header);
+    var titleText = document.createTextNode(title);
+    header.appendChild(titleText);
+
+    var subtext = document.createElement("h5");
+    subtext.setAttribute("class", "subtext");
+    card.appendChild(subtext);
+
+
+
+    var category = document.createTextNode(cat);
+    subtext.appendChild(category);
+
+    var imageContainer = document.createElement("div")
+    imageContainer.setAttribute("class", "thumbnail");
+    card.appendChild(imageContainer);
+
+    var image = document.createElement("img");
+    image.setAttribute("src", img);
+    imageContainer.appendChild(image);
+
+    var intro = document.createElement("p")
+    var articleText = document.createTextNode(text);
+    intro.appendChild(articleText);
+
+    card.appendChild(intro);
+  }
+</script>
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-105607174-2"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+
+  function gtag() {
+    dataLayer.push(arguments);
+  }
+  gtag('js', new Date());
+
+  gtag('config', 'UA-105607174-2');
+</script>
+
+</html>
