@@ -42,7 +42,11 @@ body {
 
 .article-text {
   padding-bottom: 0.75rem;
+<<<<<<< HEAD
   border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+=======
+  border-bottom: 1px dashed rgb(234, 113, 46);
+>>>>>>> b31a766eb908c3ee77526eed1639b0c06c67c8b7
 }
 
 
