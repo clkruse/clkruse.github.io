@@ -51,7 +51,7 @@
 
 <script>
   function getArticles() {
-
+    console.log("Getting articles nearby");
     var existingArticles = document.getElementById('content');
     while (existingArticles.firstChild) {
       existingArticles.removeChild(existingArticles.firstChild);
@@ -59,7 +59,7 @@
 
     getLocation(function(lat_lng) {
       var pos = lat_lng;
-      console.log("Getting location");
+      console.log("Getting your location");
       // document.getElementById("location").innerHTML = "Your location is " + pos.lat.toFixed(2) + " N, " + pos.lng.toFixed(2) + " W";
       // document.getElementById("button").innerHTML = "Get new articles";
       //var location = position.lat + "|" + getLocation().lng
