@@ -102,7 +102,7 @@
           var pages = response.query.geosearch;
 
           for (var place in pages) {
-            var distance = pages[place].dist / 1000
+            var distance = pages[place].dist / (1.609 * 1000)
             distance = distance.toFixed(1);
             var articleLat = pages[place].lat;
             var articleLon = pages[place].lon;
