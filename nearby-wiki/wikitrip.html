@@ -4,7 +4,7 @@
 <head>
   <title>Wikitrip</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="favicon.jpg">
+  <link rel="icon" type="image/png" href="favicon-32.png">
   <link href="https://fonts.googleapis.com/css?family=Crimson+Text:400,400i,600,600i,700,700i&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="style.css">
@@ -65,7 +65,7 @@
         list: "geosearch",
         gscoord: pos.lat.toString() + "|" + pos.lng.toString(),
         gsradius: "10000",
-        gslimit: "12",
+        gslimit: "18",
         format: "json"
       };
 
@@ -91,11 +91,18 @@
             distance = distance.toFixed(1);
             var articleLat = pages[place].lat;
             var articleLon = pages[place].lon;
-
             var dirInfo = getColorFromAngle(pos.lat, pos.lng, articleLat, articleLon);
 
+            var articleInfo = {
+              title: pages[place].title,
+              dist: distance,
+              lat: pages[place].lat,
+              lon: pages[place].lon,
+              color: dirInfo.color,
+              direction: dirInfo.direction,
+            };
 
-            getArticleIntro(pages[place].title, distance, dirInfo, writecardContainer);
+            getArticleIntro(articleInfo, writecardContainer);
           };
         })
         .catch(function(error) {
@@ -123,12 +130,12 @@
 </script>
 
 <script>
-  function getArticleIntro(title, distance, dirInfo, callback) {
+  function getArticleIntro(articleInfo, callback) {
     var url = "https://en.wikipedia.org/w/api.php";
     var params = {
       action: "query",
       format: "json",
-      titles: title,
+      titles: articleInfo.title,
       prop: "extracts|pageimages|categories|description",
       piprop: "thumbnail",
       pithumbsize: "250",
@@ -150,20 +157,20 @@
       })
       .then(function(response) {
         var pages = response.query.pages;
-        var articleID = Object.keys(pages);
+        var articleID = Object.keys(pages)[0];
         var article = pages[articleID];
-        var text = article["extract"];
-        var img = article["thumbnail"];
-        img = img.source;
+        articleInfo.articleID = articleID;
+        articleInfo.text = article.extract;
+        articleInfo.img = article.thumbnail.source;
+        console.log(articleInfo);
+
         if (article["description"]) {
-          var cat = article["description"];
-          cat = cat.charAt(0).toUpperCase() + cat.slice(1);
+          articleInfo.category = article["description"].charAt(0).toUpperCase() + article["description"].slice(1);;
         }
         else {
-          var cat = ""
+          articleInfo.category = "";
         }
-        var title = article.title;
-        callback(title, distance, dirInfo, text, cat, img);
+        callback(articleInfo);
       })
       .catch(function(error) {
         console.log(error);
@@ -182,17 +189,17 @@
       var angle = 270 - Math.atan(y / x) * 180 / Math.PI ;
     }
 
-    var colorN = [67, 185, 215];
-    var colorE = [80, 204, 78];
-    var colorS = [244, 193, 16];
-    var colorW = [204, 66, 66];
+    var colorN = [29, 140, 211];
+    var colorE = [176, 44, 127];
+    var colorS = [230, 172, 14];
+    var colorW = [27, 152, 153];
 
     var direction = degToCompass(angle);
 
     if (angle >= 0 && angle < 90) {
       var color = [];
       for (var i = 0; i < colorN.length; i++) {
-        color.push((colorN[i] - colorE[i]) * angle / 90 + colorN[i]);
+        color.push((colorN[i] - colorE[i]) * angle / 90 + colorE[i]);
       }
       var color = "rgb(" + color.toString() + ")";
     }
@@ -220,31 +227,37 @@
       }
       var color = "rgb(" + color.toString() + ")";
     }
-    console.log("Angle: " + angle);
+    console.log("Angle: " + angle.toFixed(0) + "°");
     console.log("Color: " + color);
-    return([color, direction]);
+    var output = {
+      color: color,
+      direction: direction
+    }
+    return(output);
   }
 
 
 
 
 function degToCompass(num) {
-    var val = Math.floor((num / 45) + 0.5);
-    var arr = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-    return arr[(val % 8)];
+    var val = Math.floor((num / 22.5) + 0.5);
+    var arr = ["N","NNE","NE","ENE","E","ESE", "SE", "SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+
+    return arr[(val % 16)];
 }
 
 
-  function writecardContainer(title, distance, dirInfo, text, cat, img) {
+  function writecardContainer(articleInfo) {
+    console.log(articleInfo);
     var cardContainer = document.createElement("div");
     // cardContainer.setAttribute("class", "col-md-4 col-xs-12 my-2 article-card");
-    cardContainer.setAttribute("class", "article-card");
+    cardContainer.setAttribute("class", "article-container pt-3");
 
     var currentDiv = document.getElementById("content");
     currentDiv.appendChild(cardContainer);
 
     var card = document.createElement("div");
-    card.setAttribute("class", "article-card-2 px-4 col-12");
+    card.setAttribute("class", "article-card px-4 col-12");
     cardContainer.appendChild(card);
 
     var info = document.createElement("div");
@@ -255,20 +268,20 @@ function degToCompass(num) {
     bullet.setAttribute("class", "bullet mr-2");
     info.appendChild(bullet);
 
-    dist = document.createTextNode(distance);
+    dist = document.createTextNode(articleInfo.dist);
     bullet.appendChild(dist);
 
     var bullet = document.createElement("h3");
     bullet.setAttribute("class", "bullet direction");
     info.appendChild(bullet);
-    direction = document.createTextNode(dirInfo[1]);
-    bullet.style.backgroundColor = dirInfo[0];
+    direction = document.createTextNode(articleInfo.direction);
+    bullet.style.backgroundColor = articleInfo.color;
     bullet.appendChild(direction);
 
 
     var header = document.createElement("h2");
     card.appendChild(header);
-    var titleText = document.createTextNode(title);
+    var titleText = document.createTextNode(articleInfo.title);
     header.appendChild(titleText);
 
     var subtext = document.createElement("h5");
@@ -277,7 +290,7 @@ function degToCompass(num) {
 
 
 
-    var category = document.createTextNode(cat);
+    var category = document.createTextNode(articleInfo.category);
     subtext.appendChild(category);
 
     var imageContainer = document.createElement("div")
@@ -285,11 +298,12 @@ function degToCompass(num) {
     card.appendChild(imageContainer);
 
     var image = document.createElement("img");
-    image.setAttribute("src", img);
+    image.setAttribute("src", articleInfo.img);
     imageContainer.appendChild(image);
 
-    var intro = document.createElement("p")
-    var articleText = document.createTextNode(text);
+    var intro = document.createElement("p");
+    intro.setAttribute("class", "article-text pt-2");
+    var articleText = document.createTextNode(articleInfo.text);
     intro.appendChild(articleText);
 
     card.appendChild(intro);
