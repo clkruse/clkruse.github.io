@@ -162,7 +162,6 @@
         articleInfo.articleID = articleID;
         articleInfo.text = article.extract;
         articleInfo.img = article.thumbnail.source;
-        console.log(articleInfo);
 
         if (article["description"]) {
           articleInfo.category = article["description"].charAt(0).toUpperCase() + article["description"].slice(1);;
@@ -227,8 +226,8 @@
       }
       var color = "rgb(" + color.toString() + ")";
     }
-    console.log("Angle: " + angle.toFixed(0) + "°");
-    console.log("Color: " + color);
+    //console.log("Angle: " + angle.toFixed(0) + "°");
+    //console.log("Color: " + color);
     var output = {
       color: color,
       direction: direction
@@ -248,7 +247,6 @@ function degToCompass(num) {
 
 
   function writecardContainer(articleInfo) {
-    console.log(articleInfo);
     var cardContainer = document.createElement("div");
     // cardContainer.setAttribute("class", "col-md-4 col-xs-12 my-2 article-card");
     cardContainer.setAttribute("class", "article-container pt-3");
@@ -303,11 +301,7 @@ function degToCompass(num) {
 
     var intro = document.createElement("p");
     intro.setAttribute("class", "article-text pt-2");
-<<<<<<< HEAD
     var articleText = document.createTextNode(articleInfo.text);
-=======
-    var articleText = document.createTextNode(text);
->>>>>>> b31a766eb908c3ee77526eed1639b0c06c67c8b7
     intro.appendChild(articleText);
 
     card.appendChild(intro);
