@@ -4,7 +4,7 @@
 <head>
   <title>Wikitrip</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="favicon.jpg">
+  <link rel="icon" type="image/png" href="favicon-32.png">
   <link href="https://fonts.googleapis.com/css?family=Crimson+Text:400,400i,600,600i,700,700i&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
   <link rel="stylesheet" type="text/css" href="style.css">
@@ -182,10 +182,10 @@
       var angle = 270 - Math.atan(y / x) * 180 / Math.PI ;
     }
 
-    var colorN = [67, 185, 215];
-    var colorE = [80, 204, 78];
-    var colorS = [244, 193, 16];
-    var colorW = [204, 66, 66];
+    var colorN = [29, 140, 211];
+    var colorE = [176, 44, 127];
+    var colorS = [230, 172, 14];
+    var colorW = [27, 152, 153];
 
     var direction = degToCompass(angle);
 
@@ -229,22 +229,23 @@
 
 
 function degToCompass(num) {
-    var val = Math.floor((num / 45) + 0.5);
-    var arr = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
-    return arr[(val % 8)];
+    var val = Math.floor((num / 22.5) + 0.5);
+    var arr = ["N","NNE","NE","ENE","E","ESE", "SE", "SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+
+    return arr[(val % 16)];
 }
 
 
   function writecardContainer(title, distance, dirInfo, text, cat, img) {
     var cardContainer = document.createElement("div");
     // cardContainer.setAttribute("class", "col-md-4 col-xs-12 my-2 article-card");
-    cardContainer.setAttribute("class", "article-card");
+    cardContainer.setAttribute("class", "article-container pt-3");
 
     var currentDiv = document.getElementById("content");
     currentDiv.appendChild(cardContainer);
 
     var card = document.createElement("div");
-    card.setAttribute("class", "article-card-2 px-4 col-12");
+    card.setAttribute("class", "article-card px-4 col-12");
     cardContainer.appendChild(card);
 
     var info = document.createElement("div");
@@ -288,7 +289,8 @@ function degToCompass(num) {
     image.setAttribute("src", img);
     imageContainer.appendChild(image);
 
-    var intro = document.createElement("p")
+    var intro = document.createElement("p");
+    intro.setAttribute("class", "article-text pt-2");
     var articleText = document.createTextNode(text);
     intro.appendChild(articleText);
 
