@@ -42,14 +42,13 @@ body {
 
 .article-text {
   padding-bottom: 0.75rem;
-<<<<<<< HEAD
   border-bottom: 1px solid rgba(0, 0, 0, 0.25);
-=======
-  border-bottom: 1px dashed rgb(234, 113, 46);
->>>>>>> b31a766eb908c3ee77526eed1639b0c06c67c8b7
 }
 
-
+.article-container a {
+  text-decoration: none;
+  color: black;
+}
 
 .bullet {
   display: inline-block;
@@ -153,22 +152,47 @@ p {
 
 button {
   padding: 0.35em 1.2em;
-  border: 0.1em solid #fc0;
+  /* border: 0.1em solid #fc0;*/
   margin: 0 0.3em 0.3em 0;
   border-radius: 0.2em;
   box-sizing: border-box;
   text-decoration: none;
-  /* font-family: 'Roboto Slab', serif; */
   font-weight: 500;
   font-size: 24px;
-  color: #000;
+  color: white;
+  background-color: black;
   text-align: center;
   transition: all 0.2s;
   display: inline-block;
   margin: 0 0.83em;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14rem;
+  margin-left: -7rem;
 }
 
 button:hover{
   color:#000;
   background-color:#fc0;
+}
+
+.test {
+  width: 100%;
+}
+
+.bg {
+  /* The image used */
+  background-image: url("bkg.jpg");
+  /* Full height */
+  height: 100%;
+  /* Center and scale the image nicely */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+body, html {
+  height: 100%;
+  margin: 0;
 }

@@ -16,7 +16,7 @@
   <link rel="apple-touch-icon" sizes="144x144" href="favicon.ico/apple-icon-144x144.png">
   <link rel="apple-touch-icon" sizes="152x152" href="favicon.ico/apple-icon-152x152.png">
   <link rel="apple-touch-icon" sizes="180x180" href="favicon.ico/apple-icon-180x180.png">
-  <link rel="icon" type="image/png" sizes="192x192"  href="favicon.ico/android-icon-192x192.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="favicon.ico/android-icon-192x192.png">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon.ico/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="96x96" href="favicon.ico/favicon-96x96.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon.ico/favicon-16x16.png">
@@ -24,23 +24,24 @@
   <meta name="msapplication-TileColor" content="#ffffff">
   <meta name="msapplication-TileImage" content="/ms-icon-144x144.png">
   <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Explore nearby Wikipedia articles" />
 </head>
 
-<body onload="getArticles(getLocation)">
-  <div class="container-fluid" id="main-container">
-    <div class="row page-title">
-      <h1 class="mx-4 my-2">Wikitrip</h1>
-    </div>
-    <div class="container px-2">
-      <div class="row pt-5 px-3">
-        <div id="titleBox" class="col card">
-          <h2 class="" id="location">Click to show articles in your location
-          </h2>
-          <button id="button" onclick="getArticles(getLocation)">Get Articles</button>
-          <p id="articles"></p>
-        </div>
+<!--<body onload="getArticles(getLocation)">-->
+
+<body>
+  <div id="bkg" class="bg">
+    <div class="container-fluid" id="main-container">
+      <div class="row page-title">
+        <h1 class="mx-4 my-2">Wikitrip</h1>
       </div>
-      <div class="card-columns mx-n3 pt-3" id="content">
+      <!-- <h2 class="" id="location">Click to show articles in your location
+          </h2>-->
+
+      <div class="container px-2">
+        <button id="titleBox" onclick="getArticles(getLocation)">What's Nearby?</button>
+        <div class="card-columns mx-n3 pt-3" id="content">
+        </div>
       </div>
     </div>
   </div>
@@ -53,9 +54,6 @@
   function getArticles() {
     console.log("Getting articles nearby");
     var existingArticles = document.getElementById('content');
-    while (existingArticles.firstChild) {
-      existingArticles.removeChild(existingArticles.firstChild);
-    }
 
     getLocation(function(lat_lng) {
       var pos = lat_lng;
@@ -65,13 +63,16 @@
       //var location = position.lat + "|" + getLocation().lng
 
       var locationTitle = document.createElement("h1");
-      locationTitle.setAttribute("class", "jumbo");
+      locationTitle.setAttribute("class", "row pt-5 px-3 jumbo");
 
       var location = document.createTextNode(pos.lat.toFixed(2) + "° N " + pos.lng.toFixed(2) + "° W");
       locationTitle.appendChild(location);
 
       var oldTitle = document.getElementById("titleBox");
       oldTitle.parentNode.replaceChild(locationTitle, oldTitle);
+
+      var bkg = document.getElementById("bkg");
+      bkg.style.background = "none";
 
       var url = "https://en.wikipedia.org/w/api.php";
 
@@ -125,10 +126,6 @@
         });
     });
   }
-</script>
-
-<script>
-  var x = document.getElementById("location");
 
   function getLocation(callback) {
     if (navigator.geolocation) {
@@ -142,16 +139,15 @@
       alert("Geolocation is not supported by this browser.");
     }
   }
-</script>
 
-<script>
   function getArticleIntro(articleInfo, callback) {
     var url = "https://en.wikipedia.org/w/api.php";
     var params = {
       action: "query",
       format: "json",
       titles: articleInfo.title,
-      prop: "extracts|pageimages|categories|description",
+      prop: "extracts|pageimages|categories|description|info",
+      inprop: "url",
       piprop: "thumbnail",
       pithumbsize: "250",
       exintro: "True",
@@ -177,11 +173,10 @@
         articleInfo.articleID = articleID;
         articleInfo.text = article.extract;
         articleInfo.img = article.thumbnail.source;
-
+        articleInfo.url = article.fullurl;
         if (article["description"]) {
           articleInfo.category = article["description"].charAt(0).toUpperCase() + article["description"].slice(1);;
-        }
-        else {
+        } else {
           articleInfo.category = "";
         }
         callback(articleInfo);
@@ -200,7 +195,7 @@
     }
 
     if (x < 0) {
-      var angle = 270 - Math.atan(y / x) * 180 / Math.PI ;
+      var angle = 270 - Math.atan(y / x) * 180 / Math.PI;
     }
 
     var colorN = [29, 140, 211];
@@ -247,18 +242,18 @@
       color: color,
       direction: direction
     }
-    return(output);
+    return (output);
   }
 
 
 
 
-function degToCompass(num) {
+  function degToCompass(num) {
     var val = Math.floor((num / 22.5) + 0.5);
-    var arr = ["N","NNE","NE","ENE","E","ESE", "SE", "SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"];
+    var arr = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE", "S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW"];
 
     return arr[(val % 16)];
-}
+  }
 
 
   function writecardContainer(articleInfo) {
@@ -266,12 +261,18 @@ function degToCompass(num) {
     // cardContainer.setAttribute("class", "col-md-4 col-xs-12 my-2 article-card");
     cardContainer.setAttribute("class", "article-container pt-3");
 
+
+
     var currentDiv = document.getElementById("content");
     currentDiv.appendChild(cardContainer);
 
+    var articleLink = document.createElement("a");
+    articleLink.setAttribute("href", articleInfo.url);
+    cardContainer.appendChild(articleLink);
+
     var card = document.createElement("div");
     card.setAttribute("class", "article-card px-4 col-12");
-    cardContainer.appendChild(card);
+    articleLink.appendChild(card);
 
     var info = document.createElement("div");
     info.setAttribute("class", "info");
