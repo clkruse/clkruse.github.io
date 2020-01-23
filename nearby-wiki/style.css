@@ -97,7 +97,12 @@ body {
   }
 }
 
-.header{
+.header {
+  text-decoration: none;
+  color: white;
+}
+
+.header:hover {
   text-decoration: none;
   color: white;
 }
