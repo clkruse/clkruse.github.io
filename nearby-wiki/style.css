@@ -97,6 +97,11 @@ body {
   }
 }
 
+.header{
+  text-decoration: none;
+  color: white;
+}
+
 h2 {
   /* font-family: 'Playfair Display', serif; */
   /* font-family: 'Roboto Slab', serif; */
