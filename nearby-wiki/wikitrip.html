@@ -125,7 +125,6 @@
 
   function getLocation(callback) {
     console.log("Getting your location");
-    console.log(navigator.geolocation);
     if (navigator.geolocation) {
       var lat_lng = navigator.geolocation.getCurrentPosition(function(position) {
         var user_position = {};
@@ -133,9 +132,13 @@
         user_position.lng = position.coords.longitude;
         callback(user_position);
       }, function() {
-        alert("Geolocation is not supported by this browser.");
+        alert("I can't find your location. Geolocation might not be supported by this browser. I'll put you in Timbuktu as an example");
+        var user_position = {};
+        user_position.lat = 16.7666;
+        user_position.lng = -3.0026;
+        callback(user_position);
       }, {
-        timeout: 5000
+        timeout: 10000
       });
     }
   }
