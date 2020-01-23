@@ -55,15 +55,9 @@
 <script>
   function getArticles() {
     console.log("Getting articles nearby");
-    var existingArticles = document.getElementById('content');
 
     getLocation(function(lat_lng) {
       var pos = lat_lng;
-      console.log("Getting your location");
-      // document.getElementById("location").innerHTML = "Your location is " + pos.lat.toFixed(2) + " N, " + pos.lng.toFixed(2) + " W";
-      // document.getElementById("button").innerHTML = "Get new articles";
-      //var location = position.lat + "|" + getLocation().lng
-
       var locationTitle = document.createElement("h1");
       locationTitle.setAttribute("class", "row pt-5 px-3 jumbo");
 
@@ -130,15 +124,19 @@
   }
 
   function getLocation(callback) {
+    console.log("Getting your location");
+    console.log(navigator.geolocation);
     if (navigator.geolocation) {
       var lat_lng = navigator.geolocation.getCurrentPosition(function(position) {
         var user_position = {};
         user_position.lat = position.coords.latitude;
         user_position.lng = position.coords.longitude;
         callback(user_position);
+      }, function() {
+        alert("Geolocation is not supported by this browser.");
+      }, {
+        timeout: 5000
       });
-    } else {
-      alert("Geolocation is not supported by this browser.");
     }
   }
 
