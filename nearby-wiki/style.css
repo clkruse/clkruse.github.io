@@ -206,3 +206,10 @@ body, html {
   height: 100%;
   margin: 0;
 }
+
+.map {
+  /* border-left: 1px solid rgba(0,0,0,0.5);
+  border-right: 1px solid rgba(0,0,0,0.5); */
+  height: 500px;
+  width: 100%;
+}

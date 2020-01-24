@@ -3,6 +3,8 @@
 
 <head>
   <title>Wikitrip</title>
+  <script src='https://api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.js'></script>
+  <link href='https://api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.css' rel='stylesheet' />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css?family=Crimson+Text:400,400i,600,600i,700,700i&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
@@ -37,13 +39,12 @@
           <h1 class="header mx-4 my-2">Wikitrip</h1>
         </a>
       </div>
-      <!-- <h2 class="" id="location">Click to show articles in your location
-          </h2>-->
+
 
       <div class="container px-2">
         <button id="titleBox" onclick="getArticles(getLocation)">What's Nearby?</button>
-        <div class="card-columns mx-n3 pt-3" id="content">
-        </div>
+        <div id="content" class="card-columns mx-n3 pt-3"></div>
+        <div id="mapbox" class="mr-n3 pt-4 pb-5"></div>
       </div>
     </div>
   </div>
@@ -69,6 +70,24 @@
 
       var bkg = document.getElementById("bkg");
       bkg.style.background = "none";
+
+      var map = document.createElement("div");
+      map.setAttribute("id", "map");
+      map.setAttribute("class", "map");
+      document.getElementById("mapbox").appendChild(map);
+      mapboxgl.accessToken = 'pk.eyJ1IjoiY2xrcnVzZSIsImEiOiJjaXIxY2M2dGcwMnNiZnZtZzN0Znk3MXRuIn0.MyKHSjxjG-ZcI2BkRUSGJA';
+      var map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/clkruse/cjcwkjj000afm2rqbmw76hrqi',
+        logoPosition: 'bottom-left',
+        attributionControl: false,
+        center: [pos.lng, pos.lat],
+        zoom: 14,
+      });
+      map.addControl(new mapboxgl.AttributionControl({
+        compact: true
+      }));
+
 
       var url = "https://en.wikipedia.org/w/api.php";
 
@@ -104,7 +123,6 @@
             var articleLat = pages[place].lat;
             var articleLon = pages[place].lon;
             var dirInfo = getColorFromAngle(pos.lat, pos.lng, articleLat, articleLon);
-
             var articleInfo = {
               title: pages[place].title,
               dist: distance,
@@ -114,7 +132,9 @@
               direction: dirInfo.direction,
             };
 
-            getArticleIntro(articleInfo, writecardContainer);
+            drawPoint(map, articleLat, articleLon, articleInfo.title)
+
+            getArticleIntro(articleInfo, writeCardContainer);
           };
         })
         .catch(function(error) {
@@ -259,12 +279,10 @@
   }
 
 
-  function writecardContainer(articleInfo) {
+  function writeCardContainer(articleInfo) {
     var cardContainer = document.createElement("div");
     // cardContainer.setAttribute("class", "col-md-4 col-xs-12 my-2 article-card");
     cardContainer.setAttribute("class", "article-container pt-3");
-
-
 
     var currentDiv = document.getElementById("content");
     currentDiv.appendChild(cardContainer);
@@ -324,6 +342,48 @@
     intro.appendChild(articleText);
 
     card.appendChild(intro);
+
+  }
+
+  function drawPoint(map, lat, lng, title) {
+    console.log(title);
+    map.on('load', function() {
+      map.addLayer({
+        'id': title,
+        'type': 'symbol',
+        'source': {
+          'type': 'geojson',
+          'data': {
+            'type': 'FeatureCollection',
+            'features': [{
+                'type': 'Feature',
+                'geometry': {
+                  'type': 'Point',
+                  'coordinates': [
+                    lng,
+                    lat
+                  ]
+                },
+                'properties': {
+                  'title': title,
+                  'icon': 'circle'
+                }
+              },
+            ]
+          }
+        },
+        'layout': {
+          // get the icon name from the source's "icon" property
+          // concatenate the name to get an icon from the style's sprite sheet
+          'icon-image': ['concat', ['get', 'icon'], '-11'],
+          // get the title name from the source's "title" property
+          'text-field': ['get', 'title'],
+          //'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+          'text-offset': [0, 0.6],
+          'text-anchor': 'top'
+        }
+      });
+    });
   }
 </script>
 
