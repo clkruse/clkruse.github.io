@@ -39,12 +39,13 @@
           <h1 class="header mx-4 my-2">Wikitrip</h1>
         </a>
       </div>
-
+      <!--Option for map at top
+             <div id="mapbox" class="row"></div> -->
 
       <div class="container px-2">
         <button id="titleBox" onclick="getArticles(getLocation)">What's Nearby?</button>
         <div id="content" class="card-columns mx-n3 pt-3"></div>
-        <div id="mapbox" class="mr-n3 pt-4 pb-5"></div>
+        <div id="mapbox" class="px-2 pt-4 pb-5"></div>
       </div>
     </div>
   </div>
@@ -82,11 +83,12 @@
         logoPosition: 'bottom-left',
         attributionControl: false,
         center: [pos.lng, pos.lat],
-        zoom: 14,
+        zoom: 13,
       });
       map.addControl(new mapboxgl.AttributionControl({
         compact: true
       }));
+      drawLocation(map, pos.lat, pos.lng)
 
 
       var url = "https://en.wikipedia.org/w/api.php";
@@ -96,7 +98,7 @@
         list: "geosearch",
         gscoord: pos.lat.toString() + "|" + pos.lng.toString(),
         gsradius: "10000",
-        gslimit: "18",
+        gslimit: "12",
         format: "json"
       };
 
@@ -338,7 +340,14 @@
 
     var intro = document.createElement("p");
     intro.setAttribute("class", "article-text pt-2");
-    var articleText = document.createTextNode(articleInfo.text);
+    if (articleInfo.text.length > 1000) {
+      var articleText = document.createTextNode(articleInfo.text.split(" ").splice(0,125).join(" ") + "...");
+    }
+
+    else {
+      var articleText = document.createTextNode(articleInfo.text);
+    }
+
     intro.appendChild(articleText);
 
     card.appendChild(intro);
@@ -346,7 +355,6 @@
   }
 
   function drawPoint(map, lat, lng, title) {
-    console.log(title);
     map.on('load', function() {
       map.addLayer({
         'id': title,
@@ -356,32 +364,75 @@
           'data': {
             'type': 'FeatureCollection',
             'features': [{
-                'type': 'Feature',
-                'geometry': {
-                  'type': 'Point',
-                  'coordinates': [
-                    lng,
-                    lat
-                  ]
-                },
-                'properties': {
-                  'title': title,
-                  'icon': 'circle'
-                }
+              'type': 'Feature',
+              'geometry': {
+                'type': 'Point',
+                'coordinates': [
+                  lng,
+                  lat
+                ]
               },
-            ]
+              'properties': {
+                'title': title,
+                'icon': 'article'
+              }
+            }, ]
           }
         },
         'layout': {
           // get the icon name from the source's "icon" property
           // concatenate the name to get an icon from the style's sprite sheet
-          'icon-image': ['concat', ['get', 'icon'], '-11'],
+          'icon-image': ['concat', ['get', 'icon'], '-15'],
           // get the title name from the source's "title" property
           'text-field': ['get', 'title'],
+          'text-size': 10,
           //'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
           'text-offset': [0, 0.6],
           'text-anchor': 'top'
         }
+      });
+    });
+  }
+
+  function drawLocation(map, lat, lng) {
+    map.on('load', function() {
+      map.addLayer({
+        'id': 'location',
+        'type': 'symbol',
+        'source': {
+          'type': 'geojson',
+          'data': {
+            'type': 'FeatureCollection',
+            'features': [{
+              'type': 'Feature',
+              'geometry': {
+                'type': 'Point',
+                'coordinates': [
+                  lng,
+                  lat
+                ]
+              },
+              'properties': {
+                'title': 'You',
+                'icon': 'location'
+              }
+            }, ]
+          }
+        },
+        'layout': {
+          // get the icon name from the source's "icon" property
+          // concatenate the name to get an icon from the style's sprite sheet
+          'icon-image': ['concat', ['get', 'icon'], '-15'],
+          // get the title name from the source's "title" property
+          //'text-field': ['get', 'title'],
+          //'text-font': ['Open Sans Semibold', 'Arial Unicode MS Bold'],
+          //'text-offset': [0, 0.6],
+          //'text-anchor': 'top',
+          'icon-size': 1.25,
+          'symbol-sort-key': 999,
+          'icon-allow-overlap': true,
+        }
+
       });
     });
   }

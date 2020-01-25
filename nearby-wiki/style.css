@@ -210,6 +210,6 @@ body, html {
 .map {
   /* border-left: 1px solid rgba(0,0,0,0.5);
   border-right: 1px solid rgba(0,0,0,0.5); */
-  height: 500px;
+  height: 250px;
   width: 100%;
 }
