@@ -93,7 +93,7 @@ body {
 
 @media screen and (max-width: 430px) {
   .jumbo {
-    font-size: 2rem;
+    font-size: 4rem;
   }
 }
 
@@ -160,10 +160,30 @@ p {
   color: rgb(240, 132, 123);
 }
 
+
+@media screen and (min-width: 550px) {
+  .buttons {
+    height: 88vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+@media screen and (max-width: 550px) {
+  .buttons {
+    position: absolute;
+  top: 50%;
+  left: 55%;
+  transform: translate(-50%, -50%);
+  }
+}
+
+
+
 button {
   padding: 0.35em 1.2em;
   /* border: 0.1em solid #fc0;*/
-  margin: 0 0.3em 0.3em 0;
   border-radius: 0.2em;
   box-sizing: border-box;
   text-decoration: none;
@@ -174,12 +194,8 @@ button {
   text-align: center;
   transition: all 0.2s;
   display: inline-block;
-  margin: 0 0.83em;
-  position: absolute;
-  top: 50%;
-  left: 50%;
+  position: relative;
   width: 14rem;
-  margin-left: -7rem;
 }
 
 button:hover{
@@ -212,5 +228,13 @@ body, html {
   border-right: 1px solid rgba(0,0,0,0.5); */
   border-bottom: 1px solid rgba(0,0,0,0.5);
   height: 250px;
+  width: 100%;
+}
+
+.fullmap {
+  /* border-left: 1px solid rgba(0,0,0,0.5);
+  border-right: 1px solid rgba(0,0,0,0.5); */
+  border-bottom: 1px solid rgba(0,0,0,0.5);
+  height: 100%;
   width: 100%;
 }

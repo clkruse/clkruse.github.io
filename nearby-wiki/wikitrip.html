@@ -39,11 +39,16 @@
           <h1 class="header mx-4 my-2">Wikitrip</h1>
         </a>
       </div>
-      <!--Option for map at top
-             <div id="mapbox" class="row"></div> -->
 
+      <div id="mapOnTop" style="width: 100.3vw" class="mx-n3"></div>
+      <div id="buttons" class="row buttons">
+        <button id="search" class="m-2" onclick="searchLocation()">Search</button>
+        <button id="nearby" class="mx-2"  onclick="getLocation(getArticles)">What's Nearby?</button>
+      </div>
       <div class="container px-2">
-        <button id="titleBox" onclick="getArticles(getLocation)">What's Nearby?</button>
+        <div id="titleBox"></div>
+
+
         <div id="content" class="card-columns mx-n3 pt-3"></div>
         <div id="mapbox" class="px-2 pt-4 pb-5"></div>
       </div>
@@ -55,100 +60,55 @@
 </body>
 
 <script>
-  function getArticles() {
-    console.log("Getting articles nearby");
 
-    getLocation(function(lat_lng) {
-      var pos = lat_lng;
-      var locationTitle = document.createElement("h1");
-      locationTitle.setAttribute("class", "row pt-5 px-3 jumbo");
+  function searchLocation() {
 
-      var location = document.createTextNode(pos.lat.toFixed(2) + "° N " + pos.lng.toFixed(2) + "° W");
-      locationTitle.appendChild(location);
+    document.getElementById("buttons").remove();
+    var bkg = document.getElementById("bkg");
+    bkg.style.background = "none";
 
-      var oldTitle = document.getElementById("titleBox");
-      oldTitle.parentNode.replaceChild(locationTitle, oldTitle);
-
-      var bkg = document.getElementById("bkg");
-      bkg.style.background = "none";
-
-      var map = document.createElement("div");
-      map.setAttribute("id", "map");
-      map.setAttribute("class", "map");
-      document.getElementById("mapbox").appendChild(map);
-      mapboxgl.accessToken = 'pk.eyJ1IjoiY2xrcnVzZSIsImEiOiJjaXIxY2M2dGcwMnNiZnZtZzN0Znk3MXRuIn0.MyKHSjxjG-ZcI2BkRUSGJA';
-      var map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/clkruse/cjcwkjj000afm2rqbmw76hrqi',
-        logoPosition: 'bottom-left',
-        attributionControl: false,
-        center: [pos.lng, pos.lat],
-        zoom: 13,
-      });
-      map.addControl(new mapboxgl.AttributionControl({
-        compact: true
-      }));
-      drawLocation(map, pos.lat, pos.lng)
+    var mapcontainer = document.getElementById("mapOnTop");
+    mapcontainer.style.height = "100vh";
 
 
-      var url = "https://en.wikipedia.org/w/api.php";
-
-      var params = {
-        action: "query",
-        list: "geosearch",
-        gscoord: pos.lat.toString() + "|" + pos.lng.toString(),
-        gsradius: "10000",
-        gslimit: "12",
-        format: "json"
-      };
-
-      // We're appending the keys and info to create an api query url. e.g. https://en.wikipedia.org/w/api.php?origin=*&action=query&list=geosearch&gscoord=37.7891838|-122.4033522&gsradius=10000&gslimit=10&format=json
-      url = url + "?origin=*";
-
-      // For each key in the params, append the key and value to the url
-      Object.keys(params).forEach(function(key) {
-        url += "&" + key + "=" + params[key];
-      });
-
-
-      // Use the URL defined above to make a query to the wikipedia api and return the json response
-      fetch(url)
-        .then(function(response) {
-          return response.json();
-        })
-        .then(function(response) {
-          var pages = response.query.geosearch;
-
-          for (var place in pages) {
-            var distance = pages[place].dist / (1.609 * 1000)
-            distance = distance.toFixed(1);
-            var articleLat = pages[place].lat;
-            var articleLon = pages[place].lon;
-            var dirInfo = getColorFromAngle(pos.lat, pos.lng, articleLat, articleLon);
-            var articleInfo = {
-              title: pages[place].title,
-              dist: distance,
-              lat: pages[place].lat,
-              lon: pages[place].lon,
-              color: dirInfo.color,
-              direction: dirInfo.direction,
-            };
-
-            drawPoint(map, articleLat, articleLon, articleInfo.title)
-
-            getArticleIntro(articleInfo, writeCardContainer);
-          };
-        })
-        .catch(function(error) {
-          console.log(error);
-        });
+    var map = document.createElement("div");
+    map.setAttribute("id", "map");
+    map.setAttribute("class", "fullmap");
+    document.getElementById("mapOnTop").appendChild(map);
+    mapboxgl.accessToken = 'pk.eyJ1IjoiY2xrcnVzZSIsImEiOiJjaXIxY2M2dGcwMnNiZnZtZzN0Znk3MXRuIn0.MyKHSjxjG-ZcI2BkRUSGJA';
+    var map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/clkruse/cjcwkjj000afm2rqbmw76hrqi',
+      logoPosition: 'bottom-left',
+      attributionControl: false,
+      center: [-98.585522, 35.8333333],
+      zoom: 4,
     });
+
+    map.addControl(
+      new MapboxGeocoder({
+        accessToken: mapboxgl.accessToken,
+        mapboxgl: mapboxgl
+      })
+    );
+
+    map.on('click', function(e) {
+      console.log(e.lngLat);
+      var pos = e.lngLat;
+      mapcontainer.style.height = "250px";
+      map.remove();
+      getArticles(pos);
+    });
+
   }
 
+
   function getLocation(callback) {
+    document.getElementById("buttons").remove();
     console.log("Getting your location");
     if (navigator.geolocation) {
       var lat_lng = navigator.geolocation.getCurrentPosition(function(position) {
+        console.log("We're in the GCP phase");
         var user_position = {};
         user_position.lat = position.coords.latitude;
         user_position.lng = position.coords.longitude;
@@ -163,6 +123,112 @@
         timeout: 10000
       });
     }
+  }
+
+
+  function getArticles(lat_lng) {
+    var pos = lat_lng;
+
+    var locationTitle = document.createElement("h1");
+    locationTitle.setAttribute("class", "row pt-4 px-3 jumbo");
+
+    var location = document.createTextNode(pos.lat.toFixed(2) + "° N " + pos.lng.toFixed(2) + "° W");
+    locationTitle.appendChild(location);
+
+    var titleBox = document.getElementById("titleBox");
+    titleBox.appendChild(locationTitle);
+
+    var bkg = document.getElementById("bkg");
+    bkg.style.background = "none";
+
+    var map = drawMap(pos)
+
+    var url = "https://en.wikipedia.org/w/api.php";
+
+    var params = {
+      action: "query",
+      list: "geosearch",
+      gscoord: pos.lat.toString() + "|" + pos.lng.toString(),
+      gsradius: "10000",
+      gslimit: "12",
+      format: "json"
+    };
+
+    url = url + "?origin=*";
+    Object.keys(params).forEach(function(key) {
+      url += "&" + key + "=" + params[key];
+    });
+
+    fetch(url)
+      .then(function(response) {
+        return response.json();
+      })
+      .then(function(response) {
+        var pages = response.query.geosearch;
+
+        for (var place in pages) {
+          var distance = pages[place].dist / (1.609 * 1000)
+          distance = distance.toFixed(1);
+          var articleLat = pages[place].lat;
+          var articleLon = pages[place].lon;
+          var dirInfo = getColorFromAngle(pos.lat, pos.lng, articleLat, articleLon);
+          var articleInfo = {
+            title: pages[place].title,
+            dist: distance,
+            lat: pages[place].lat,
+            lon: pages[place].lon,
+            color: dirInfo.color,
+            direction: dirInfo.direction,
+          };
+
+          drawPoint(map, articleLat, articleLon, articleInfo.title)
+
+          getArticleIntro(articleInfo, writeCardContainer);
+        };
+      })
+      .catch(function(error) {
+        console.log(error);
+      });
+
+      // At some point make it so that the map can be clicked again to search for more articles
+      map.on('click', function(e) {
+        console.log(e.lngLat);
+        var pos = e.lngLat;
+        var div = document.getElementById('content');
+          while(div.firstChild){
+              div.removeChild(div.firstChild);
+          }
+        var div = document.getElementById('titleBox');
+          while(div.firstChild){
+              div.removeChild(div.firstChild);
+          }
+        var div = document.getElementById('mapbox');
+          while(div.firstChild){
+              div.removeChild(div.firstChild);
+          }
+        getArticles(pos);
+      });
+  }
+
+  function drawMap(pos) {
+    var map = document.createElement("div");
+    map.setAttribute("id", "map");
+    map.setAttribute("class", "map");
+    document.getElementById("mapbox").appendChild(map);
+    mapboxgl.accessToken = 'pk.eyJ1IjoiY2xrcnVzZSIsImEiOiJjaXIxY2M2dGcwMnNiZnZtZzN0Znk3MXRuIn0.MyKHSjxjG-ZcI2BkRUSGJA';
+    var map = new mapboxgl.Map({
+      container: 'map',
+      style: 'mapbox://styles/clkruse/cjcwkjj000afm2rqbmw76hrqi',
+      logoPosition: 'bottom-left',
+      attributionControl: false,
+      center: [pos.lng, pos.lat],
+      zoom: 13,
+    });
+    map.addControl(new mapboxgl.AttributionControl({
+      compact: true
+    }));
+    drawLocation(map, pos.lat, pos.lng)
+    return(map)
   }
 
   function getArticleIntro(articleInfo, callback) {
@@ -437,6 +503,9 @@
     });
   }
 </script>
+
+<script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.4.2/mapbox-gl-geocoder.min.js"></script>
+<link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.4.2/mapbox-gl-geocoder.css" type="text/css" />
 
 
 <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105607174-2"></script>
