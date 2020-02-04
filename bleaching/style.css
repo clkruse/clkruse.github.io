@@ -45,7 +45,8 @@ a {
 }
 
 .colors {
-  background: linear-gradient(to right, #669ec4, #ffce00, #2dc4b2, #8b88b6, #a40c27);
+  /*background: linear-gradient(to right, #669ec4, #ffce00, #742dc4, #a40c27, #cb32cf);*/
+  background: linear-gradient(to right, #fef0d9, #fcfcfc, #fdcc8a, #fc8d59, #d7301f);
   margin-bottom: 5px;
 }
 

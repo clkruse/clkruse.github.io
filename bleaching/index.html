@@ -34,10 +34,11 @@
       <label for='weekend'>Healthy</label>
     </div>
   </div> -->
-    <div class='session' id='sliderbar'>
-      <h2>Year: <label id='active-hour'>1998</label></h2>
-      <input id='slider' class='row' type='range' min='1973' max='2013' step='1' value='1998' />
-    </div>
+
+  </div>
+  <div class='session' id='sliderbar'>
+    <h2>Year: <label id='active-hour'>1998</label></h2>
+    <input id='slider' class='row' type='range' min='1973' max='2013' step='1' value='1998' />
   </div>
 </div>
 
@@ -60,7 +61,7 @@
         data: 'bleaching.geojson' // replace this with the url of your own geojson
       },
       paint: {
-        'circle-radius': 2,
+        'circle-radius': 3,
         //'circle-radius': [
         //  'interpolate',
         //  ['linear'],
@@ -72,11 +73,11 @@
           'interpolate',
           ['linear'],
           ['number', ['get', 'Severity']],
-          -1, '#2DC4B2',
-          0, '#ffce00',
-          1, '#669EC4',
-          2, '#8B88B6',
-          3, '#a40c27'
+          -1, '#fef0d9',
+          0, '#fcfcfc',
+          1, '#fdcc8a',
+          2, '#fc8d59',
+          3, '#d7301f'
         ],
         'circle-opacity': 0.8
       },
