@@ -1,0 +1,95 @@
+<meta charset='utf-8' />
+<title>Coral Bleaching Events</title>
+<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+<script src='https://api.mapbox.com/mapbox-gl-js/v1.7.0/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v1.7.0/mapbox-gl.css' rel='stylesheet' />
+<link rel='stylesheet' href='style.css' />
+
+
+
+<div id='map'></div>
+<div id='console'>
+  <h1>Coral Bleaching Events by Year</h1>
+  <p>Data: <a href='https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi:10.7910/DVN/KUVQKY'>Reported coral bleaching events</a> worldwide between 1973 and 2012</p>
+  <div class='session'>
+    <h2>Severity</h2>
+    <div class='row colors'>
+    </div>
+    <div class='row labels'>
+      <div class='label'>🤷‍♂️</div>
+      <div class='label'>None</div>
+      <div class='label'>1</div>
+      <div class='label'>2</div>
+      <div class='label'>3</div>
+    </div>
+    <!-- <div class='session'>
+    <h2>Severity</h2>
+    <div class='row' id='filters'>
+      <input id='all' type='radio' name='toggle' value='all' checked='checked'>
+      <label for='all'>All</label>
+      <input id='weekday' type='radio' name='toggle' value='weekday'>
+      <label for='weekday'>Bleaching</label>
+      <input id='weekend' type='radio' name='toggle' value='weekend'>
+      <label for='weekend'>Healthy</label>
+    </div>
+  </div> -->
+    <div class='session' id='sliderbar'>
+      <h2>Year: <label id='active-hour'>1998</label></h2>
+      <input id='slider' class='row' type='range' min='1973' max='2013' step='1' value='1998' />
+    </div>
+  </div>
+</div>
+
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoiY2xrcnVzZSIsImEiOiJjaXIxY2M2dGcwMnNiZnZtZzN0Znk3MXRuIn0.MyKHSjxjG-ZcI2BkRUSGJA';
+
+  var map = new mapboxgl.Map({
+    container: 'map', // container element id
+    style: 'mapbox://styles/clkruse/cjcwkjj000afm2rqbmw76hrqi',
+    center: [126, -5], // initial map center in [lon, lat]
+    zoom: 2.5
+  });
+
+  map.on('load', function() {
+    map.addLayer({
+      id: 'bleaching',
+      type: 'circle',
+      source: {
+        type: 'geojson',
+        data: 'bleaching.geojson' // replace this with the url of your own geojson
+      },
+      paint: {
+        'circle-radius': 2,
+        //'circle-radius': [
+        //  'interpolate',
+        //  ['linear'],
+        //  ['number', ['get', 'Severity']],
+        //  -1, 3,
+        //  5, 24
+        //],
+        'circle-color': [
+          'interpolate',
+          ['linear'],
+          ['number', ['get', 'Severity']],
+          -1, '#2DC4B2',
+          0, '#ffce00',
+          1, '#669EC4',
+          2, '#8B88B6',
+          3, '#a40c27'
+        ],
+        'circle-opacity': 0.8
+      },
+      filter: ['==', ['number', ['get', 'Year']], 1998],
+      //filter: ['!=', ['number', ['get', 'Severity']], 0]
+    });
+  });
+
+  document.getElementById('slider').addEventListener('input', function(e) {
+    var year = parseInt(e.target.value);
+    // update the map
+    map.setFilter('bleaching', ['==', ['number', ['get', 'Year']], year]);
+
+    // update text in the UI
+    document.getElementById('active-hour').innerText = year;
+  });
+</script>
