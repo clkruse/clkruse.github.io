@@ -22,10 +22,10 @@ def get_time(db_entry, window):
     end_date = end_date
     return(start_date, end_date)
 
-
-
 def get_time_series(product, db_entry, window):
-    img_col = ee.ImageCollection(products[product]['url']).select(products[product]['band']).filterDate(*get_time(db_entry, window))
+    img_col = ee.ImageCollection(products[product]['url'])\
+        .select(products[product]['band'])\
+        .filterDate(*get_time(db_entry, window))
     buffer_radius = 100000
 
     location = ee.Geometry.Point(db_entry['lng'], db_entry['lat']-.5).buffer(buffer_radius)
@@ -36,19 +36,16 @@ def get_time_series(product, db_entry, window):
         return([], [])
     header = info[0]
     data = np.array(info[1:])
-    #if np.shape(data)[0] == 0:
-    #    return([], [])
 
     try:
         time_index = header.index('time')
         times = [datetime.fromtimestamp(i/1000) for i in (data[0:,time_index].astype(int))]
 
         values_index = header.index(products[product]['band'])
-        values = data[0:, values_index].astype(np.float).tolist()
+        values = data[0:, values_index].astype(np.float)
+        values = values[~np.isnan(values)].tolist()
     except:
         return([], [])
-    #print(data[0:10, values_index].astype(np.float))
-
     return(times, values)
 
 products = {
@@ -88,13 +85,16 @@ products = {
 
 ee.Initialize()
 database = read_db('bleaching.csv')
-window_size = 30
+window_size = 10
 
-for i in trange(5):
+len(database)
 
+for i in trange(10):
     for product in products:
         t, v = get_time_series(product, database[i], window_size)
         database[i]['raw_' + product] = v
 
-    with open('yew!.json', 'w') as fn:
-        json.dump(database, fn, indent=4)
+t = time.time()
+with open('time_test.json', 'w') as fn:
+    json.dump(database, fn, indent=4)
+print(time.time() - t)
