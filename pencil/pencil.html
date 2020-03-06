@@ -66,6 +66,12 @@
         if (e.touches[0]["force"] > 0) {
           pressure = e.touches[0]["force"]
         }
+        if (e.touches[0]["altitudeAngle"]) {
+          altAngle = e.touches[0]["altitudeAngle"]
+        }
+        if (e.touches[0]["azimuthAngle"]) {
+          azAngle = e.touches[0]["azimuthAngle"]
+        }
         x = e.touches[0].pageX * 2
         y = e.touches[0].pageY * 2
       } else {
@@ -84,9 +90,10 @@
       context.beginPath()
       context.moveTo(x, y)
 
-      points.push({ x, y, lineWidth })
-      pointsArray.push({ x, y })
+      points.push({ x, y, lineWidth, pressure, altAngle, azAngle})
+      pointsArray.push(points)
       console.log(pointsArray)
+
     })
   })
 
