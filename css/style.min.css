@@ -1,6 +1,18 @@
 /*@import url("https://fonts.googleapis.com/css?family=Muli:200,300,400,600,700,800,900|Playfair+Display:400,900");*/
 @import url('https://fonts.googleapis.com/css?family=Major+Mono+Display');
 @import url('https://fonts.googleapis.com/css?family=Raleway');
+
+@media (min-width: 992px) {
+  .article-image {
+    padding-top: 2.2rem
+  }
+}
+
+.subtext {
+  font-size: 12px;
+  color: #595959
+}
+
 html.js {
   margin-top: 0 !important;
   font-size: 14px
@@ -16230,6 +16242,24 @@ body.search {
   position: relative;
   background-position: 0% 90%;
   height: 20vw
+}
+
+.bg_img_coral {
+  background-image: url("../img/bahamas.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 0%;
+  height: 35vw
+}
+
+.bg_img_sci {
+  background-image: url("../img/Caleb with a Sextant.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 18%;
+  height: 35vw
 }
 
 
