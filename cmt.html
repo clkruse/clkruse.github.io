@@ -11,7 +11,6 @@
     <script src="https://api.mapbox.com/mapbox-gl-js/v1.7.0/mapbox-gl.js"></script>
     <link href="https://api.mapbox.com/mapbox-gl-js/v1.7.0/mapbox-gl.css" rel="stylesheet" />
     <script src='https://cdnjs.cloudflare.com/ajax/libs/tabletop.js/1.5.1/tabletop.min.js'></script>
-    <link rel="stylesheet" href="style.css">
 
   </head>
   <style>
@@ -30,6 +29,9 @@
       bottom: 0;
     }
 
+    .marker {
+      background-image: 'circle-15.svg';
+    }
 
     .mapboxgl-popup {
       padding-bottom: 5px;
@@ -132,12 +134,13 @@
 
           // create a variable for your popup and populate your popup with information from your table
           var popup = new mapboxgl.Popup()
-            .setHTML(`<h3>` + row.ID + `</h3>`); // use the table to populate your popup with text
+            .setHTML(`<h3>` + row.ID + `</h3>` + `<h4>` + row.Type + `</h4>`); // use the table to populate your popup with text
 
 
           // create a variable for your markup and add it to the map
           var marker = new mapboxgl.Marker({
-              color: 'purple'
+              color: '#ad0000'
+
             })
             .setLngLat([row.Longitude, row.Latitude])
             .setPopup(popup)
