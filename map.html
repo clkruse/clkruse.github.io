@@ -103,7 +103,7 @@
     <div class="container-fluid">
       <div class="hero">
         <div class="row">
-          <div style="height: 30vh" id="map"></div>
+          <div style="height: 40vh" id="map"></div>
         </div>
       </div>
     </div>
@@ -260,12 +260,12 @@
     mapboxgl.accessToken = 'pk.eyJ1IjoiY2xrcnVzZSIsImEiOiJjaXIxY2M2dGcwMnNiZnZtZzN0Znk3MXRuIn0.MyKHSjxjG-ZcI2BkRUSGJA';
     var map = new mapboxgl.Map({
     container: 'map', // container id
-    style: 'mapbox://styles/clkruse/cizu3laf000a22spid4gcxazp', // stylesheet location
+    style: 'mapbox://styles/clkruse/ck9dfepwt09ut1jplf9e7lbp2', // stylesheet location
     //center: [123.4339, -1.5416],
-    center: [183, 0],
+    center: [0, 20],
     bearing: 0,
     zoom: 1,
-    pitch: 40,
+    pitch: 0,
     });
 
     function rotateCamera(timestamp) {
@@ -278,7 +278,7 @@
 
       map.on('load', function() {
         // Start the animation.
-        rotateCamera(0);
+        //rotateCamera(0);
       })
 
   </script>
