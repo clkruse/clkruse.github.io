@@ -19,13 +19,14 @@ $("#range-slider")
 
 /*
 color pallette click events
-*/
+
 $(document).on("click","td", function(e){
     //get the color
     const color = e.target.style.backgroundColor;
     //set the color
     currColor = color;
 });
+*/
 
 // Converts a tf to DOM img element
 const array3DToImage = (tensor) => {
@@ -67,7 +68,7 @@ function prepareCanvas() {
     canvas.backgroundColor = '#ffffff';
     canvas.isDrawingMode = 1;
     canvas.freeDrawingBrush.color = "black";
-    canvas.freeDrawingBrush.width = 5;
+    canvas.freeDrawingBrush.width = 3;
     canvas.renderAll();
     //setup listeners
     canvas.on('mouse:up', function(e) {
@@ -119,11 +120,14 @@ get the prediction
 function predict(imgData) {
     return tf.tidy(() => {
         //get the prediction
-        //tf.print(tf.math.is_nan(preprocess(imgData)))
-        const gImg = model.predict(preprocess(imgData))
-        //tf.print(gImg)
+        const sketchTensor = preprocess(imgData);
+        const gImg = model.predict(sketchTensor);
+        // This is the line that controls whether the sketch should be drawn
+        // over the output. The division controls the darkness of the lines
+        const bothImg = tf.where(tf.lessEqual(sketchTensor, -0.75), tf.div(sketchTensor, 1.5), gImg)
         //post process
-        const postImg = postprocess(gImg)
+        const postImg = postprocess(bothImg);
+
         return postImg
     })
 }
@@ -134,7 +138,7 @@ preprocess the data
 function preprocess(imgData) {
     return tf.tidy(() => {
         //convert to a tensor
-        const tensor = tf.browser.fromPixels(imgData).toFloat()
+        const tensor = tf.fromPixels(imgData).toFloat()
         //resize
         const resized = tf.image.resizeBilinear(tensor, [256, 256])
 
@@ -197,10 +201,10 @@ load the model
 */
 async function start(imgName, modelPath) {
     //load the model
-    model = await tf.loadGraphModel(modelPath);
+    model = await tf.loadModel(modelPath);
 
     //status
-    document.getElementById('sm').innerHTML = 'Model Loaded';
+    document.getElementById('status').innerHTML = 'Model Loaded';
     document.getElementById('bar').style.display = "none"
     //warm up
     populateInitImage(imgName);
