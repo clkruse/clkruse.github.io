@@ -12,8 +12,8 @@
   <!-- Latest compiled JavaScript -->
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js"></script>
   <!-- TensorFlow.js script -->
-  <!--<script src="js/tf.min.js"> </script>-->
-  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>
+  <script src="js/tf_z.min.js"> </script>
+  <!--<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs"></script>-->
   <!-- canvas script -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/2.3.3/fabric.js"></script>
   <!-- main css -->
@@ -37,8 +37,8 @@
     <div class="col text-center">
       <h4 id ='status' >Choose a Model</h4>
       <div class="btn-group" role="group" aria-label="Basic example">
-        <button type="button" id = 'md' class="btn btn-outline-primary" onclick="load('stop_motion')">Stop Motion + Sets (90 epochs)</button>
-        <button type="button" id = 'sm' class="btn btn-outline-primary" onclick="load('original')">Original</button>
+        <button type="button" id = 'md' class="btn btn-outline-primary" onclick="load('stop_motion')">Stop Motion + Sets (70 epochs)</button>
+        <button type="button" id = 'sm' class="btn btn-outline-primary" onclick="load('original')">Not Working</button>
       </div>
       <div id="bar" class="loader loader--style1" title="0" style="display:none">
         <svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="40px" height="40px" viewBox="0 0 40 40" enable-background="new 0 0 40 40" xml:space="preserve">
@@ -73,7 +73,7 @@
   </div>
 </body>
 <!-- main script -->
-<script src="js/main.js">
+<script src="js/main_old.js">
 </script>
 
 <script>
@@ -95,13 +95,13 @@
     }
     if (whichModel == "stop_motion"){
         document.getElementById('status').innerHTML = 'Loading Model';
-        start("7260.png", "models/combo_e90/model.json");
+        start("7260.png", "models/tf1.14_both_e70_full_32/model.json");
         $('#stop_motion').prop('disabled', true)
         $('#original').prop('disabled', false)
       }
       else{
         document.getElementById('status').innerHTML = 'Loading Model';
-        start("7260.png", "models/weights_model/model.json");
+        start("7260.png", "models/tf1.14_both_e70_full_32/model.json");
         $('#stop_motion').prop('disabled', false)
         $('#original').prop('disabled', true)
       }
