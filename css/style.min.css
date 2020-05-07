@@ -16253,6 +16253,15 @@ body.search {
   height: 20vw
 }
 
+.bg_img_pond {
+  background-image: url("../10-projects/osm/pond.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 34%;
+  height: 20vw
+}
+
 .bg_img_coral {
   background-image: url("../img/bahamas.jpg");
   -webkit-background-size: cover;

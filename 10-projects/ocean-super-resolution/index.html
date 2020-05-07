@@ -127,7 +127,17 @@
           <div class="text">
             <h5 class="subtitle">methods</h5>
             <p>
-              Google colab notebook here: <a href="https://colab.research.google.com/drive/1MexYtGhnvsvI7uEV8Gx9Pg6s0KejKE4Z">Ocean Super Resolution</a>
+              To test this technique, I needed an ocean dataset where there is detailed structure. I chose chlorophyll a concentrations, and sea surface temperatures as measured by the <a href=https://oceancolor.gsfc.nasa.gov/gallery/>Aqua/MODIS satellite</a>.
+            </br>
+              For context, chlorophyll a concentration is a proxy for the  amount of phytoplankton in the ocean. For biological oceanography, phytoplankton concentrations are one of the most important features to monitor as it forms the base of the oceanic food chain.
+            </br>
+              The MODIS spectrometer aboard the Aqua satellite was launched in 2002. It images the earth every 1-2 days. I used level 3 preprocessed monthly composite images found <a href="https://oceancolor.gsfc.nasa.gov/l3/">here</a> in order to fill in many of the gaps in coverage due to cloud cover, while still maintaining the spatial structure that is present in the chlorphyll and temperature distribution.
+            </br>
+              Because the sensing data is grayscale and the super resolution network expects an RGB image, I mapped the intensity to common <a href="https://matplotlib.org/users/colormaps.html"> matplotlib colormaps</a>.
+            </br>
+              Level 3 products (products with the most preprocessing) were most accessible at 4km and 9km per pixel resolutions. For this test, I used the 9km data (low res) as the images to upsample, and 4km data (high res) as the ground truth image. I also compared the super resolution images against basic bicubic upsampling.
+            </br>
+              To see and run the code, you can launch a Google colab notebook here: <a href="https://colab.research.google.com/drive/1MexYtGhnvsvI7uEV8Gx9Pg6s0KejKE4Z">Ocean Super Resolution</a>
             </p>
 
           </div>
@@ -170,7 +180,7 @@
       <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
         <div class="col-md-offset-1 col-md-11">
           <div class="text">
-            <h5 class="subtitle">next steps</h5>
+            <h5 class="subtitle">what would i do next</h5>
             <ul>
               <li>
                 I'd be curious whether the network could perform substantially better if trained specifically on remote sensing data. The network pereceptually performed better when using natural color Landsat imagery.
