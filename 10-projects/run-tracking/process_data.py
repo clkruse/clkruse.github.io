@@ -29,14 +29,15 @@ filtered_y = []
 fb_data = np.load('fb_videopose3d.npy')
 from mpl_toolkits.mplot3d import Axes3D
 
-for frame in fb_data[0::10]:
+for frame in fb_data[0::30]:
     x = frame[:,0]
     y = -0.5 - frame[:,1]
     z = frame[:,2]
     fig = plt.figure()
-    ax = fig.add_subplot(111, projection='3d')
-    ax.scatter(x,y,z)
-    ax.scatter(x[3],y[3],z[3])
+    #ax = fig.add_subplot(111, projection='3d')
+    ax = fig.add_subplot(111)
+    ax.scatter(x,y)
+    ax.scatter(x[3],y[3])
     plt.xlim([-1, 1])
     plt.ylim([-1, 1])
     plt.show()
@@ -102,3 +103,41 @@ get_frequency(left_foot[:,2], 'Left Foot Z')
 get_frequency(right_foot[:,0], 'right Foot X')
 get_frequency(right_foot[:,1], 'right Foot Y')
 get_frequency(right_foot[:,2], 'right Foot Z')
+
+
+
+
+
+
+
+
+
+right_foot_x = fb_data[:,3,0]
+right_foot_y =  0.5 - fb_data[:,3,1]
+
+left_foot_x = fb_data[:,6,0]
+left_foot_y =  0.5 - fb_data[:,6,1]
+
+center_x = fb_data[:,2,0]
+center_y =  0.5 - fb_data[:,2,1]
+
+
+diff_right_x = center_x - right_foot_x
+diff_right_y = center_y - right_foot_y
+
+plt.scatter(right_foot_x, right_foot_y, s=4, c=range(len(left_foot_x)))
+plt.scatter(center_x, center_y, s=4, c=range(len(left_foot_x)))
+plt.plot(right_foot_x, right_foot_y, c='k', linewidth=.1)
+plt.colorbar()
+plt.show()
+
+plt.scatter(left_foot_x, left_foot_y, s=4, c=range(len(left_foot_x)))
+plt.scatter(center_x, center_y, s=4, c=range(len(left_foot_x)))
+plt.plot(left_foot_x, left_foot_y, c='k', linewidth=.1)
+plt.colorbar()
+plt.show()
+
+plt.scatter(diff_right_x, diff_right_y, s=4, c=range(len(left_foot_x)))
+#plt.scatter(center_x, center_y, s=4, c=range(len(left_foot_x)))
+plt.colorbar()
+plt.show()

@@ -35,6 +35,7 @@
   <link rel="stylesheet" href="../../css/style-child-theme.min.css">
   <link rel="stylesheet" href="../../css/video_banner.min.css">
   <link rel="stylesheet" href="../../css/lightgallery.min.css">
+  <link href='https://api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.css' rel='stylesheet' />
 </head>
 
 <body>
@@ -124,11 +125,18 @@
           <div class="text">
             <h5 class="subtitle">project goal</h5>
             <p>
-              A new open space is being opened near my family's home called <a href="https://www.blackforesttrails.org/the-pineries-open-space.html">The Pineries Open Space</a>. The land had been used for ranching since the early 1900's, but was purchased by the city and is scheduled to open to the public in the summer of 2020. I stumbled on a newly-created single-track trail recently on a run, and have been enjoying exploring the woods ever since.
-            </p>
-            <p>
+              A new set of trails is being opened near my family's home called <a href="https://www.blackforesttrails.org/the-pineries-open-space.html">The Pineries Open Space</a>. The land had been used for ranching since the early 1900's, but was purchased by the city and is scheduled to open to the public in the summer of 2020. I stumbled on a newly-created single-track trail recently on a run, and have been enjoying exploring these woods ever since.
+            </br>
+            </br>
               Because the area was private land for so long, and the park is not yet open, maps of the area are sparsely populated. While running in the woods this morning, I decided that the project of the day would be to add the trail and ponds to public maps.
+            </br>
+            </br>
+              The idea of mapping a trail alone doesn't seem so difficult, but it does force you to think about where data on digital maps comes from. In the earlier days of internet mapping, map data started to become collected by big companies and locked down. In response, OpenStreetMap was created on the model of Wikipedia. People know their environments best, and can add that data to a public and open map. Since the founding in 2004, OpenStreetMap has become one of the great public wonders of the internet, with more than 6 million mappers contributing data to a global map. This data is in turn used by different applications.
+            </br>
+            </br>
+              To visualize the scale of mapping, and the collaborative nature of the data, check out this map created by <a href="https://twitter.com/enf">Eric Fischer</a> and the associated <a href="https://blog.mapbox.com/openstreetmaps-contributor-community-visualized-individual-by-individual-d52e953aa83f">blog post</a> from Mapbox. Each feature on the map is colored by the user that contributed the map data.
             </p>
+            <div style="height: 40vh" id="map"></div>
           </div>
         </div>
       </div>
@@ -139,9 +147,16 @@
           <div class="text">
             <h5 class="subtitle">methods</h5>
             <p>
-              <a href="https://www.openstreetmap.org/">OpenStreetMap</a> is one of the great public wonders of the internet. In response to most map data being proprietary, OpenStreetMap was created on the model of wikipedia, but to map the world. Volunteers around the globe collect and submit data to the platform, which can then be used in other open projects.
+              To map the trail, I first imported a GPS track from a run along the trail to use as a reference. Because of GPS inaccuracies, it is recommended to visually trace the path of the trail as it appears on satellite imagery.
               </br>
-              Many map-based applications pull information from OpenStreetMap to populate their databases.
+              </br>
+              Spotting the trail in the satellite imagery was challenging because most of the images were taken before the trail was constructed. I was able to use a combination of Bing maps imagery, and imagery from the National Agricultural Imagery Program (NAIP). Here you can see the trail on the Bing imagery (R) and on the NAIP imagery (L).
+              <div class='row'>
+                <img class="col-xs-6 col-md-6" src="bing.jpg"></img>
+                <img class="col-xs-6 col-md-6" src="naip.jpg"></img>
+              </div>
+            </br>
+              I also added ponds and dams present in the woods as well. These were easier to find and trace than the trail.
             </p>
 
           </div>
@@ -152,6 +167,8 @@
         <div class="col-md-offset-1 col-md-11">
           <div class="text">
             <h5 class="subtitle">results</h5>
+            <p>
+              Here are the trail, ponds, and earthen dams in the woods that I added to the map. You can <a href="https://www.openstreetmap.org/user/clkruse/history">view the data on OpenStreetMap</a> as well.
             <img src="osm_edits.jpg"></img>
           </div>
         </div>
@@ -162,9 +179,7 @@
           <div class="text">
             <h5 class="subtitle">conclusion</h5>
             <p>
-              The network certainly accomplishes the goal of upsampling an image and sharpening the output. However, there are a fair number of artifacts present in the outputs.
-            </br>
-              It's questionable though whether the benefits of increased resolution would be strong enough to outweigh the downsides of introducing processing artifacts into the sample.
+              This was a simpler project, but it's a good feeling to add to a public record like OpenStreetMap or Wikipedia. I'll be very interested to see how this data spreads.
             </p>
           </div>
         </div>
@@ -176,10 +191,13 @@
             <h5 class="subtitle">next steps</h5>
             <ul>
               <li>
-                I'd be curious whether the network could perform substantially better if trained specifically on remote sensing data. The network pereceptually performed better when using natural color Landsat imagery.
+                Monitor sites like Strava and Mapbox to see when they pull new data from OpenStreetMap.
               </li>
               <li>
-                Do different color maps impact the outcome? The network certainly uses color patterns from natural images in order to aid the upsampling process. Perhaps the "jet" and "viridis" color schemes are unfamiliar to the network.
+                Update the path position as the more satellite imagery sources show the trail.
+              </li>
+              <li>
+                A new trail is being constructed. Add that trail to the map after it is complete.
               </li>
             </ul>
             </br>
@@ -232,6 +250,19 @@
   <script src="../../js/lightgallery.min.js"></script>
   <script src="../../js/lib/thumbnails-popup.js"></script>
   <script src="../../js/script.js"></script>
+  <script src="https://api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.js"></script>
+  <script src='leaflet-hash.js'></script>
+  <link href="https://api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.css" rel='stylesheet' />
+  <script type="text/javascript">
+    var map = L.mapbox.map('map', 'enf.osm-who')
+        .setView([39.7064, -105.0365], 10);
+    new L.Hash(map);
+    var attribution = new L.Control.Attribution();
+    attribution.addAttribution("<a href='http://www.mapbox.com/blog/osm-community-visualized/'>OpenStreetMap's Contributor Community Visualized - Individual by Individual</a> | Data: OpenStreetMap, Design: MapBox / Eric Fischer");
+    attribution.setPrefix("");
+    map.addControl(attribution);
+</script>
+
 
 </body>
 
