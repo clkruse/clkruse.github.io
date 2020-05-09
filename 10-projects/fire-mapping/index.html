@@ -143,39 +143,32 @@
               I looked to use remote sensing data as the record covers the time periods of change, and the spatial resolution would be high enough. For processing, I used <a href="https://earthengine.google.com/">Google Earth Engine</a>. It's a powerful tool that aggregates remote sensing datasets, and also provides a framework to do large scale data processing in the cloud. Unfortunately, the python API is quite challenging for me to use in my typical mindset of local data processing, and it seems like a second-class citizen to their JavaScript API. So, I used the JavaScript API through the <a href="code.earthengine.google.com"> Earth Engine Code Editor</a> for this project.
               </br>
               </br>
-              I searched for an appropriate remote sensing dataset that might capture the change in vegetation. Initially, I anticipated using a normalized difference vegetation index (NDVI) which uses the ratio of infrared to red light to detect the presence and amount of vegetation. Here, you can see a visualization of NVDI in Black Forest throughout 2013. The dark green area in the center is Black Forest, and you can see a lighter scar emerge following the fire.
+              I searched for an appropriate remote sensing dataset that might capture the change in vegetation. Initially, I anticipated using a normalized difference vegetation index (NDVI) which uses the ratio of infrared to red light to detect the presence and amount of vegetation. Here, you can see a visualization of NDVI in Black Forest throughout 2013. The dark green area in the center is Black Forest, and you can see a lighter scar emerge following the fire.
             </p>
             <img src="bf5.gif"></img>
             <p class="subtext">NDVI of Black Forest: 1/2013-1/2014</p>
             </p>
-              NVDI could be used for this analysis, but I found the <a href="https://earthenginepartners.appspot.com/science-2013-global-forest">Global Forest Change dataset</a> from Hansen et al. This uses data from Landsat 8, and marks changes in forest density from a reference baseline in the year 2000. The data clearly shows regions of forest loss, and forest gain. It's astonishing to be able to instantly get a snapshot of forest change at a 30m resolution across the globe.
+              NDVI could be used for this analysis, but I found the <a href="https://earthenginepartners.appspot.com/science-2013-global-forest">Global Forest Change dataset</a> from Hansen et al. This uses data from Landsat 8, and marks changes in forest density from a reference baseline in the year 2000. The data clearly shows regions of forest loss, and forest gain. It's astonishing to be able to instantly get a snapshot of forest change at a 30m resolution across the globe.
             </p>
             <img src="world_forest_map.jpg"></img>
             <p class="subtext">Forest coverage and change in North America from the Hansen dataset - Green: Forest cover, Red: Forest loss, Blue: Forest gain</p>
             <p>
               After limiting the data to the Black Forest area, the burn scar becomes apparent.
             </p>
-            <iframe frameborder="0" class="juxtapose" width="100%" height="350" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=cb4abdee-91ab-11ea-a879-0edaf8f81e27"></iframe>
+            <div style="position:relative; padding-top:63.2%">
+              <iframe frameborder="0" class="juxtapose" style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=cb4abdee-91ab-11ea-a879-0edaf8f81e27"></iframe>
+            </div>
             <p>
               The burn scar can also be seen in the Landsat Burned Area Index dataset from August of 2013. White areas represent a burned classification.
             </p>
             <img src="bf_bai.jpg"></img>
             <p class="subtext">Landsat Burned Area Index data of Black Forest in August, 2013</p>
             <p>
-              Next, I wanted to convert this raster pixel data into a vector format for display on a stylized map. In order to do this, I needed to convert the pixel layer to a vector form in Google Earth Engine. The vector data still had retained the pixel artifact structure, so I exported the GeoJSON data to QGIS, and then use a
+              Next, I wanted to convert this raster pixel data into a vector format for display on a stylized map. In order to do this, I needed to convert the pixel layer to a vector form in Google Earth Engine. The vector data still had retained the pixel artifact structure, so I exported the GeoJSON data to QGIS, and then filtered the small regions, smoothed the edges using a "snakes" generalization algorithm, and removed any islands. This smoothing and filtering took much longer than the remote sensing part! Below, you can see the vector output before and after filtering.
             </p>
-            <iframe frameborder="0" class="juxtapose" width="100%" height="350" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=8720cab2-91ad-11ea-a879-0edaf8f81e27"></iframe>
-              </br>
-              </br>
-              Spotting the trail in the satellite imagery was challenging because most of the images were taken before the trail was constructed. I was able to use a combination of Bing maps imagery, and imagery from the National Agricultural Imagery Program (NAIP). Here you can see the trail on the Bing imagery (L) and on the NAIP imagery (R).
-              <div class='row'>
-                <img class="col-xs-6 col-md-6" src="bing.jpg"></img>
-                <img class="col-xs-6 col-md-6" src="naip.jpg"></img>
-              </div>
-            </br>
-              I also added ponds and dams present in the woods as well. These were easier to find and trace than the trail.
-            </p>
-
+            <div style="position:relative; padding-top:45.5%">
+              <iframe frameborder="0" class="juxtapose" style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=8720cab2-91ad-11ea-a879-0edaf8f81e27"></iframe>
+            </div>
           </div>
         </div>
       </div>
@@ -185,8 +178,9 @@
           <div class="text">
             <h5 class="subtitle">results</h5>
             <p>
-              Here are the trail, ponds, and earthen dams in the woods that I added to the map. You can <a href="https://www.openstreetmap.org/user/clkruse/history">view the data on OpenStreetMap</a> as well.
-            <img src="osm_edits.jpg"></img>
+              I was happy with how the map of the fire turned out. The sensed burned areas correspond to what I see in the forest, and the vector format output looks good on the map. I added the burn scar to a map of the Pineries Open Space that I've been working on.
+            </p>
+            <div style="height: 40vh" id="map"></div>
           </div>
         </div>
       </div>
@@ -196,7 +190,7 @@
           <div class="text">
             <h5 class="subtitle">conclusion</h5>
             <p>
-              This was a simpler project, but it's a good feeling to add to a public record like OpenStreetMap or Wikipedia. I'll be very interested to see how this data spreads.
+              My biggest takeaway from this project is the ease of access for this powerful remote sensing data. After getting spun up on the tools, there is no shortage of data available to analyze, and this project only scratches the surface. It's astonishing to be able to work with data with this level of spatial fidelity, temporal span and resolution, and multimodal sensing.
             </p>
           </div>
         </div>
@@ -208,13 +202,10 @@
             <h5 class="subtitle">next steps</h5>
             <ul>
               <li>
-                Monitor sites like Strava and Mapbox to see when they pull new data from OpenStreetMap.
+                I'd be interested to monitor the regrowth of the burned forest. There have been extensive efforts to cut down and remove trees following the fire. I'd be curious to see whether this heavily managed area recovers at a different rate than other nearby burn sites.
               </li>
               <li>
-                Update the path position as the more satellite imagery sources show the trail.
-              </li>
-              <li>
-                A new trail is being constructed. Add that trail to the map after it is complete.
+                Monitor forest regrowth over time. Does the forest encroach on open spaces, or do new forest grow from the meadows where competition is absent.
               </li>
             </ul>
             </br>
@@ -267,6 +258,17 @@
   <script src="../../js/lightgallery.min.js"></script>
   <script src="../../js/lib/thumbnails-popup.js"></script>
   <script src="../../js/script.js"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.js"></script>
+
+  <script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoiY2xrcnVzZSIsImEiOiJjaXIxY2M2dGcwMnNiZnZtZzN0Znk3MXRuIn0.MyKHSjxjG-ZcI2BkRUSGJA';
+  var map = new mapboxgl.Map({
+    container: 'map', // container id
+    style: "mapbox://styles/clkruse/ck8s8ml4i0qim1imnbhbkstie", //YOUR TURN: choose a style: https://docs.mapbox.com/api/maps/#styles
+    center: [-104.683900, 39.035300], // starting position [lng, lat]
+    zoom: 11, // starting zoom
+  });
+  </script>
 </body>
 
 </html>
