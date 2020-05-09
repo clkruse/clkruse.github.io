@@ -16262,6 +16262,15 @@ body.search {
   height: 20vw
 }
 
+.bg_img_forest_map {
+  background-image: url("../10-projects/fire-mapping/world_forest_map.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 34%;
+  height: 20vw
+}
+
 .bg_img_coral {
   background-image: url("../img/bahamas.jpg");
   -webkit-background-size: cover;
