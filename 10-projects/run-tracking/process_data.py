@@ -26,21 +26,42 @@ for file in sorted(os.listdir('json')):
 filtered_y = []
 
 
-fb_data = np.load('fb_videopose3d.npy')
+fb_data = np.load('alden_basketball_1.npy')
 from mpl_toolkits.mplot3d import Axes3D
 
-for frame in fb_data[0::30]:
+for frame in fb_data[0::20]:
+    z = frame[:,0]
+    y = -frame[:,1]
+    x = frame[:,2]
+    fig = plt.figure()
+    ax = fig.add_subplot(111, projection='3d')
+    #ax = fig.add_subplot(111)
+    ax.scatter(x,y,z)
+    ax.set_xlim([-1, 1])
+    ax.set_ylim([-1, 1])
+    ax.set_zlim([-1, 1])
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    ax.set_zlabel('z')
+    #ax.scatter(x[3],y[3],z[3])
+    plt.show()
+
+
+for frame in fb_data[0::20]:
     x = frame[:,0]
-    y = -0.5 - frame[:,1]
-    z = frame[:,2]
+    y = -frame[:,1]
     fig = plt.figure()
     #ax = fig.add_subplot(111, projection='3d')
     ax = fig.add_subplot(111)
     ax.scatter(x,y)
-    ax.scatter(x[3],y[3])
-    plt.xlim([-1, 1])
-    plt.ylim([-1, 1])
+    ax.set_xlim([-1, 1])
+    ax.set_ylim([-1, 1])
+    ax.set_xlabel('x')
+    ax.set_ylabel('y')
+    #ax.scatter(x[3],y[3],z[3])
     plt.show()
+
+
 
 
 for joint in range(17):
@@ -56,29 +77,15 @@ for joint in range(17):
     plt.show()
 
 
-
-right_foot = fb_data[:,3,2]
-plt.plot(np.linspace(0,5,1200), right_foot, linewidth=1)
-plt.title('Right Foot')
-left_foot = fb_data[:,6,1]
-plt.plot(np.linspace(0,5,1200), left_foot, c='r', linewidth=1)
-plt.title('Foot Position (Z)')
-#plt.legend(['right x', 'right y','right z', 'left x', 'left y','left z'])
-plt.legend(['Right', 'Left'])
-plt.xlabel('Time (seconds)')
-plt.savefig('Foot Position (Z).png')
-plt.show()
-
-
 from scipy.signal import savgol_filter
 from scipy import fftpack
 
 def get_frequency(x, title):
-    x_filtered = savgol_filter(x, 111, 3)
+    x_filtered = savgol_filter(x, 11, 3)
     fourier = fftpack.fft(x_filtered)
     freqs = fftpack.fftfreq(len(x)) * 240
 
-    steps_per_min = int(np.max(np.abs(freqs[np.argsort(np.abs(fourier))[-5:]] * 60)))
+    steps_per_min = int(np.max(np.abs(freqs[np.argsort(np.abs(fourier))[-4:]] * 60)))
 
     plt.figure(figsize=(12,6))
     plt.subplot(1,2,1)
@@ -96,30 +103,71 @@ def get_frequency(x, title):
     plt.savefig(title + '.png')
     plt.show()
 
-get_frequency(left_foot[:,0], 'Left Foot X')
-get_frequency(left_foot[:,1], 'Left Foot Y')
-get_frequency(left_foot[:,2], 'Left Foot Z')
 
-get_frequency(right_foot[:,0], 'right Foot X')
-get_frequency(right_foot[:,1], 'right Foot Y')
-get_frequency(right_foot[:,2], 'right Foot Z')
+data = np.load('alden_basketball_1.npy')
+right_foot = data[:,3,:]
+left_foot = data[:,6,:]
+get_frequency(left_foot[:,0], 'Left Foot X - Alden Jog')
+get_frequency(left_foot[:,1], 'Left Foot Y - Alden Sprint')
+get_frequency(left_foot[:,2], 'Left Foot Z - Alden Sprint')
+
+get_frequency(right_foot[:,0], 'Right Foot X - Alden Jog')
+get_frequency(right_foot[:,1], 'Right Foot Y - Alden Sprint')
+get_frequency(right_foot[:,2], 'Right Foot Z - Alden Sprint')
+
+data = np.load('alden_sprint_basketball.npy')
+right_foot = data[:,3,0]
+plt.figure(figsize=(8,6))
+plt.plot(np.linspace(0,len(right_foot)/240,len(right_foot)), right_foot, linewidth=1)
+plt.title('Right Foot')
+left_foot = data[:,6,0]
+plt.plot(np.linspace(0,len(right_foot)/240,len(right_foot)), left_foot, c='r', linewidth=1)
+plt.title('Foot Position (X) - Alden Sprint')
+plt.legend(['Right', 'Left'])
+plt.xlabel('Time (seconds)')
+plt.savefig('Foot Position (X) - Alden Sprint.png')
+plt.show()
 
 
 
 
+data = np.load('alden_basketball_1.npy')
+
+right_foot_x = data[:,3,0]
+right_foot_y =  -data[:,3,1]
+right_foot_z =  -data[:,3,2]
+
+center_x = data[:,1,0]
+center_y =  - data[:,1,1]
+center_y =  - data[:,1,2]
+
+
+right_foot_y_filtered = savgol_filter(right_foot_y, 51, 3)
+d_right_foot_y = right_foot_y_filtered[1:] - right_foot_y_filtered[0:-1]
+d_filtered = savgol_filter(d_right_foot_y, 31, 3)
+plt.plot(right_foot_y_filtered)
+plt.plot(10 * (d_filtered))
+plt.grid()
+plt.legend(['Y Position', 'dY Position'])
+plt.title('Smoothed Y Position and Derivative')
+plt.show()
+
+
+for i in range(0,500,5):
+    plt.scatter(center_x[i], center_y[i])
+    plt.scatter(0, right_foot_y[i])
+    plt.xlim([-1, 1])
+    plt.ylim([-1, 1])
+    plt.grid()
+    plt.show()
 
 
 
+left_foot_x = data[:,6,0]
+left_foot_y =  - data[:,6,1]
 
-
-right_foot_x = fb_data[:,3,0]
-right_foot_y =  0.5 - fb_data[:,3,1]
-
-left_foot_x = fb_data[:,6,0]
-left_foot_y =  0.5 - fb_data[:,6,1]
-
-center_x = fb_data[:,2,0]
-center_y =  0.5 - fb_data[:,2,1]
+center_x = data[:,2,0]
+center_y =  - data[:,2,1]
 
 
 diff_right_x = center_x - right_foot_x
