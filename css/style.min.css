@@ -16280,6 +16280,15 @@ body.search {
   height: 20vw
 }
 
+.bg_img_birds {
+  background-image: url("../10-projects/bird-clustering/birds_header.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 5%;
+  height: 20vw
+}
+
 .bg_img_coral {
   background-image: url("../img/bahamas.jpg");
   -webkit-background-size: cover;

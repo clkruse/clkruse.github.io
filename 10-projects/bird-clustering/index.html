@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta name="This is Caleb Kruse's portfolio site: a place to build, show, and save projects">
+	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-105607174-2"></script>
+	<script>
+		window.dataLayer = window.dataLayer || [];
+
+		function gtag() {
+			dataLayer.push(arguments);
+		}
+		gtag('js', new Date());
+
+		gtag('config', 'UA-105607174-2');
+	</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Bird Clustering - 10 Projects</title>
+
+  <link rel="stylesheet" href="../../css/bootstrap.min.css">
+  <link rel="stylesheet" href="../../css/font-awesome.min.css">
+  <link rel="stylesheet" href="../../css/magnific-popup.css">
+  <link rel="stylesheet" href="../../css/animsition.min.css">
+  <link rel="stylesheet" href="../../css/animate.css">
+  <link rel="stylesheet" href="../../css/pe-icon-7-stroke.css">
+  <link rel="stylesheet" href="../../css/jquery.fancybox.min.css">
+  <link rel="stylesheet" href="../../css/swiper3.css">
+  <link rel="stylesheet" href="../../css/simple-line-icons.css">
+  <link rel="stylesheet" href="../../css/ionicons.min.css">
+  <link rel="stylesheet" href="../../css/slick.css">
+  <link rel="stylesheet" href="../../css/style.min.css">
+  <link rel="stylesheet" href="../../css/menu.css">
+  <link rel="stylesheet" href="../../css/style-child-theme.min.css">
+  <link rel="stylesheet" href="../../css/video_banner.min.css">
+  <link rel="stylesheet" href="../../css/lightgallery.min.css">
+</head>
+
+<body>
+  <!-- MAIN_WRAPPER -->
+  <div class="main-wrapper" data-top="992">
+    <div class="header_top_bg  header_trans-fixed menu_dark_text" style="padding-bottom: 0;">
+      <div class="container-fluid">
+        <div class="row">
+          <div class="col-xs-12">
+            <!-- HEADER -->
+            <header class="right-menu left ">
+              <!-- MOB MENU ICON -->
+              <a href="#" class="mob-nav">
+                <div class="hamburger">
+                  <span class="line"></span>
+                  <span class="line"></span>
+                  <span class="line"></span>
+                </div>
+              </a>
+
+              <!-- NAVIGATION -->
+              <nav id="topmenu" class="topmenu ">
+                <a href="#" class="mob-nav-close">
+                  <span>close</span>
+                  <div class="hamburger">
+                    <span class="line"></span>
+                    <span class="line"></span>
+                  </div>
+                </a>
+                <ul class="menu">
+                  <li class="menu-item">
+                    <a href="http://calebkruse.com/">home</a>
+                  </li>
+                  <li id="menu-item-9" class="menu-item menu-item-has-children">
+                    <a href="#">topics</a>
+                    <ul class="sub-menu">
+                      <li class="menu-item">
+                        <a href="http://calebkruse.com/ng">National Geographic</a></li>
+                      <li class="menu-item">
+                        <a href="http://calebkruse.com/ml">Machine Learning</a></li>
+                      <li class="menu-item">
+                        <a href="http://calebkruse.com/sci">Science</a></li>
+                      <li class="menu-item">
+                        <a href="http://calebkruse.com/xr">AR/VR</a></li>
+                      <li class="menu-item">
+                        <a href="http://calebkruse.com/photo">Photography</a></li>
+                      <li class="menu-item">
+                        <a href="http://calebkruse.com/balloon.html">Balloons</a></li>
+                      <li class="menu-item">
+                        <a href="http://calebkruse.com/maps.html">Maps</a></li>
+                      <li class="menu-item">
+                        <a href="http://calebkruse.com/10-projects">Prototypes</a></li>
+                    </ul>
+                  </li>
+                </ul>
+
+              </nav>
+            </header>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="container-fluid">
+      <div class="hero">
+        <div class="row bg_img_birds">
+          <div class="container">
+            <div class="row">
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="row margin-lg-100t margin-md-80t margin-sm-40t margin-xs-30t margin-lg-80b margin-md-55b margin-sm-40b margin-xs-20b">
+        <div class="col-xs-12 col-md-offset-1 col-md-10">
+          <h1 style="color:#4384d9">10 projects - #5</h1>
+          <h1 style="color:#4384d9">birds of a feather flock together</h1>
+          <h3 class="title" style="color:#222222">clustering images to display birds that are similar to one another as neighbors, and placing birds that differ further apart</h3>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
+        <div class="col-md-offset-1 col-md-11">
+
+          <div class="text">
+            <h5 class="subtitle">project goal</h5>
+            <p>
+              I've been doing a lot more birdwatching during the coronavirus quarantine. In the last month, I've seen 33 different species according to <a href="http://ebird.org/">eBird</a>. It's impressive that in a single location, there can be so many clearly distinguishable species.
+            </p>
+            <p>
+              My aim for the day was to create a chart of birds ordered by visual similarity. It would be interesting to see different edges of the spectrum of bird diversity, and how the bird species smoothly morph between extremes.
+            </p>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
+        <div class="col-md-offset-1 col-md-11">
+          <div class="text">
+            <h5 class="subtitle">methods</h5>
+            <p>
+              Proper datasets are key to this project. Because we're analyzing image data, birds in front of different backgrounds, at different scales, or even in different positions could throw off the similarity comparison. I wanted to use illustrations from <a href="https://www.sibleyguides.com/">Sibley's Guides to Birds</a> but couldn't find a large collection of images online. Instead, I used ~2,500 images from <a href="https://joelsartore.com/keyword/birds/">Joel Sartore's Photo Ark</a> project, and a 400 images from a <a href="https://digital.library.pitt.edu/collection/audubons-birds-america">database of Audubon's drawings</a> from Bird's of America. I'm not sure about the ethics of my data collection. I needed to programmatically scrape images from both sites, is it ok to use the images here?
+            </br>
+            </br>
+              I first thought that I would do the clustering in image space. While this approach would be the most straightforward, it would based on the contents of the image rather than the features of the bird. For example, a bird facing to the right may be located far from a bird facing to the left as they differ strongly in image space.
+            </br>
+            </br>
+              To work around this problem, I needed to cluster based on <i>features</i> of the birds in the images rather than on the image data itself. Once again, neural networks come to the rescue. A typical classification network is composed of convolutional feature extractors followed by fully connected layers. These layers of feature extractors at the top of the network start from simple concepts like curves or edges, and build more complex composite feature detectors out of the simpler components. These features can then be used by the fully-connected half of the network to make a classification of what is in the image. To see more on this topic, read this fascinating series on <a href="https://distill.pub/2020/circuits/zoom-in/">Distill.pub</a>.
+            </br>
+            </br>
+              I ran each image through the feature extractor from the VGG16 network to convert a 224x224x3 image into a 512x1 dimensional feature output. I then compressed the dimensionality of these vectors from 512 dimensions down to 2 using an algorithm called <a href="https://lvdmaaten.github.io/tsne/">tSNE</a>. From there, the scattered points are moved into a regular grid using a Jonker-Volgenant distance minimization algorithm, and the original image is ploted in its gridded location. This whole process was popularized by <a href="https://cs.stanford.edu/people/karpathy/cnnembed/">Andrej Karpathy</a> and is simply implemented <a href="https://github.com/prabodhhere/tsne-grid">here</a>. All code for the scraping and analysis can be accessed and run in this <a href="https://colab.research.google.com/drive/10lKW1_qX40_3ge-iEPhcOfK7AUgFh0aV?usp=sharing">Google Colab notebook</a>.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
+        <div class="col-md-offset-1 col-md-11">
+          <div class="text">
+            <h5 class="subtitle">results</h5>
+            <p>
+              Though some of the trends in the clustering are puzzling to my human eye, the results are quite beautiful! It definitely helps to start with such strong imagery.
+            </p>
+            <h6><b>photo ark</b></h6>
+            <a href="1156_black_images_square_borders.jpg">
+              <img src="1156_black_images_square_borders_small.jpg"></img>
+            </a>
+            <p class="subtext">Dimensionality reduction of bird images from <a href="https://joelsartore.com/keyword/birds/">Joel Sartore's Photo Ark</a>. Click image to view full resolution</p>
+          </br>
+            <h6><b>audubon's birds of america</b></h6>
+            <a href="400_square_tight_audubon_images.jpg">
+              <img src="400_square_tight_audubon_images_small.jpg"></img>
+            </a>
+            <p class="subtext">Dimensionality reduction of bird images from John Audubon's Bird's of America. Click image to view full resolution</a></p>
+          </div>
+        </div>
+      </div>
+
+      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
+        <div class="col-md-offset-1 col-md-11">
+          <div class="text">
+            <h5 class="subtitle">conclusion</h5>
+            <p>
+              There's certainly room for improvement on the clustering. However, I think the outputs look wonderful. It's fun to trace how certain features cluster or evolve. For example, look at the red streak on the left side of the Photo Ark compilation, or how the cluster of parrots morph into other birds on the right side.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
+        <div class="col-md-offset-1 col-md-11">
+          <div class="text">
+            <h5 class="subtitle">what would i do next</h5>
+            <ul>
+              <li>
+                I would be quite curious to use a feature extractor from a network that is made to identify birds. Most of the classes that the VGG16 network predicts are fully unrelated to nature. I would imagine that the clustering would be much more distinct if using a network with features tuned to identify the differences in birds.
+              </li>
+              <li>
+                You can see that the the Audubon sketches are cropped, sometimes leaving out important regions. It would be nice to work with a more uniform drawn dataset. Again, Sibley's would be perfect. If anyone has connections to get those images, let me know.
+              </li>
+              <li>
+                I'd be curious to incorporate a wide swath of animals in the photo ark. I'd like to see how different species cluster.
+              </li>
+            </ul>
+            </br>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer id="footer" class="modern">
+    <div class="container no-padd">
+
+      <div class="col-xs-12 footer-socials text-left col-sm-6">
+        <a href="https://twitter.com/clkruse" target="_blank">
+          <i class="fa fa-twitter"></i>
+        </a>
+        <a href="https://www.instagram.com/clkruse" target="_blank">
+          <i class="fa fa-instagram"></i>
+        </a>
+      </div>
+
+      <div class="copyright col-xs-12 text-right col-sm-6">
+        © Caleb Kruse
+      </div>
+
+    </div>
+  </footer>
+
+  <script src="../../js/jquery.min.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+  <script src="../../js/lib/modernizr-2.6.2.min.js"></script>
+  <script src="../../js/lib/scripts.js"></script>
+  <script src="../../js/jquery.countdown.min.js"></script>
+  <script src="../../js/foxlazy.js"></script>
+  <script src="../../js/jquery.easings.min.js"></script>
+  <script src="../../js/jquery.multiscroll.min.js"></script>
+  <script src="../../js/magnific.js"></script>
+  <script src="../../js/TweenMax.min.js"></script>
+  <script src="../../js/equalHeightsPlugin.js"></script>
+  <script src="../../js/jquery.fancybox.min.js"></script>
+  <script src="../../js/jquery.fitvids.js"></script>
+  <script src="../../js/swiper3.js"></script>
+  <script src="../../js/imagesloaded.pkgd.min.js"></script>
+  <script src="../../js/fragment.js"></script>
+  <script src="../../js/scrollMonitor.js"></script>
+  <script src="../../js/slider-transition.js"></script>
+  <script src="../../js/slick.js"></script>
+  <script src="../../js/jquery.sliphover.min.js"></script>
+  <script src="../../js/pixi.min.js"></script>
+  <script src="../../js/lightgallery.min.js"></script>
+  <script src="../../js/lib/thumbnails-popup.js"></script>
+  <script src="../../js/script.js"></script>
+
+</body>
+
+</html>
