@@ -16307,6 +16307,15 @@ body.search {
   height: 20vw
 }
 
+.bg_img_schlieren {
+  background-image: url("../10-projects/schlieren/Line Integral Convolution - Frame 211.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 0%;
+  height: 20vw
+}
+
 .bg_img_coral {
   background-image: url("../img/bahamas.jpg");
   -webkit-background-size: cover;
