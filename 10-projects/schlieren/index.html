@@ -189,19 +189,13 @@
             <p>
               I processed 475 frames from the source a video to produce a video of the changes in density through time. I visualized the density changes by both plotting the background motion vectors on top of the original video, and also mapping the magnitude of the vector to a colormap.
             </p>
-            <div class="col-md-6">
-              <video style="object-fit: fill; max-width: 100%; min-height:100%" autoplay loop muted>
-                <source src="vectors-480.mp4" type="video/mp4" />
-              </video>
-              <p class="subtext">Vector field of background motion overlaid on video of flame. Areas of motion indicate a density change between frames. Note: the red region is excluded from the analysis</p>
-              </br>
-            </div>
-            <div class="col-md-6 right">
-              <video style="object-fit: fill; max-width: 100%; min-height:100%" autoplay loop muted>
-                <source src="filtered-vel-mag.mp4" type="video/mp4" />
-              </video>
-              <p class="subtext">Plotting the magnitude of each background motion vector. Here, regions of density change are isolated and highlighted.</p>
-              </br>
+            <video style="object-fit: fill; width: 100%; min-height:100%" autoplay loop muted>
+              <source src="combined-480.mp4" type="video/mp4" />
+            </video>
+            <p class="col-md-6 subtext">Vector field of background motion overlaid on video of flame. Areas of motion indicate a density change between frames. Note: the red region is excluded from the analysis</p>
+            <p class="ol-md-6 right subtext">Plotting the magnitude of each background motion vector. Here, regions of density change are isolated and highlighted.</p>
+            </br>
+
             </div>
           </div>
         </div>
