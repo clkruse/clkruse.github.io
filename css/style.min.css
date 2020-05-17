@@ -16316,6 +16316,15 @@ body.search {
   height: 20vw
 }
 
+.bg_img_microscope {
+  background-image: url("../10-projects/microcolor/microcolor-header-slim.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 0%;
+  height: 20vw
+}
+
 .bg_img_coral {
   background-image: url("../img/bahamas.jpg");
   -webkit-background-size: cover;
