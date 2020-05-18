@@ -16325,6 +16325,15 @@ body.search {
   height: 20vw
 }
 
+.bg_img_photogrammetry {
+  background-image: url("../10-projects/instagrammetry/photogrammetry_header.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 38%;
+  height: 20vw
+}
+
 .bg_img_coral {
   background-image: url("../img/bahamas.jpg");
   -webkit-background-size: cover;
