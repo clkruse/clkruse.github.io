@@ -148,19 +148,21 @@
             </br>
             </br>
             <h6 class="subtitle">pose tracking</h6>
+            <p>
               The crux of this analysis was accurate pose tracking. After working on skeletal hand tracking at <a href="http://leapmotion.com/">Leap Motion</a> for nearly 5 years, I know that this is no trivial problem. However, open-source neural-network based pose tracking solutions have become quite good in recent years.
-            </br>
-            </br>
+            </p>
+            <p>
               For my desired analyses, I needed a 3D pose output. Facebook Research released <a href="https://github.com/facebookresearch/VideoPose3D">VideoPose3D</a>. This network first identifies joint keypoints, and then has a secondary network that outputs the most probable 3D pose for that joint configuration. This is one of the few networks that I was able to find that was able to produce a 3D skeletal model from a monocular camera in an uncontrolled setting. An impressive feat to be sure!
-            </br>
-            </br>
+            </p>
+            <p>
               I found that the tracking performed best when the runner was close to the camera and at an oblique angle, when the subject was easy to isolate from the background, and when the footage was captured at a high frame rate.
-            </br>
-            </br>
+            </p>
+            <p>
             <h6 class="subtitle">running form analysis</h6>
+            <p>
               I hoped to be able to quantify cadence, position of the foot relative to the body when striking the ground, spine angle, and vertical head movement. Unfortunately, a day is not enough time to work on all of these outputs. To see the analysis in progress, and run it for yourself, you can open this <a href="https://colab.research.google.com/drive/1dvhPAageFaUJCm7SGH757O4oIqS-NcHx?usp=sharing">Google Colab notebook</a>.
-              </br>
-              </br>
+            </p>
+            <p>
               The most successful metric that I was able to compute was cadence. Here, I tracked the x or y position of a foot through time, and found the dominant frequency components in a Fourier transform of the path.
             </p>
 
