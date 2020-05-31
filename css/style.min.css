@@ -16352,6 +16352,15 @@ body.search {
   height: 35vw
 }
 
+.bg_img_running {
+  background-image: url("../img/marathon-photos/medals.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 40%;
+  height: 35vw
+}
+
 
 .body_bg {
   background-color: #00113c
