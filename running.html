@@ -130,7 +130,7 @@
                     <div class="row margin-lg-50b col-md-9 col-md-offset-1">
                       <p></br>Note: Many of these are unofficial, as I had a habit of banditing races. I have not included training runs of marathon length or longer, only races even if the race was more of a training run</p>
                     </div>
-                    <iframe height='454' width='100%' frameborder='0' allowtransparency='true' scrolling='no' src='https://www.strava.com/athletes/155470/latest-rides/cfa36ece31a9faa6fd429ab35f27060fca1521f0'></iframe>
+                      <iframe height='454' width='100%' frameborder='0' allowtransparency='true' scrolling='no' src='https://www.strava.com/athletes/155470/latest-rides/cfa36ece31a9faa6fd429ab35f27060fca1521f0'></iframe>
                     <div class="row margin-lg-50b">
                     </div>
                   </div>
@@ -138,11 +138,33 @@
               </div>
             </div>
           </div>
+          <div class="row margin-lg-30t">
+            <div class="col-md-6">
+              <h5 style="font-weight: bold"></b>number of miles per year</b></h5>
+              <div id="miles_per_year"></div>
+            </div>
+            <div class="col-md-6 right">
+              <h5 style="font-weight: bold"></b>average run length</b></h5>
+              <div id="avg_length_per_year"></div>
+            </div>
+
+          </div>
+          <div class="row margin-lg-30t">
+            <div class="col-md-6">
+              <h5 style="font-weight: bold"></b>number of hours per year</b></h5>
+              <div id="hours_per_year"></div>
+            </div>
+            <div class="col-md-6 right">
+              <h5 style="font-weight: bold"></b>elevation climbed per year</b></h5>
+              <div id="elevation_per_year"></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
     <div class="container">
+
       <div class="row margin-lg-50b">
         <div class="col-sm-6 col-xs-12 margin-xs-50b margin-sm-50b">
           <a href="https://www.strava.com/activities/2651819667">
@@ -418,7 +440,227 @@
   <script src="js/headings.js"></script>
   <script src="js/services.js"></script>
   <script src="js/info_block.js"></script>
+  <!-- Load d3.js -->
+  <script src="https://d3js.org/d3.v4.js"></script>
 
+  <script>
+    // set the dimensions and margins of the graph
+    var margin = {top: 30, right: 30, bottom: 70, left: 60},
+        width = document.getElementById("miles_per_year").offsetWidth - margin.left - margin.right,
+        height = 424 - margin.top - margin.bottom;
+
+    // append the svg object to the body of the page
+    var miles = d3.select("#miles_per_year")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+
+    // Parse the Data
+    d3.csv("running_yearly_stats.csv", function(data) {
+
+    // X axis
+    var x = d3.scaleBand()
+      .range([ 0, width ])
+      .domain(data.map(function(d) { return d.Year; }))
+      .padding(0.2);
+    miles.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+        .attr("transform", "translate(-10,0)rotate(-45)")
+        .style("text-anchor", "end");
+
+    // Add Y axis
+    var y = d3.scaleLinear()
+      .domain([0,  700]).nice()
+      .range([ height, 0]);
+    miles.append("g")
+      .call(d3.axisLeft(y));
+
+    // Adds yAxis title
+    miles.append('text')
+      .text('Miles')
+      .attr('transform', 'translate(-43, -15)');
+
+
+    // Bars
+    miles.selectAll("mybar")
+      .data(data)
+      .enter()
+      .append("rect")
+        .attr("x", function(d) { return x(d.Year); })
+        .attr("y", function(d) { return y(d.Miles); })
+        .attr("width", x.bandwidth())
+        .attr("height", function(d) { return height - y(d.Miles); })
+        .attr("fill", "#7aa3d9")
+        .attr("stroke", "black")
+        .attr("stroke-width", 0.5)
+
+
+    })
+
+
+    // append the svg object to the body of the page
+    var miles_per_run = d3.select("#avg_length_per_year")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+
+    // Parse the Data
+    d3.csv("running_yearly_stats.csv", function(data) {
+
+    // X axis
+    var x = d3.scaleBand()
+      .range([ 0, width ])
+      .domain(data.map(function(d) { return d.Year; }))
+      .padding(0.2);
+    miles_per_run.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+        .attr("transform", "translate(-10,0)rotate(-45)")
+        .style("text-anchor", "end");
+
+    // Add Y axis
+    var y = d3.scaleLinear()
+      .domain([0,  12]).nice()
+      .range([ height, 0]);
+    miles_per_run.append("g")
+      .call(d3.axisLeft(y));
+
+    // Adds yAxis title
+    miles_per_run.append('text')
+      .text('Miles')
+      .attr('transform', 'translate(-43, -15)');
+
+
+    // Bars
+    miles_per_run.selectAll("mybar")
+      .data(data)
+      .enter()
+      .append("rect")
+        .attr("x", function(d) { return x(d.Year); })
+        .attr("y", function(d) { return y(d.Miles / d.Runs); })
+        .attr("width", x.bandwidth())
+        .attr("height", function(d) { return height - y(d.Miles / d.Runs); })
+        .attr("fill", "#7aa3d9")
+        .attr("stroke", "black")
+        .attr("stroke-width", 0.5)
+
+
+    })
+
+    // append the svg object to the body of the page
+    var hours = d3.select("#hours_per_year")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+
+    // Parse the Data
+    d3.csv("running_yearly_stats.csv", function(data) {
+
+    // X axis
+    var x = d3.scaleBand()
+      .range([ 0, width ])
+      .domain(data.map(function(d) { return d.Year; }))
+      .padding(0.2);
+    hours.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+        .attr("transform", "translate(-10,0)rotate(-45)")
+        .style("text-anchor", "end");
+
+    // Add Y axis
+    var y = d3.scaleLinear()
+      .domain([0,  130]).nice()
+      .range([ height, 0]);
+    hours.append("g")
+      .call(d3.axisLeft(y));
+
+    // Adds yAxis title
+    hours.append('text')
+      .text('Hours')
+      .attr('transform', 'translate(-43, -15)');
+
+
+    // Bars
+    hours.selectAll("mybar")
+      .data(data)
+      .enter()
+      .append("rect")
+        .attr("x", function(d) { return x(d.Year); })
+        .attr("y", function(d) { return y(d.Hours); })
+        .attr("width", x.bandwidth())
+        .attr("height", function(d) { return height - y(d.Hours); })
+        .attr("fill", "#7aa3d9")
+        .attr("stroke", "black")
+        .attr("stroke-width", 0.5)
+
+
+    })
+
+    // append the svg object to the body of the page
+    var elevation = d3.select("#elevation_per_year")
+      .append("svg")
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+        .attr("transform",
+              "translate(" + margin.left + "," + margin.top + ")");
+
+    // Parse the Data
+    d3.csv("running_yearly_stats.csv", function(data) {
+
+    // X axis
+    var x = d3.scaleBand()
+      .range([ 0, width ])
+      .domain(data.map(function(d) { return d.Year; }))
+      .padding(0.2);
+    elevation.append("g")
+      .attr("transform", "translate(0," + height + ")")
+      .call(d3.axisBottom(x))
+      .selectAll("text")
+        .attr("transform", "translate(-10,0)rotate(-45)")
+        .style("text-anchor", "end");
+
+    // Add Y axis
+    var y = d3.scaleLinear()
+      .domain([0,  140000]).nice()
+      .range([ height, 0]);
+    elevation.append("g")
+      .call(d3.axisLeft(y));
+
+    // Adds yAxis title
+    elevation.append('text')
+      .text('Feet')
+      .attr('transform', 'translate(-43, -15)');
+
+
+    // Bars
+    elevation.selectAll("mybar")
+      .data(data)
+      .enter()
+      .append("rect")
+        .attr("x", function(d) { return x(d.Year); })
+        .attr("y", function(d) { return y(d.Elevation); })
+        .attr("width", x.bandwidth())
+        .attr("height", function(d) { return height - y(d.Elevation); })
+        .attr("fill", "#7aa3d9")
+        .attr("stroke", "black")
+        .attr("stroke-width", 0.5)
+
+    })
+  </script>
 
 
 </body>
