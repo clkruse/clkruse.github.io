@@ -126,7 +126,7 @@
                 <div class="content">
                   <div class="info">
                     <h5 class="subtitle" style="color:#4384d9">running — 13 marathons and 1 50-miler completed</h5>
-                    <h3 class="title" style="color:#222222">a chronological list of marathons or ultras that i've run</h3>
+                    <h3 class="title" style="color:#222222">a chronological list of marathons and ultras that i've run</h3>
                     <div class="row margin-lg-50b col-md-9 col-md-offset-1">
                       <p></br>Note: Many of these are unofficial, as I had a habit of banditing races. I have not included training runs of marathon length or longer, only races even if the race was more of a training run</p>
                     </div>
@@ -475,7 +475,7 @@
 
     // Add Y axis
     var y = d3.scaleLinear()
-      .domain([0,  800]).nice()
+      .domain([0,  1000]).nice()
       .range([ height, 0]);
     miles.append("g")
       .call(d3.axisLeft(y));
@@ -582,7 +582,7 @@
 
     // Add Y axis
     var y = d3.scaleLinear()
-      .domain([0,  130]).nice()
+      .domain([0,  150]).nice()
       .range([ height, 0]);
     hours.append("g")
       .call(d3.axisLeft(y));
@@ -635,7 +635,7 @@
 
     // Add Y axis
     var y = d3.scaleLinear()
-      .domain([0,  140000]).nice()
+      .domain([0,  150000]).nice()
       .range([ height, 0]);
     elevation.append("g")
       .call(d3.axisLeft(y));
