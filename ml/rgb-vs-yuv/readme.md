@@ -1,4 +1,4 @@
-#Experimental Log for Color Spaces Experiment
+# Experimental Log for Color Spaces Experiment
 
 ### August 3, 2020
 
