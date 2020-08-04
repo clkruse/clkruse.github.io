@@ -1,0 +1,61 @@
+Experimental Log for Color Spaces Experiment
+
+### August 3, 2020
+
+Last time I was working on this experiment, I noticed that each colorspace had a different distribution of values. For example, here's a histogram of inensities in one channel fo the RGB input (all channels look similar to this).
+
+![intensity-distribution-rgb-channel-0](/Users/ckruse/Documents/GitHub/clkruse.github.io/ml/rgb-vs-yuv/intensity-distribution-rgb-channel-0.png)
+
+That is in contrast to the intensities seen in the U and V channels of the YUV transformed dataset, as shown here.
+
+![intensity-distribution-yuv-channel-1](/Users/ckruse/Documents/GitHub/clkruse.github.io/ml/rgb-vs-yuv/intensity-distribution-yuv-channel-1.png)
+
+Based on earlier results, I assumed that it would be a more comparable experiment if I at least had the inputs normalized from [0-1] such that they lie in the same input space.
+
+I trained three networks of the same architecture on RGB, YUV, and three-channel gray inputs.
+
+**Network architecture:** `32c3-relu-mp2-64c3-relu-64c3-64n-relu-64n-relu-100n-softmax`
+
+**Hyperperameters:** 128 batch size (for faster training), 256 epochs, 0.00002 learning rate
+
+![Results from training experiment](YUV, RGB, and Gray accuracy by epoch - 256 epochs - batch 128 - all data normalized.png)
+
+It confuses me to see that YUV performance is so poor. I also believe that normalizing the inputs from [0,1] made it worse.
+
+---
+
+As I wrote up the hyperparmeters, it occured to me that a learning rate of 0.00002 is at least 10x slower than what most recommend for a naive Adam LR. Trying with 0.0003, I see that the model quickly overfits. Test accuracy at epoch 50 is higher than at 256 previously. Might make experimental iteration quicker to run fewer epochs at a higher LR.
+
+![RGB accuracy by epoch - 256 epochs - batch 128 - LR 0.0003](RGB accuracy by epoch - 256 epochs - batch 128 - LR 0.0003.png)
+
+Here's what the experiment looks like with the higher learning rate and fewer epochs. Same overall outcome.
+
+![YUV, RGB, and Gray accuracy by epoch - 50 epochs - batch 128 - all data normalized](YUV, RGB, and Gray accuracy by epoch - 50 epochs - batch 128 - all data normalized.png)
+
+---
+
+When running the experiment with no normalization, the performance of the YUV net significantly improves to the point where it is nearly comparable with RGB.
+
+![YUV, RGB, and Gray accuracy by epoch - 50 epochs - batch 128 - no normalization](YUV, RGB, and Gray accuracy by epoch - 50 epochs - batch 128 - no normalization.png)
+
+
+
+**Conclusions from the day:**
+
+- Normalizing from 0 to 1 across the entire dataset significantly hurts performance of the YUV net.
+- Increasing learning rate reduces iteration time, though does result in overfitting beyond epoch 50.
+
+
+
+**Open Questions:**
+
+- Are all of these experiments moot given that performance in an absolute sense isn't great (e.g. 35% accuracy), and that the model has a strong tendency to overfit?
+- Given that convolutions combine the channels past the first layer, is any color information lost too quickly? Would it be more optimal to try this with something like separable convolutions?
+
+
+
+**Next Experiments to Try:**
+
+- Separable convolutions
+- What happens to classification accuracy on any modle if you start messing with the channels. For example, does it matter if you switch the order of the RGB channels, or is the model just flattening them in the first step.
+
