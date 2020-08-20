@@ -59,3 +59,10 @@ When running the experiment with no normalization, the performance of the YUV ne
 - Separable convolutions
 - What happens to classification accuracy on any modle if you start messing with the channels. For example, does it matter if you switch the order of the RGB channels, or is the model just flattening them in the first step.
 
+
+
+### August 4, 2020
+
+I tried seperable convolutions. Similar outcome, except performance is worse.
+
+![Accuracy by epoch with Separable Convolutions - 50 epochs - batch 128](separable_convolutions.png)
