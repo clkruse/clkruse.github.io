@@ -1,0 +1,399 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>SSS - Balloon Launches</title>
+  <link rel='shortcut icon' href='img/favicon.ico?v=2'>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="css/font-awesome.min.css" rel="stylesheet" type="text/css" media="all">
+  <link href="css/themify-icons.css" rel="stylesheet" type="text/css" media="all" />
+  <link href="css/bootstrap.css" rel="stylesheet" type="text/css" media="all" />
+  <link href="css/flexslider.css" rel="stylesheet" type="text/css" media="all" />
+  <link href="css/lightbox.min.css" rel="stylesheet" type="text/css" media="all" />
+  <link href="css/theme.css" rel="stylesheet" type="text/css" media="all" />
+  <link href="css/custom.css" rel="stylesheet" type="text/css" media="all" />
+  <link href="css/mapstyle.css" rel="stylesheet" type="text/css" media="all" />
+  <link href='http://fonts.googleapis.com/css?family=Lato:300,400%7CRaleway:100,400,300,500,600,700%7COpen+Sans:400,500,600' rel='stylesheet' type='text/css'>
+  <link href="http://fonts.googleapis.com/css?family=Titillium+Web:100,300,400,600,700" rel="stylesheet" type="text/css">
+  <link href="css/font-roboto.css" rel="stylesheet" type="text/css">
+  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.44.1/mapbox-gl.js'></script>
+  <script src="https://code.jquery.com/jquery-1.11.2.min.js"></script>
+  <script type="text/javascript" src="js/scrollbar.js"></script>
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105607174-1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+    gtag('js', new Date());
+
+    gtag('config', 'UA-105607174-1');
+  </script>
+</head>
+
+<body>
+  <!-- Navbar-->
+  <div class="nav-container">
+    <nav class="scrolled fixed">
+      <div class="nav-bar">
+        <div class="module widget-handle left">
+          <ul class="menu">
+            <li>
+              <a href="index.html">Shepherd Space Systems</a>
+            </li>
+        </div>
+        <div class="module widget-handle mobile-toggle right visible-sm visible-xs">
+          <i class="ti-menu"></i>
+        </div>
+        <div class="module-group right">
+          <ul class="menu">
+            <li class="module widget-handle-menu">
+              <a href="about.html">First</a>
+            </li>
+            <li class="module widget-handle-menu">
+              <a href="#eclipse-balloon">Eclipse</a>
+            </li>
+            <li class="module widget-handle-menu">
+              <a href="#home-on-the-reef">Circumnavigating</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </div>
+
+
+  <div id='map'>
+    <div class="scroll-progress-container">
+      <div class="scroll-progress"></div>
+    </div>
+    <a href="http://mapbox.com/about/maps" class='mapbox-wordmark' target="_blank">Mapbox</a>
+    <div class="mapbox-attribution-container">
+      <a href="https://www.mapbox.com/about/maps/">© Mapbox | </a>
+      <a href="http://www.openstreetmap.org/copyright">© OpenStreetMap | </a>
+      <a href="https://www.mapbox.com/map-feedback/" target="_blank"><strong>Improve this map</strong></a>
+    </div>
+  </div>
+  <!--<div id="meet-dory" class="overlay-popup">
+    <div class="popup">
+      <div class="content">
+        <h1 class="bold text-left">Meet Dory</h1>
+        <div class="col-md-6 col-md-offset-0 text-left text-left-xs col-sm-6" >
+          <a href="img/media/tang-header.jpg" data-lightbox="true" data-title="">
+            <img alt="Blue Tang" src="img/media/tang-header.jpg" class="image-medium mb16">
+          </a>
+        </div>
+        <div class="col-md-6 col-sm-6">
+          <p>The blue tang is one of the most popular fish in the aquarium trade. As the star species in the film Finding Dory, these fish are in greater demand than ever. Unfortunately, the blue tang cannot be captively bred. This creates a global supply chain that connects fishermen in small Pacific islands with hobby aquarists on the other side of the world. This is the story of how a Blue Tang travels around the world.</p>
+          <!--<p>Dory <i>(Paracanthurus hepatus)</i> is a little fish with a big list of names: blue tang, royal blue tang, hippo tang, regal tang, and blue surgeonfish. While least commonly used, the last name is perhaps most fitting as Dory belongs to the surgeonfish
+            family, aptly named for her razor sharp tail spines. In some areas of the world, local fisherman call Dory letter six, as the number is seemingly spelled out in black markings on the side of her royal blue body. She is one of the most popular
+            fish in the aquarium trade today, with tens of thousands captured in the wild and imported into the United States every year. Follow Dory as she passes from net to hand to tank on her epic voyage from Reef to Aquarium.</p>-->
+  <!--<a class="btn btn-lg btn-NG" href="#">Explore the Map</a>
+        </div>
+      </div>-->
+  </div>
+  </div>
+
+
+
+
+  </div>
+  <div id='features'>
+
+    <section class='active' id='overview'>
+      <h3 class="lead uppercase" style="font-size:40px; font-weight:600; letter-spacing: 0px;">Shepherd's Balloon Launches</h3>
+      <a href="img/G0010785.jpg" data-lightbox="true">
+        <img alt="Captive Blue Tang" src="img/G0010785.jpg" class="image-medium mb-s-16"></img>
+      </a>
+      <p class="map-text mb24"><br/>High altitude ballooning
+      </p>
+      <div class="text-left">
+        <a class="" href=map.html#home-on-the-reef><img class="nav-button-r" src="img/lightbox/arrow-r.png" ></img></a>
+      </div>
+
+    </section>
+
+    <section id='first-balloon'>
+      <h3 class="lead uppercase" style="font-size:40px; font-weight:600; letter-spacing: 0px;">The First Balloon</h3>
+      <a href="img/IMG_9993.jpg" data-lightbox="true">
+        <img alt=" Captive Blue Tang " src="img/IMG_9993.jpg " class="image-medium mb-s-16 "></img>
+      </a>
+      <p> </p>
+      <a href="img/IMG_0045.CR2.jpg" data-lightbox="true">
+        <img alt=" Captive Blue Tang " src="img/IMG_0045.CR2.jpg " class="image-medium mb-s-16 "></img>
+      </a>
+      <p></p>
+      <div>
+        <model-viewer style="width: 100%; height: 400px" camera-controls
+        ar ar-scale="3%" quick-look-browsers="safari chrome"
+        background-color="#041c39"
+        poster="img/IMG_9964.CR2.jpg" alt="A 3D model of a payload"
+        ios-src="img/payload.usdz" src="img/scene.gltf">
+        </model-viewer>
+      </div>
+
+      <p class="map-text mb24 "><br/>The first balloon!
+      </p>
+
+
+      <div class="text-left ">
+        <a href=map.html#overview><img class="nav-button-l " src="img/lightbox/arrow-l.png " ></img></a>
+        <a href="reefs.html " class="btn btn-lg mb0 btn-NG " href=reefs.html>Explore the First Balloon</a>
+        <a href=map.html#collectors><img class="nav-button-r " src="img/lightbox/arrow-r.png " ></img></a>
+      </div>
+    </section>
+
+
+    <section id='eclipse-balloon'>
+      <h3 class="lead uppercase " style="font-size:40px; font-weight:600; letter-spacing: 0px; ">The Eclipse Balloon</h3>
+      <!--<h5>"The fishermen know that the sea is dangerous and the storm terrible, but they have never found these dangers sufficient reason for remaining ashore.” <br/>- Vincent Van Gogh</h5>-->
+      <a href="img/IMG_0780.jpg" data-lightbox="true">
+        <img alt="Fisherman" src="img/IMG_0780.jpg" class="image-medium mb-s-16"></img>
+      </a>
+      <p></p>
+      <a href="img/G0010349.jpg" data-lightbox="true">
+        <img alt="Eclips" src="img/G0010349.jpg" class="image-medium mb-s-16"></img>
+      </a>
+      <p></p>
+      <a href="img/IMG_6271.CR2.jpg" data-lightbox="true">
+        <img alt="Fisherman" src="img/IMG_6271.CR2.jpg" class="image-medium mb-s-16"></img>
+      </a>
+      <p class="map-text mb24"><br/>Watching the shadow of the moon sweep across the earth.
+      </p>
+      <div class="text-left">
+        <a href=#first-balloon><img class="nav-button-l" src="img/lightbox/arrow-l.png" ></img></a>
+        <a class="btn btn-lg btn-NG mb0" href=collector.html>Explore the eclipse balloon</a>
+        <a href=#circumnavigation><img class="nav-button-r" src="img/lightbox/arrow-r.png" ></img></a>
+      </div>
+    </section>
+
+    <section id='circumnavigation'>
+      <h3 class="lead uppercase" style="font-size:40px; font-weight:600; letter-spacing: 0px;">Circumnavigating Balloon</h3>
+      <a href="img/IMG_7504.jpg" data-lightbox="true">
+        <img alt="Circumnavigating Balloon" src="img/IMG_7504.jpg" class="image-medium mb-s-16"></img>
+      </a>
+      <p></p>
+      <a href="img/IMG_7645.jpg" data-lightbox="true">
+        <img alt="Circumnavigating Balloon" src="img/IMG_7645.jpg" class="image-medium mb-s-16"></img>
+      </a>
+      <p></p>
+      <a href="img/IMG_4025.jpg" data-lightbox="true">
+        <img alt="Circumnavigation Attempt" src="img/IMG_4025.jpg" class="image-medium mb-s-16"></img>
+      </a>
+      <p class="map-text mb24"><br/>How far can we get a balloon to travel?</p>
+
+      <div class="text-left">
+        <a href=map.html#collectors><img class="nav-button-l" src="img/lightbox/arrow-l.png" ></img></a>
+        <a class="btn btn-lg btn-NG mb0" href=middleman.html>Explore the attempt</a>
+        <a href=map.html#exporter><img class="nav-button-r" src="img/lightbox/arrow-r.png" ></img></a>
+      </div>
+    </section>
+
+    <section id='exporter'>
+      <h3 class="lead uppercase" style="font-size:40px; font-weight:600; letter-spacing: 0px;">The Exporter</h3>
+      <a href="exporter.html">
+        <img alt="Double C Exporters" src="img/media/Denpasar2_CK_3404.jpg" class="image-medium mb-s-16"></img>
+      </a>
+      <p class="map-text mb24"><br/>The demand for aquarium fish has been steadily on the rise since the expansion of commercial aviation following World War II. The advent of commercial flight made the rapid transport of live fish clear across the globe possible. Today, some
+        45 nations supply a staggering 2000 species of fish to countries around the world, though they mostly fill aquariums in the United States, Japan and Western Europe. To meet the rising demand for exotic fish, a new profession was born: the ornamental
+        fish exporter. Meet Conrad Chen, one of the largest ornamental fish exporters in Indonesia, as we explore how the aquarium trade evolves from small-scale fish collection into global big business.</p>
+
+      <div class="text-left">
+        <a href=map.html#middleman><img class="nav-button-l" src="img/lightbox/arrow-l.png" ></img></a>
+        <a class="btn btn-lg btn-NG mb0" href=exporter.html>Meet Conrad, an Exporter</a>
+        <a href=map.html#supplier><img class="nav-button-r" src="img/lightbox/arrow-r.png" ></img></a>
+      </div>
+    </section>
+
+    <section id='supplier'>
+      <h3 class="lead uppercase" style="font-size:40px; font-weight:600; letter-spacing: 0px;">The Supplier</h3>
+      <a href="supplier.html">
+        <img alt="Blue Tang Trade" src="img/media/caleb_kruse-3479.jpg" class="image-medium">
+      </a>
+      <p class="map-text mb24"><br/>Importers are the first point of contact when fish land in the United States. They get large shipments of reef fish directly from exporters after they make the long overseas flight. With the rise of online shopping, the importer can also be
+        the wholesaler and retailer all rolled into one, with hobbyists buying directly from them online. However, importers can also supply to smaller retail storeowners across the country, which then fill orders based on customer demand for particular
+        species. Until recently, there was no way of knowing just how many fish were being imported into the United States, but the <a href="https://www.aquariumtradedata.org/" target="_blank"><i>Marine Aquarium Biodiversity and Trade Flow online database</i></a>        changed all that. Now we know that more than 10 million individual fish are imported to the US each year.</p>
+
+      <div class="text-left">
+        <a href=map.html#exporter><img class="nav-button-l" src="img/lightbox/arrow-l.png" ></img></a>
+        <a class="btn btn-lg btn-NG mb0" href=supplier.html>Visit a Supplier</a>
+        <a href=map.html#colorado><img class="nav-button-r" src="img/lightbox/arrow-r.png" ></img></a>
+      </div>
+    </section>
+
+    <section id='colorado'>
+      <h3 class="lead uppercase" style="font-size:40px; font-weight:600; letter-spacing: 0px;">The Hobbyist</h3>
+      <a href="aquarist.html">
+        <img alt="Colorado Aquarist" src="img/caleb_kruse-3137.jpg" class="image-medium mb-s-16"></img>
+      </a>
+      <p class="map-text mb24"><br/>This is the final stop in Dory’s global journey – traveling thousands of miles and changing multiple hands before reaching the aquarium of a hobbyist in scenic Colorado Springs, Colorado. Sitting at 6000 feet in the Southern Rocky Mountains,
+        Colorado Springs may be the last place that you’d expect to find a blue tang. Meet Chris, an avid saltwater aquarist with a meticulously-maintained 600-gallon tank.
+      </p>
+
+      <div class="text-left">
+        <a href=map.html#supplier><img class="nav-button-l" src="img/lightbox/arrow-l.png" ></img></a>
+        <a class="btn btn-lg btn-NG mb0" href=aquarist.html>Meet Chris, an Aquarist</a>
+        <a href=map.html#learn-more><img class="nav-button-r" src="img/lightbox/arrow-r.png" ></img></a>
+      </div>
+
+
+      <p class="map-text mb24"><br/></p>
+    </section>
+
+    <section id='learn-more'>
+      <h3 class="lead uppercase" style="font-size:40px; font-weight:600; letter-spacing: 0px;">Learn More</h3>
+      <a href="aquarist.html">
+        <img alt="Colorado Aquarist" src="img/les_drone.jpg" class="image-medium mb-s-16"></img>
+      </a>
+      <p class="map-text mb24"><br/>Dory’s journey is just one part of a much larger trade. Each year, millions of fish are collected on reefs and embark on a similar global passage. To safeguard both fish and people involved in the marine aquarium trade, learn some key solutions
+        for keeping aquarium fish more sustainably.
+      </p>
+
+      <div class="text-left">
+        <a href=map.html#colorado><img class="nav-button-l" src="img/lightbox/arrow-l.png" ></img></a>
+        <a class="btn btn-lg btn-NG mb0" href=healthytrade.html>Learn More about a Healthy Trade</a>
+      </div>
+
+      <p class="map-text mb24"><br/></p>
+    </section>
+
+  </div>
+
+
+  <script>
+    mapboxgl.accessToken = 'pk.eyJ1IjoiY2xrcnVzZSIsImEiOiJjazRrZmduaHIyNXc3M2dxZHlhY2JwbXcwIn0.UehRu-5X5ABvijvQggforg';
+    var map = new mapboxgl.Map({
+      container: 'map',
+      zoom: 3.5,
+      center: [-95.650820, 39.046040],
+      style: 'mapbox://styles/clkruse/ck4kfwoh40ymp1cn1xdrg37i5',
+      hash: false,
+      attributionControl: false
+
+    });
+
+    var chapters = {
+      'overview': {
+        bearing: 0,
+        zoom: 3.5,
+        center: [-95.650820, 39.046040],
+        pitch: 0,
+        speed: 0.7
+      },
+      'first-balloon': {
+        bearing: 0,
+        center: [-104.650820, 39.046040],
+        zoom: 8.5,
+        pitch: 90,
+        speed: 0.7
+      },
+      'eclipse-balloon': {
+        duration: 6000,
+        center: [-104.68409, 42.34495],
+        bearing: 85,
+        zoom: 10,
+        pitch: 90,
+        speed: 0.7
+      },
+      'circumnavigation': {
+        bearing: 0,
+        center: [-92.5, 39],
+        zoom: 4,
+        speed: 0.7,
+        pitch: 0
+      },
+      'exporter': {
+        bearing: 0,
+        center: [115.186787, -8.766717],
+        zoom: 12.3,
+        speed: 0.7
+      },
+      'supplier': {
+        bearing: 0,
+        center: [-118.4085, 33.9416],
+        zoom: 10.5,
+        pitch: 40,
+        speed: 0.7
+      },
+      'colorado': {
+        bearing: 0,
+        center: [-104.65, 39.04],
+        zoom: 9,
+        speed: 0.7
+      },
+      'learn-more': {
+        bearing: 0,
+        zoom: 1,
+        center: [-100, 40],
+        pitch: 0,
+        speed: 0.7
+      }
+    };
+
+    // On every scroll event, check which element is on screen
+    window.onscroll = function() {
+
+      var chapterNames = Object.keys(chapters);
+      for (var i = 0; i < chapterNames.length; i++) {
+        var chapterName = chapterNames[i];
+        if (isElementOnScreen(chapterName)) {
+          setActiveChapter(chapterName);
+
+          break;
+        }
+      }
+
+    };
+
+    features.onscroll = function() {
+
+      var chapterNames = Object.keys(chapters);
+      for (var i = 0; i < chapterNames.length; i++) {
+        var chapterName = chapterNames[i];
+        if (isElementOnScreenMobile(chapterName)) {
+          setActiveChapter(chapterName);
+          break;
+        }
+      }
+
+    };
+
+    var activeChapterName = 'overview';
+
+    function setActiveChapter(chapterName) {
+      if (chapterName === activeChapterName) return;
+      map.flyTo(chapters[chapterName]);
+      document.getElementById(chapterName).setAttribute('class', 'active');
+      document.getElementById(activeChapterName).setAttribute('class', '');
+      activeChapterName = chapterName;
+    }
+
+    function isElementOnScreen(id) {
+      var element = document.getElementById(id);
+      var bounds = element.getBoundingClientRect();
+      return bounds.top < window.innerHeight && bounds.bottom > (screen.height / 8);
+    }
+    // Need to have separate screen calls for mobile vs. desktop to accomodate diff screen height triggers
+    function isElementOnScreenMobile(id) {
+      var element = document.getElementById(id);
+      var bounds = element.getBoundingClientRect();
+      return bounds.top < window.innerHeight && bounds.bottom > (screen.height / 2.2);
+
+    }
+  </script>
+
+  <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.js"></script>
+  <script nomodule src="https://unpkg.com/@google/model-viewer/dist/model-viewer-legacy.js"></script>
+  <script src="js/jquery.min.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/flexslider.min.js"></script>
+  <script src="js/masonry.min.js"></script>
+  <script src="js/parallax.js"></script>
+  <script src="js/scripts.js"></script>
+  <script src="js/lightbox.min.js"></script>
+</body>
+
+</html>
