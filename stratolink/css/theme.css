@@ -50,6 +50,7 @@ body {
   line-height: 24px;
   font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
   color: #3d3d3d;
+  background-color: black;
   overflow-x: hidden;
 }
 body.boxed-layout {
@@ -278,6 +279,7 @@ textarea {
   margin-bottom: 24px;
   margin-top: 0;
   padding: 0;
+  color: white;
 }
 h1,
 h2,
@@ -292,6 +294,7 @@ h6,
 .h5,
 .h6 {
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  color: white;
 }
 h1,
 h2,
@@ -300,7 +303,7 @@ h4,
 h5,
 h6 {
   font-weight: 300;
-  color: #292929;
+  color: white;
 }
 h1,
 .h1 {

@@ -26,15 +26,24 @@ h1 {
   font-family: "Montserrat", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+
+.title {
+  top: 15vh;
+}
+
 h3.title {
   font-family: "Montserrat", "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-weight: 600;
+  font-size: 3.25vw;
   text-shadow: 1px 1px 5px rgba(0,0,0,0.8);
+  line-height: normal;
 }
 
 h1.title {
   font-weight: 700;
   font-size: 10vw;
+  margin-bottom: 4vw;
+  text-shadow: 0 0 0.5vw #ffffff;
 }
 
 .list-inline a {
@@ -62,30 +71,21 @@ h1.title {
   border-color: black!important;
 }
 
-.btn-NG-lg {
-  height: 65px;
-  width: 300px;
-  font-size: 20px;
-  line-height: 62px;
-  font-weight: bold;
+.btn-lg-white {
+  color: white!important;
+  border-color: white!important;
+}
+
+
+.btn-NG:hover {
+  background: #ffce00;
+  border-color: #000000;
+}
+
+.btn-NG-white:hover {
   background: #ffce00;
   border-color: #ffce00!important;
   color: black!important;
-  /*background: rgba(0, 0, 0, 0);*/
-}
-
-.btn-NG-lg:hover,
-.image-bg .btn:hover,
-.image-bg .btn:visited:hover {
-  background: #ffce00;
-  border-color: #000000 !important;
-}
-
-.btn-NG:hover,
-.image-bg .btn:hover,
-.image-bg .btn:visited:hover {
-  background: #ffce00;
-  border-color: #000000 !important;
 }
 
 .return-to-map li a{
