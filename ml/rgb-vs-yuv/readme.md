@@ -1,5 +1,22 @@
 # Experimental Log for Color Spaces Experiment
 
+### Some old notes that I found:
+Current state of the YUV model:
+
+- Something is funky with the intensity scaling.
+	- In theory, YUV channels should be:
+		Y: 0 - 1
+		U: -0.5 - 0.5 
+		V: -0.5 - 0.5
+	- It seems that my y predictions are mostly in the 0 to 1 range, but also have a number of values below 0
+	- U and V outputs are mostly within range
+
+- When converting from YUV to RGB, and then clipping the values between 0 and 1 results in good looking outputs
+
+- I have doubts that I trained on the sketch data. Need to double check that sketches made it in vs. just the canny edges
+	- I checked, and it looks good
+
+
 ### August 3, 2020
 
 Last time I was working on this experiment, I noticed that each colorspace had a different distribution of values. For example, here's a histogram of inensities in one channel fo the RGB input (all channels look similar to this).
