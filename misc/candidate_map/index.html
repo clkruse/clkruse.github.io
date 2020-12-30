@@ -43,7 +43,7 @@
 
       map.addSource('candidate-points', {
         'type': 'geojson',
-        'data': './candidate_points_v10.geojson',
+        'data': './candidate_points_v12.geojson',
         'cluster': false
       });
 
@@ -101,7 +101,7 @@
       }
       new mapboxgl.Popup()
         .setLngLat(coordinates)
-        .setHTML('<b>' + name + '</b></br><p>' + coordinates[0].toFixed(4) + '</br>' + coordinates[1].toFixed(4) + '</p>')
+        .setHTML('<b>' + name + '</b></br><p>' + coordinates[1].toFixed(4) + '</br>' + coordinates[0].toFixed(4) + '</p>')
         .addTo(map);
     });
 
