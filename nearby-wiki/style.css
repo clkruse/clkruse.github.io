@@ -181,7 +181,7 @@ p {
 
 
 
-button {
+.start-button {
   padding: 0.35em 1.2em;
   /* border: 0.1em solid #fc0;*/
   border-radius: 0.2em;
@@ -198,7 +198,7 @@ button {
   width: 14rem;
 }
 
-button:hover{
+.start-button :hover{
   color:#000;
   background-color:#fc0;
 }

@@ -42,8 +42,8 @@
 
       <div id="mapOnTop" style="width: 100.3vw" class="mx-n3"></div>
       <div id="buttons" class="row buttons">
-        <button id="search" class="m-2" onclick="searchLocation()">Search</button>
-        <button id="nearby" class="mx-2"  onclick="getLocation(getArticles)">What's Nearby?</button>
+        <button id="search" class="m-2 start-button" onclick="searchLocation()">Search</button>
+        <button id="nearby" class="mx-2 start-button"  onclick="getLocation(getArticles)">What's Nearby?</button>
       </div>
       <div class="container px-2">
         <div id="titleBox"></div>
@@ -271,6 +271,7 @@
           articleInfo.category = "";
         }
         callback(articleInfo);
+
       })
       .catch(function(error) {
         console.log(error);
@@ -348,15 +349,19 @@
 
 
   function writeCardContainer(articleInfo) {
+
+
+
     var cardContainer = document.createElement("div");
     // cardContainer.setAttribute("class", "col-md-4 col-xs-12 my-2 article-card");
     cardContainer.setAttribute("class", "article-container pt-3");
+    cardContainer.setAttribute("id", articleInfo.title);
 
     var currentDiv = document.getElementById("content");
     currentDiv.appendChild(cardContainer);
 
     var articleLink = document.createElement("a");
-    articleLink.setAttribute("href", articleInfo.url);
+    //articleLink.setAttribute("href", articleInfo.url);
     cardContainer.appendChild(articleLink);
 
     var card = document.createElement("div");
@@ -367,10 +372,21 @@
     info.setAttribute("class", "info");
     card.appendChild(info);
 
+    var button = document.createElement("button");
+    button.setAttribute("class", "bullet mr-2");
+    button.onclick = function() { synthesizeSpeech(articleInfo.text); }
+    button.setAttribute("style", "border-color: black");
+    info.appendChild(button);
+    var soundImage = document.createElement("img");
+    soundImage.setAttribute("width", "100%");
+    soundImage.setAttribute("style", "margin-top: -7.5px");
+    soundImage.src = "sound.png";
+    button.appendChild(soundImage)
+    //button.textContent = '!';
+
     var bullet = document.createElement("h3");
     bullet.setAttribute("class", "bullet mr-2");
     info.appendChild(bullet);
-
     dist = document.createTextNode(articleInfo.dist);
     bullet.appendChild(dist);
 
@@ -390,8 +406,6 @@
     var subtext = document.createElement("h5");
     subtext.setAttribute("class", "subtext");
     card.appendChild(subtext);
-
-
 
     var category = document.createTextNode(articleInfo.category);
     subtext.appendChild(category);
@@ -418,7 +432,36 @@
 
     card.appendChild(intro);
 
+    //var children = button.parentNode.parentNode.childNodes
+    //console.log(children[4].innerHTML);
+
+    //console.log()
+
   }
+
+  function synthesizeSpeech(inputText) {
+    if (!!window.SpeechSDK) {
+      sdk = window.SpeechSDK;
+    }
+    const speechConfig = sdk.SpeechConfig.fromSubscription("d5573e534bfc4c8cbd111612c4a7a949", "eastus");
+    const audioConfig = sdk.AudioConfig.fromDefaultSpeakerOutput();
+
+    const synthesizer = new sdk.SpeechSynthesizer(speechConfig, audioConfig);
+    synthesizer.speakTextAsync(
+        inputText,
+        result => {
+            if (result) {
+                console.log(result);
+                console.log(inputText);
+                synthesizer.close();
+                return result.audioData;
+            }
+        },
+        error => {
+            console.log(error);
+            synthesizer.close();
+        });
+  };
 
   function drawPoint(map, lat, lng, title) {
     map.on('load', function() {
@@ -503,6 +546,8 @@
     });
   }
 </script>
+
+<script id="speech-sdk" async=false defer=false src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
 
 <script async src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.4.2/mapbox-gl-geocoder.min.js"></script>
 <link rel="stylesheet" href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v4.4.2/mapbox-gl-geocoder.css" type="text/css" />
