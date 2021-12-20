@@ -61,6 +61,25 @@
 
 <script>
 
+  document.addEventListener("DOMContentLoaded", function () {
+    var url = new URL(window.location.href)
+    if (url.searchParams.has("lat")) {
+      document.getElementById("buttons").remove();
+      getArticles()
+    } else {
+      var mapOnTop = document.createElement("div");
+      mapOnTop.setAttribute("id", "mapOnTop");
+      mapOnTop.setAttribute("style", "width: 100.3vw");
+      mapOnTop.setAttribute("class", "mx-n3");
+
+      var searchButton = document.createElement("button");
+      searchButton.setAttribute("id", "search")
+    };
+    window.onpopstate = function(event) {
+      window.location.reload();
+    };
+  });
+
   function searchLocation() {
 
     document.getElementById("buttons").remove();
@@ -95,6 +114,10 @@
     map.on('click', function(e) {
       console.log(e.lngLat);
       var pos = e.lngLat;
+      var url = new URL(window.location.href)
+      url.searchParams.append('lat', e.lngLat.lat.toFixed(2));
+      url.searchParams.append('lon', e.lngLat.lng.toFixed(2));
+      window.history.pushState('', '', url);
       mapcontainer.style.height = "250px";
       map.remove();
       getArticles(pos);
@@ -106,18 +129,25 @@
   function getLocation(callback) {
     document.getElementById("buttons").remove();
     console.log("Getting your location");
+    var url = new URL(window.location.href)
     if (navigator.geolocation) {
       var lat_lng = navigator.geolocation.getCurrentPosition(function(position) {
         console.log("We're in the GCP phase");
         var user_position = {};
         user_position.lat = position.coords.latitude;
         user_position.lng = position.coords.longitude;
+        url.searchParams.append('lat', user_position.lat.toFixed(2));
+        url.searchParams.append('lon', user_position.lng.toFixed(2));
+        window.history.pushState('', '', url);
         callback(user_position);
       }, function() {
-        alert("I can't find your location. Geolocation might not be supported by this browser. I'll put you in Timbuktu as an example");
+        alert("I can't find your location. You likely need to enable geolocation services on your browser. I'll put you in Timbuktu as an example");
         var user_position = {};
         user_position.lat = 16.7666;
         user_position.lng = -3.0026;
+        url.searchParams.append('lat', user_position.lat.toFixed(2));
+        url.searchParams.append('lon', user_position.lng.toFixed(2));
+        window.history.pushState('', '', url);
         callback(user_position);
       }, {
         timeout: 10000
@@ -127,13 +157,17 @@
 
 
   function getArticles(lat_lng) {
-    var pos = lat_lng;
+    var url = new URL(window.location.href)
+    var pos = {
+      'lat': parseFloat(url.searchParams.get('lat')),
+      'lng': parseFloat(url.searchParams.get('lon'))
+    };
 
     var locationTitle = document.createElement("h1");
     locationTitle.setAttribute("class", "row pt-4 px-3 jumbo");
 
-    var location = document.createTextNode(pos.lat.toFixed(2) + "° N " + pos.lng.toFixed(2) + "° W");
-    locationTitle.appendChild(location);
+    locationTitle.innerHTML = pos.lat.toFixed(2) + "&deg N&nbsp&nbsp&nbsp" + pos.lng.toFixed(2) + "&deg W";
+    //locationTitle.appendChild(location);
 
     var titleBox = document.getElementById("titleBox");
     titleBox.appendChild(locationTitle);
@@ -192,6 +226,14 @@
 
       // At some point make it so that the map can be clicked again to search for more articles
       map.on('click', function(e) {
+        var url = new URL(window.location.href)
+        if (url.searchParams.has("lat")) {
+          url.searchParams.delete("lat");
+          url.searchParams.delete("lon");
+        }
+        url.searchParams.append('lat', e.lngLat.lat.toFixed(2));
+        url.searchParams.append('lon', e.lngLat.lng.toFixed(2));
+        window.history.pushState('', '', url);
         console.log(e.lngLat);
         var pos = e.lngLat;
         var div = document.getElementById('content');
@@ -349,9 +391,6 @@
 
 
   function writeCardContainer(articleInfo) {
-
-
-
     var cardContainer = document.createElement("div");
     // cardContainer.setAttribute("class", "col-md-4 col-xs-12 my-2 article-card");
     cardContainer.setAttribute("class", "article-container pt-3");
