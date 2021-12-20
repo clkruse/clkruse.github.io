@@ -1,0 +1,249 @@
+body {
+    font-family: 'Crimson Text', serif;
+  }
+
+.page-title {
+  background-color: black;
+  color: white;
+}
+
+.card-columns {
+  column-gap:0rem;
+}
+
+@media screen and (min-width: 575px) and (max-width: 1000px) {
+  .card-columns {
+    column-count: 2;
+  }
+}
+
+.article-container {
+  display: inline-block;
+  border-right: 1px solid rgba(0,0,0,.5);
+  /* box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  transition: 0.3s;
+  border-radius: 5px;
+  /* 5px rounded corners */
+  /* padding: 2px 16px;
+  width: 90%;
+  margin-bottom: 20px; */
+}
+
+.article-card {
+  /*border-right: 1px solid rgba(0,0,0,.5);
+   box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+  transition: 0.3s;
+  border-radius: 5px;
+  /* 5px rounded corners */
+  /* padding: 2px 16px;
+  width: 90%;
+  margin-bottom: 20px; */
+}
+
+.article-text {
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+}
+
+.article-container a {
+  text-decoration: none;
+  color: black;
+}
+
+.bullet {
+  display: inline-block;
+  height: 60px;
+  width: 60px;
+  line-height: 60px;
+  -moz-border-radius: 50%; /* or 50% */
+  border-radius: 50%; /* or 50% */
+  background-color: black;
+  color: white;
+  text-align: center;
+  font-size: 1.25em;
+}
+
+.direction{
+  background-color: rgb(67, 185, 215);
+}
+
+@media screen and (min-width: 1000px) {
+  .jumbo {
+    font-size: 6rem;
+  }
+}
+
+@media screen and (min-width: 720px) and (max-width: 1000px) {
+  .jumbo {
+    font-size: 5rem;
+  }
+}
+
+@media screen and (min-width: 550px) and (max-width: 768px) {
+  .jumbo {
+    font-size: 4rem;
+  }
+}
+
+@media screen and (min-width: 430px) and (max-width: 550px) {
+  .jumbo {
+    font-size: 3rem;
+  }
+}
+
+@media screen and (max-width: 430px) {
+  .jumbo {
+    font-size: 4rem;
+  }
+}
+
+.header {
+  text-decoration: none;
+  color: white;
+}
+
+.header:hover {
+  text-decoration: none;
+  color: white;
+}
+
+h2 {
+  /* font-family: 'Playfair Display', serif; */
+  /* font-family: 'Roboto Slab', serif; */
+  font-family: 'Crimson Text', serif;
+  font-weight: 400;
+  font-size: 30pt;
+  /* width: 90%;
+  padding: 10px 16px; */
+}
+
+h3 {
+  /* font-family: 'Roboto Slab', serif; */
+}
+
+/* On mouse-over, add a deeper shadow
+.card:hover {
+  box-shadow: 0 8px 16px 0 rgba(0, 0, 0, 0.4);
+  background-color: rgb(219, 232, 245)
+}*/
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+p {
+}
+
+.thumbnail {
+  width: 100%;
+  height: 215px;
+  position: relative;
+  overflow: hidden;
+}
+
+.thumbnail img {
+  min-height: 100%;
+  min-width: 100%;
+  width: auto;
+  height: auto;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin: auto;
+}
+
+.subtext {
+  font-style: italic;
+  color: rgb(240, 132, 123);
+}
+
+
+@media screen and (min-width: 550px) {
+  .buttons {
+    height: 88vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+}
+
+@media screen and (max-width: 550px) {
+  .buttons {
+    position: absolute;
+  top: 50%;
+  left: 55%;
+  transform: translate(-50%, -50%);
+  }
+}
+
+
+
+.start-button {
+  padding: 0.35em 1.2em;
+  /* border: 0.1em solid #fc0;*/
+  border-radius: 0.2em;
+  box-sizing: border-box;
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 24px;
+  color: white;
+  background-color: black;
+  text-align: center;
+  transition: all 0.2s;
+  display: inline-block;
+  position: relative;
+  width: 14rem;
+}
+
+.start-button :hover{
+  color:#000;
+  background-color:#fc0;
+}
+
+.test {
+  width: 100%;
+}
+
+.bg {
+  /* The image used */
+  background-image: url("bkg.jpg");
+  /* Full height */
+  height: 100%;
+  /* Center and scale the image nicely */
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+body, html {
+  height: 100%;
+  margin: 0;
+}
+
+.map {
+  /* border-left: 1px solid rgba(0,0,0,0.5);
+  border-right: 1px solid rgba(0,0,0,0.5); */
+  border-bottom: 1px solid rgba(0,0,0,0.5);
+  height: 250px;
+  width: 100%;
+}
+
+.fullmap {
+  /* border-left: 1px solid rgba(0,0,0,0.5);
+  border-right: 1px solid rgba(0,0,0,0.5); */
+  border-bottom: 1px solid rgba(0,0,0,0.5);
+  height: 100%;
+  width: 100%;
+}
+
+.distance {
+  font-size: 1.25em;
+}
+
+.distance a {
+  font-size: 0.5em;
+  color: white;
+}

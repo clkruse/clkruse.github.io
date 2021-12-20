@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Microsoft Cognitive Services Speech SDK JavaScript Quickstart</title>
+  <meta charset="utf-8" />
+</head>
+<body>
+  <h1>This is a test of the speak function</h1>
+  <button onclick="synthesizeSpeech('Hudson')">Test button</button>
+</body>
+
+<!-- Speech SDK reference sdk. -->
+<script src="https://aka.ms/csspeech/jsbrowserpackageraw"></script>
+<script defer=true>
+
+  function synthesizeSpeech(inputText) {
+    if (!!window.SpeechSDK) {
+      sdk = window.SpeechSDK;
+    }
+    const speechConfig = sdk.SpeechConfig.fromSubscription("d5573e534bfc4c8cbd111612c4a7a949", "eastus");
+    const audioConfig = sdk.AudioConfig.fromDefaultSpeakerOutput();
+
+    const synthesizer = new sdk.SpeechSynthesizer(speechConfig, audioConfig);
+    synthesizer.speakTextAsync(
+        inputText,
+        result => {
+            if (result) {
+                console.log(result);
+                console.log(inputText);
+                synthesizer.close();
+                return result.audioData;
+            }
+        },
+        error => {
+            console.log(error);
+            synthesizer.close();
+        });
+  };
+</script>
+</html>
