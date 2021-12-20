@@ -372,31 +372,28 @@
     info.setAttribute("class", "info");
     card.appendChild(info);
 
-    var button = document.createElement("button");
-    button.setAttribute("class", "bullet mr-2");
-    button.onclick = function() { synthesizeSpeech(articleInfo.text); }
-    button.setAttribute("style", "border-color: black");
-    info.appendChild(button);
-    var soundImage = document.createElement("img");
-    soundImage.setAttribute("width", "100%");
-    soundImage.setAttribute("style", "margin-top: -7.5px");
-    soundImage.src = "sound.png";
-    button.appendChild(soundImage)
-    //button.textContent = '!';
-
     var bullet = document.createElement("h3");
-    bullet.setAttribute("class", "bullet mr-2");
-    info.appendChild(bullet);
-    dist = document.createTextNode(articleInfo.dist);
-    bullet.appendChild(dist);
-
-    var bullet = document.createElement("h3");
-    bullet.setAttribute("class", "bullet direction");
+    bullet.setAttribute("class", "bullet direction mr-2");
     info.appendChild(bullet);
     direction = document.createTextNode(articleInfo.direction);
     bullet.style.backgroundColor = articleInfo.color;
     bullet.appendChild(direction);
 
+    var bullet = document.createElement("h3");
+    bullet.setAttribute("class", "bullet mr-2 distance");
+    bullet.innerHTML = "<p>" + articleInfo.dist + "<a>mi</a></p>";
+    info.appendChild(bullet);
+
+    var button = document.createElement("button");
+    button.setAttribute("class", "bullet distance mr-2");
+    button.onclick = function() { synthesizeSpeech(articleInfo.text.split(" ").splice(0,125).join(" ") + "..."); }
+    button.setAttribute("style", "border-color: black; padding-top: 0px; padding-bottom: 0px; margin: 0px; border: 0px");
+    info.appendChild(button);
+    var soundImage = document.createElement("img");
+    soundImage.setAttribute("width", "80%");
+    soundImage.setAttribute("style", "margin-top: -6px");
+    soundImage.src = "sound.png";
+    button.appendChild(soundImage)
 
     var header = document.createElement("h2");
     card.appendChild(header);
@@ -421,21 +418,22 @@
     var intro = document.createElement("p");
     intro.setAttribute("class", "article-text pt-2");
     if (articleInfo.text.length > 1000) {
-      var articleText = document.createTextNode(articleInfo.text.split(" ").splice(0,125).join(" ") + "...");
+      var articleText = articleInfo.text.split(" ").splice(0,125).join(" ") + "...";
     }
 
     else {
-      var articleText = document.createTextNode(articleInfo.text);
+      var articleText = articleInfo.text;
+    };
+    if (articleInfo.text.length > 1000) {
+      var articleText = document.createTextNode(articleText);
+    }
+
+    else {
+      var articleText = document.createTextNode(articleText);
     }
 
     intro.appendChild(articleText);
-
     card.appendChild(intro);
-
-    //var children = button.parentNode.parentNode.childNodes
-    //console.log(children[4].innerHTML);
-
-    //console.log()
 
   }
 
@@ -443,16 +441,18 @@
     if (!!window.SpeechSDK) {
       sdk = window.SpeechSDK;
     }
-    const speechConfig = sdk.SpeechConfig.fromSubscription("d5573e534bfc4c8cbd111612c4a7a949", "eastus");
+    const speechConfig = sdk.SpeechConfig.fromSubscription("d5573e534bfc4c8cbd111612c4a7a949",
+                                                           "eastus",
+                                                           speechSynthesisVoiceName="en-US-JennyNeural");
+
     const audioConfig = sdk.AudioConfig.fromDefaultSpeakerOutput();
 
     const synthesizer = new sdk.SpeechSynthesizer(speechConfig, audioConfig);
+
     synthesizer.speakTextAsync(
         inputText,
         result => {
             if (result) {
-                console.log(result);
-                console.log(inputText);
                 synthesizer.close();
                 return result.audioData;
             }
