@@ -311,7 +311,7 @@
   <script src="js/headings.js"></script>
   <script src="js/services.js"></script>
   <script src="js/info_block.js"></script>
-  <script src="https://api.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.js"></script>
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
 
   <script>
     mapboxgl.accessToken = 'pk.eyJ1IjoiY2xrcnVzZSIsImEiOiJjaXIxY2M2dGcwMnNiZnZtZzN0Znk3MXRuIn0.MyKHSjxjG-ZcI2BkRUSGJA';
@@ -319,10 +319,13 @@
       container: 'map', // container id
       style: 'mapbox://styles/clkruse/ck9dfepwt09ut1jplf9e7lbp2', // stylesheet location
       //center: [123.4339, -1.5416],
-      center: [0, 20],
+      center: [0, 15],
       bearing: 0,
-      zoom: 1.3,
+      zoom: 1.0,
       pitch: 0,
+      projection: {
+        name: 'naturalEarth'
+      },
       attributionControl: true,
       customAttribution: "Countries and states I've visited"
     });
