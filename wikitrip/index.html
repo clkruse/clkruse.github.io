@@ -3,7 +3,6 @@
 
 <head>
   <title>Wikitrip</title>
-  <script async src='https://api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.js'></script>
   <link href='https://api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.css' rel='stylesheet' />
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css?family=Crimson+Text:400,400i,600,600i,700,700i&display=swap" rel="stylesheet">
@@ -63,7 +62,7 @@
 
 
 </body>
-
+<script defer=false src='https://api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.js'></script>
 <script>
 
   document.addEventListener("DOMContentLoaded", function () {
@@ -405,7 +404,6 @@
     currentDiv.appendChild(cardContainer);
 
     var articleLink = document.createElement("a");
-    //articleLink.setAttribute("href", articleInfo.url);
     cardContainer.appendChild(articleLink);
 
     var card = document.createElement("div");
@@ -439,21 +437,24 @@
     soundImage.src = "sound.png";
     button.appendChild(soundImage)
 
+    var link = document.createElement("a")
+    link.setAttribute("href", articleInfo.url);
+    card.appendChild(link);
     var header = document.createElement("h2");
-    card.appendChild(header);
+    link.appendChild(header);
     var titleText = document.createTextNode(articleInfo.title);
     header.appendChild(titleText);
 
     var subtext = document.createElement("h5");
     subtext.setAttribute("class", "subtext");
-    card.appendChild(subtext);
+    header.appendChild(subtext);
 
     var category = document.createTextNode(articleInfo.category);
     subtext.appendChild(category);
 
     var imageContainer = document.createElement("div")
     imageContainer.setAttribute("class", "thumbnail");
-    card.appendChild(imageContainer);
+    link.appendChild(imageContainer);
 
     var image = document.createElement("img");
     image.setAttribute("src", articleInfo.img);
@@ -477,7 +478,7 @@
     }
 
     intro.appendChild(articleText);
-    card.appendChild(intro);
+    link.appendChild(intro);
 
   }
 
