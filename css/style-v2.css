@@ -10,12 +10,41 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 600;
     color: #000;
     text-align: center;
+    padding-top: 2vw;
 }
 
 
 @media only screen and (max-width:767px) {
     .page-heading {
-        font-size: 3.5rem;
-        white-space: nowrap;
+        font-size: 2.25rem;
     }
+}
+
+.footer {
+    display: block;
+    padding-left: 3vw;
+    padding-right: 3vw;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    background-color: #222222;
+    width: 100%;
+    margin: auto;
+    min-height: 40px;
+    position: absolute;
+    left: 0;
+    z-index: 30
+  }
+
+.footer .copyright {
+    color: #838383;
+    text-align: right;
+    margin: 0px;
+    font-size: 14px;
+}
+
+.fa {
+    color: #fff;
+    font-size: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
 }

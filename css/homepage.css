@@ -1,6 +1,6 @@
 .masthead {
-    height: 30vh;
-    min-height: 500px;
+    height: 30vw;
+    min-height: 275px;
     background-image: url('../img/IMG_0592.jpg');
     background-size: cover;
     /*background-position: center;*/
@@ -13,6 +13,7 @@
     font-size: 8vw;
     font-weight: 600;
     color: #fff;
+    margin-top: 0px;
 
 }
 
@@ -83,7 +84,8 @@ a:active {
 
 .image-card-container {
     width: 100vw;
-    padding: 0px;
+    min-width: 100vw;
+    max-width: none;
 }
 
 .image-cards {
@@ -114,7 +116,7 @@ a:active {
     opacity: 0.7;
 }
 
-@media only screen and (max-width:1000px) {
+@media only screen and (max-width:1100px) {
     .image-cards li img {
         width: 45vw;
         height: 45vw;
@@ -145,8 +147,9 @@ a:active {
     text-align: left;
     position: relative;
     margin: 0 auto;
-    bottom: 3.1rem;
+    bottom: 2.5rem;
     padding-right: 5%;
+    padding-bottom: 5%;
     font-weight: bold;
     display: inline;
   }
