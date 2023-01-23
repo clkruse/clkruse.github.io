@@ -1,34 +1,48 @@
 @import url('https://fonts.googleapis.com/css?family=Major+Mono+Display');
-@import url('https://fonts.googleapis.com/css?family=Raleway');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;700');
 
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Major Mono Display', monospace;
   }
 
 .page-heading {
-    font-size: 4.25rem;
+    font-size: 3.0rem;
     font-weight: 600;
     color: #000;
     text-align: center;
-    padding-top: 2vw;
+    padding: 2vw;
+    margin-bottom: 3.0rem;
 }
 
+.small-heading {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color:#4384d9;
+    text-align: center;
+    padding-top: 4vw;
+}
+
+@media only screen and (max-width:1000px) {
+    .page-heading {
+        font-size: 2.75rem;
+    }
+}
 
 @media only screen and (max-width:767px) {
     .page-heading {
-        font-size: 2.25rem;
+        font-size: 2.0rem;
     }
 }
 
 .footer {
     display: block;
+    margin-top: 2rem;
     padding-left: 3vw;
     padding-right: 3vw;
     padding-top: 15px;
     padding-bottom: 15px;
     background-color: #222222;
     width: 100%;
-    margin: auto;
     min-height: 40px;
     position: absolute;
     left: 0;
@@ -47,4 +61,115 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 20px;
     padding-left: 5px;
     padding-right: 5px;
+}
+
+.card-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+.content-card {
+    margin: 1vw;
+}
+
+.content-card a {
+    text-decoration-color: #000;
+    text-decoration-thickness: 2px;
+}
+
+.content-card a:hover {
+    text-decoration-color: #fff;
+    text-decoration-thickness: 2px;
+}
+
+.card-image {
+    max-height: 17rem;
+    width: 100%;
+    object-fit: cover;
+    object-position: 50% 50%;
+}
+
+.card-title {
+    color: #000;
+    padding-top: 1.0rem;
+  }
+
+.card-text {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 400;
+    line-height: 1.7;
+    font-size: 15px;
+    letter-spacing: .2px;
+    color: #585858;
+    margin-top: 20px;
+}
+
+.menu {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 400;
+    position: absolute;
+    top: 0;
+    z-index: 999;
+    width: 100vw;
+}
+
+
+.button-group {
+    text-align: right;
+    font-family: Major Mono Display;
+    padding-top: 3vw;
+    padding-bottom: 3vw;
+    text-align: center;
+}
+
+.menu .button {
+    position: relative;
+    margin: 0 14px;
+    padding: 0;
+    color: #fff;
+    font-size: 18px;
+    font-weight: 800;
+    line-height: 1.6;
+    letter-spacing: 0.2px;
+    background: none;
+    border: none;
+    margin-bottom: 6px;
+    margin-top: 6px;
+}
+
+/* Make a cool hover underline appear */
+.menu .button::before {
+    content: '';
+    position: absolute;
+    height: 12px;
+    width: 0;
+    bottom: 3px;
+    left: 0;
+    z-index: -1;
+    background-color: #ffce00;
+    -webkit-transition: all 350ms ease;
+    transition: all 350ms ease;
+}
+
+.menu .button:hover {
+    opacity: 1;
+    color: #000;
+    -webkit-transition: all 350ms ease;
+    transition: all 350ms ease;
+}
+
+.menu .button:hover::before {
+    width: 100%
+}
+
+.menu .button.active::before {
+    width: 100%
+}
+
+/* Remove underline on hover */
+a:hover,
+a:visited,
+a:link,
+a:active {
+    text-decoration: none;
 }
