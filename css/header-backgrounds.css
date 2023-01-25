@@ -1,8 +1,35 @@
 .sci-header {
-    background-image: url("../img/sea-helm.jpg");
-    -webkit-background-size: cover;
-    background-size: cover;
-    position: relative;
-    background-position: 0% 60%;
-    height: 35vw
-  }
+  background-image: url("../img/sea-helm.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 60%;
+  height: 35vw
+}
+
+.ng-header {
+  background-image: url("../img/1Y2A2125 - Version 2.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 60%;
+  height: 35vw
+}
+
+.ml-header {
+  background-image: url("../img/tiltShiftScreenshot.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 60%;
+  height: 35vw
+}
+
+.run-header {
+  background-image: url("../img/2022-Caleb-Color-Dist.png");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 60%;
+  height: 35vw
+}

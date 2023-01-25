@@ -70,6 +70,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .content-card {
     margin: 1vw;
+    padding-bottom: 1rem;
 }
 
 .content-card a {
@@ -83,15 +84,17 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .card-image {
-    max-height: 17rem;
+    height: 20rem;
     width: 100%;
     object-fit: cover;
     object-position: 50% 50%;
+    border-radius: 2px;
 }
 
 .card-title {
     color: #000;
     padding-top: 1.0rem;
+    padding-bottom: 1.0rem;
   }
 
 .card-text {
@@ -101,7 +104,6 @@ h1, h2, h3, h4, h5, h6 {
     font-size: 15px;
     letter-spacing: .2px;
     color: #585858;
-    margin-top: 20px;
 }
 
 .menu {
@@ -127,7 +129,7 @@ h1, h2, h3, h4, h5, h6 {
     margin: 0 14px;
     padding: 0;
     color: #fff;
-    font-size: 18px;
+    font-size: 17px;
     font-weight: 800;
     line-height: 1.6;
     letter-spacing: 0.2px;
@@ -135,6 +137,13 @@ h1, h2, h3, h4, h5, h6 {
     border: none;
     margin-bottom: 6px;
     margin-top: 6px;
+}
+
+.menu .button:hover {
+    opacity: 1;
+    color: #000;
+    -webkit-transition: all 350ms ease;
+    transition: all 350ms ease;
 }
 
 /* Make a cool hover underline appear */
@@ -151,13 +160,6 @@ h1, h2, h3, h4, h5, h6 {
     transition: all 350ms ease;
 }
 
-.menu .button:hover {
-    opacity: 1;
-    color: #000;
-    -webkit-transition: all 350ms ease;
-    transition: all 350ms ease;
-}
-
 .menu .button:hover::before {
     width: 100%
 }
@@ -166,10 +168,94 @@ h1, h2, h3, h4, h5, h6 {
     width: 100%
 }
 
-/* Remove underline on hover */
-a:hover,
-a:visited,
-a:link,
-a:active {
+.menu .button-white {
+    position: relative;
+    margin: 0 14px;
+    padding: 0;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.6;
+    letter-spacing: 0.2px;
+    background: none;
+    border: none;
+    margin-bottom: 6px;
+    margin-top: 6px;
+}
+
+.menu .button-white:hover {
+    opacity: 1;
+    color: #000;
+    -webkit-transition: all 350ms ease;
+    transition: all 350ms ease;
+}
+
+/* Make a cool hover underline appear */
+.menu .button-white::before {
+    content: '';
+    position: absolute;
+    height: 12px;
+    width: 0;
+    bottom: 3px;
+    left: 0;
+    z-index: -1;
+    background-color: #ffce00;
+    -webkit-transition: all 350ms ease;
+    transition: all 350ms ease;
+}
+
+.menu .button-white:hover::before {
+    width: 100%
+}
+
+.menu .button-white.active::before {
+    width: 100%
+}
+
+.menu .button-black {
+    position: relative;
+    margin: 0 14px;
+    padding: 0;
+    color: #000;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.6;
+    letter-spacing: 0.2px;
+    background: none;
+    border: none;
+    margin-bottom: 6px;
+    margin-top: 6px;
+}
+
+.menu .button-black:hover {
+    opacity: 1;
+    color: #fff;
+    -webkit-transition: all 350ms ease;
+    transition: all 350ms ease;
+}
+
+/* Make a cool hover underline appear */
+.menu .button-black::before {
+    content: '';
+    position: absolute;
+    height: 12px;
+    width: 0;
+    bottom: 3px;
+    left: 0;
+    z-index: -1;
+    background-color: #ffce00;
+    -webkit-transition: all 350ms ease;
+    transition: all 350ms ease;
+}
+
+.menu .button-black:hover::before {
+    width: 100%
+}
+
+.menu .button-black.active::before {
+    width: 100%
+}
+
+p a {
     text-decoration: none;
 }
