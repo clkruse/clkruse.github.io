@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Caleb Kruse - Bird Clustering</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- css. Last sheet takes priority -->
+    <link rel="stylesheet" href="/css/style-v2.css">
+    <link rel="stylesheet" href="/css/header-backgrounds.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <header class="proto-birds">
+        <div class="container-fluid menu">
+            <div class="d-flex justify-content-end">
+                <a href="/">
+                    <button class="button-white">home</button>
+                </a>
+            </div>
+        </div>
+    </header>
+
+
+
+    <div class="article">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <h3 class="article-heading-blue mt-5">10 projects - #5</h3>
+                    <h3 class="article-heading-blue mb-0">birds of a feather flock together</h3>
+                    <h5 class="article-heading-black mt-0">clustering images to display birds that are similar to one
+                        another as
+                        neighbors, and placing birds that differ further apart</h5>
+
+                    <h5>the problem</h5>
+                    <p>
+                        I've been doing a lot more birdwatching during the coronavirus quarantine. In the last month,
+                        I've seen 33 different species according to <a href="http://ebird.org/">eBird</a>. It's
+                        impressive that in a single location, there can be so many clearly distinguishable species.
+                    </p>
+                    <p>
+                        My aim for the day was to create a chart of birds ordered by visual similarity. It would be
+                        interesting to see different edges of the spectrum of bird diversity, and how the bird species
+                        smoothly morph between extremes.
+                    </p>
+
+                    <h5>methods</h5>
+                    <p>
+                        Proper datasets are key to this project. Because we're analyzing image data, birds in front
+                        of different backgrounds, at different scales, or even in different positions could throw
+                        off the similarity comparison. I wanted to use illustrations from <a
+                            href="https://www.sibleyguides.com/">Sibley's Guides to Birds</a> but couldn't find a
+                        large collection of images online. Instead, I used ~2,500 images from <a
+                            href="https://joelsartore.com/keyword/birds/">Joel Sartore's Photo Ark</a> project, and
+                        a 400 images from a <a
+                            href="https://digital.library.pitt.edu/collection/audubons-birds-america">database of
+                            Audubon's drawings</a> from Bird's of America. I'm not sure about the ethics of my data
+                        collection. I needed to programmatically scrape images from both sites, is it ok to use the
+                        images here?
+                    </p>
+                    <p>
+                        I first thought that I would do the clustering in image space. While this approach would be
+                        the most straightforward, it would based on the contents of the image rather than the
+                        features of the bird. For example, a bird facing to the right may be located far from a bird
+                        facing to the left as they differ strongly in image space.
+                    </p>
+                    <p>
+                        To work around this problem, I needed to cluster based on <i>features</i> of the birds in
+                        the images rather than on the image data itself. Once again, neural networks come to the
+                        rescue. A typical classification network is composed of convolutional feature extractors
+                        followed by fully connected layers. These layers of feature extractors at the top of the
+                        network start from simple concepts like curves or edges, and build more complex composite
+                        feature detectors out of the simpler components. These features can then be used by the
+                        fully-connected half of the network to make a classification of what is in the image. To see
+                        more on this topic, read this fascinating series on <a
+                            href="https://distill.pub/2020/circuits/zoom-in/">Distill.pub</a>.
+                    </p>
+                    <p>
+                        I ran each image through the feature extractor from the VGG16 network to convert a 224x224x3
+                        image into a 512x1 dimensional feature output. I then compressed the dimensionality of these
+                        vectors from 512 dimensions down to 2 using an algorithm called <a
+                            href="https://lvdmaaten.github.io/tsne/">tSNE</a>. From there, the scattered points are
+                        moved into a regular grid using a Jonker-Volgenant distance minimization algorithm, and the
+                        original image is ploted in its gridded location. This whole process was popularized by <a
+                            href="https://cs.stanford.edu/people/karpathy/cnnembed/">Andrej Karpathy</a> and is
+                        simply implemented <a href="https://github.com/prabodhhere/tsne-grid">here</a>. All code for
+                        the scraping and analysis can be accessed and run in this <a
+                            href="https://colab.research.google.com/drive/10lKW1_qX40_3ge-iEPhcOfK7AUgFh0aV?usp=sharing">Google
+                            Colab notebook</a>.
+                    </p>
+
+                    <h5>results</h5>
+                    <p>
+                        Though some of the trends in the clustering are puzzling to my human eye, the results are
+                        quite beautiful! It definitely helps to start with such strong imagery.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-sm-12">
+                    <h6>photo ark</h6>
+                    <a href="1156_black_images_square_borders.jpg">
+                        <img src="1156_black_images_square_borders_small.jpg"></img>
+                    </a>
+                    <p class="caption">Dimensionality reduction of bird images from <a
+                            href="https://joelsartore.com/keyword/birds/">Joel Sartore's Photo Ark</a>. Click image
+                        to view full resolution</p>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-sm-12">
+                    <h6>audubon's birds of america</h6>
+                    <a href="400_square_tight_audubon_images.jpg">
+                        <img src="400_square_tight_audubon_images_small.jpg"></img>
+                    </a>
+                    <p class="caption">Dimensionality reduction of bird images from John Audubon's Bird's of
+                        America. Click image to view full resolution</a></p>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <h5>conclusion</h5>
+                    <p>
+                        There's certainly room for improvement on the clustering. However, I think the outputs look
+                        wonderful. It's fun to trace how certain features cluster or evolve. For example, look at
+                        the red streak on the left side of the Photo Ark compilation, or how the cluster of parrots
+                        morph into other birds on the right side.
+                    </p>
+
+                    <h5>what would i do next</h5>
+                    <ul>
+                        <li>
+                            I would be quite curious to use a feature extractor from a network that is made to
+                            identify birds. Most of the classes that the VGG16 network predicts are fully unrelated
+                            to nature. I would imagine that the clustering would be much more distinct if using a
+                            network with features tuned to identify the differences in birds.
+                        </li>
+                        <li>
+                            You can see that the the Audubon sketches are cropped, sometimes leaving out important
+                            regions. It would be nice to work with a more uniform drawn dataset. Again, Sibley's
+                            would be perfect. If anyone has connections to get those images, let me know.
+                        </li>
+                        <li>
+                            I'd be curious to incorporate a wide swath of animals in the photo ark. I'd like to see
+                            how different species cluster.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer id="footer" class="footer">
+        <div class="row align-items-center">
+            <div class="col-xs-12 col-6">
+                <div class="footer-socials text-left">
+                    <a href="https://twitter.com/clkruse" target="_blank">
+                        <i class="fa fa-twitter"></i>
+                    </a>
+                    <a href="https://www.instagram.com/clkruse" target="_blank">
+                        <i class="fa fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-xs-12 col-6">
+                <p class="copyright">© Caleb Kruse</p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>
