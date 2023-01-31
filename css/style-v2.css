@@ -1,0 +1,354 @@
+@import url('https://fonts.googleapis.com/css?family=Major+Mono+Display');
+@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;700');
+@import url('https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,700&family=Raleway:wght@400;700&family=Roboto+Mono:wght@100;200;300&display=swap');
+
+body {
+    -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Major Mono Display', monospace;
+  }
+
+p, li {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 400;
+    line-height: 1.4;
+    font-size: 15px;
+    
+    color: #585858;
+}
+
+.page-heading {
+    font-size: 3.0rem;
+    font-weight: 600;
+    color: #000;
+    text-align: center;
+    padding: 2vw;
+    margin-bottom: 3.0rem;
+}
+
+.small-heading {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color:#4384d9;
+    text-align: center;
+    padding-top: 4vw;
+}
+
+@media only screen and (max-width:1000px) {
+    .page-heading {
+        font-size: 2.75rem;
+    }
+}
+
+@media only screen and (max-width:767px) {
+    .page-heading {
+        font-size: 2.0rem;
+    }
+}
+
+
+.article-heading-black {
+    font-size: 30px;
+    font-weight: 400;
+    color: #000;
+    padding-top: 2vw;
+    margin-bottom: 3.0rem;
+}
+
+.article-heading-blue {
+    font-size: 44px;
+    font-weight: 400;
+    color:#4384d9;
+}
+
+.article h5 {
+    font-size: 18px;
+    font-weight: 800;
+    color:#000;
+    font-style: italic;
+}
+
+.article h6 {
+    font-size: 16px;
+    font-weight: 800;
+    color:#000;
+}
+
+.article p, ul, li {
+    font-family: 'Mulish', sans-serif;
+    font-size: 15px;
+    color: #595959;
+    line-height: auto;
+}
+
+.article .caption {
+    font-size: 14px;
+    margin-bottom: 1rem;
+}
+
+.article img {
+    position: relative;
+    width: 100%;
+    min-height: 25vw;
+    object-fit: contain;
+}
+
+.article video {
+    position: relative;
+    width: 100%;
+    min-height: 30vw;
+}
+
+@media only screen and (max-width:1000px) {
+    .article-heading {
+        font-size: 2.75rem;
+    }
+}
+
+@media only screen and (max-width:767px) {
+    .article-heading {
+        font-size: 2.0rem;
+    }
+}
+
+.footer {
+    display: block;
+    margin-top: 6rem;
+    padding-left: 3vw;
+    padding-right: 3vw;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    background-color: #222222;
+    width: 100%;
+    min-height: 40px;
+    position: absolute;
+    left: 0;
+    z-index: 30
+  }
+
+.footer .copyright {
+    color: #838383;
+    text-align: right;
+    margin: 0px;
+    font-size: 14px;
+}
+
+.footer-socials a {
+    text-decoration: none;
+}
+.fa {
+    color: #fff;
+    font-size: 20px;
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+.card-container {
+    padding-left: 2rem;
+    padding-right: 2rem;
+}
+
+.content-card {
+    margin: 1vw;
+    padding-bottom: 1rem;
+}
+
+.content-card a {
+    text-decoration-color: rgb(186, 186, 186);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    -webkit-transition: all 350ms ease;
+    transition: all 350ms ease;
+}
+
+.content-card a:hover {
+    text-decoration-color: rgb(225, 225, 225);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 2px;
+    -webkit-transition: all 350ms ease;
+    transition: all 350ms ease;
+}
+
+.card-image {
+    height: 25vw;
+    width: 100%;
+    object-fit: cover;
+    object-position: 50% 50%;
+    border-radius: 2px;
+}
+
+@media only screen and (max-width:992px) {
+    .card-image {
+        height: 20rem;
+    }
+}
+
+.card-title {
+    color: #000;
+    padding-top: 1.0rem;
+    padding-bottom: 1.0rem;
+  }
+
+.card-text {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 400;
+    line-height: 1.7;
+    font-size: 15px;
+    letter-spacing: .2px;
+    color: #585858;
+}
+
+.menu {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 400;
+    position: absolute;
+    top: 0;
+    z-index: 999;
+    width: 100vw;
+}
+
+
+.button-group {
+    text-align: right;
+    font-family: Major Mono Display;
+    padding-top: 3vw;
+    padding-bottom: 3vw;
+    text-align: center;
+}
+
+.menu .button {
+    position: relative;
+    margin: 0 14px;
+    padding: 0;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.6;
+    letter-spacing: 0.2px;
+    background: none;
+    border: none;
+    margin-bottom: 6px;
+    margin-top: 6px;
+}
+
+.menu .button:hover {
+    opacity: 1;
+    color: #000;
+    -webkit-transition: all 350ms ease;
+    transition: all 350ms ease;
+}
+
+/* Make a cool hover underline appear */
+.menu .button::before {
+    content: '';
+    position: absolute;
+    height: 12px;
+    width: 0;
+    bottom: 3px;
+    left: 0;
+    z-index: -1;
+    background-color: #ffce00;
+    -webkit-transition: all 350ms ease;
+    transition: all 350ms ease;
+}
+
+.menu .button:hover::before {
+    width: 100%
+}
+
+.menu .button.active::before {
+    width: 100%
+}
+
+.menu .button-white {
+    position: relative;
+    margin: 0 14px;
+    padding: 0;
+    color: #fff;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.6;
+    letter-spacing: 0.2px;
+    background: none;
+    border: none;
+    margin-bottom: 6px;
+    margin-top: 6px;
+}
+
+.menu .button-white:hover {
+    opacity: 1;
+    color: #000;
+    -webkit-transition: all 350ms ease;
+    transition: all 350ms ease;
+}
+
+/* Make a cool hover underline appear */
+.menu .button-white::before {
+    content: '';
+    position: absolute;
+    height: 12px;
+    width: 0;
+    bottom: 3px;
+    left: 0;
+    z-index: -1;
+    background-color: #ffce00;
+    -webkit-transition: all 350ms ease;
+    transition: all 350ms ease;
+}
+
+.menu .button-white:hover::before {
+    width: 100%
+}
+
+.menu .button-white.active::before {
+    width: 100%
+}
+
+.menu .button-black {
+    position: relative;
+    margin: 0 14px;
+    padding: 0;
+    color: #000;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.6;
+    letter-spacing: 0.2px;
+    background: none;
+    border: none;
+    margin-bottom: 6px;
+    margin-top: 6px;
+}
+
+.menu .button-black:hover {
+    opacity: 1;
+    color: #fff;
+    -webkit-transition: all 350ms ease;
+    transition: all 350ms ease;
+}
+
+/* Make a cool hover underline appear */
+.menu .button-black::before {
+    content: '';
+    position: absolute;
+    height: 12px;
+    width: 0;
+    bottom: 3px;
+    left: 0;
+    z-index: -1;
+    background-color: #ffce00;
+    -webkit-transition: all 350ms ease;
+    transition: all 350ms ease;
+}
+
+.menu .button-black:hover::before {
+    width: 100%
+}
+
+.menu .button-black.active::before {
+    width: 100%
+}
+
+p, a {
+    text-decoration: none;
+}

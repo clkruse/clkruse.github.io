@@ -2,348 +2,207 @@
 <html lang="en">
 
 <head>
-  <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105607174-2"></script>
-  <script>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105607174-2"></script>
+    <script>
     window.dataLayer = window.dataLayer || [];
-
-    function gtag() {
-      dataLayer.push(arguments);
-    }
+    function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
 
     gtag('config', 'UA-105607174-2');
-  </script>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Caleb Kruse - Mapping</title>
+    </script>
+    <title>Caleb Kruse - Mapping</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- css. Last sheet takes priority -->
+    <link rel="stylesheet" href="./css/style-v2.css">
+    <link rel="stylesheet" href="./css/header-backgrounds.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+        crossorigin="anonymous"></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.css' rel='stylesheet' />
 
-  <link rel="stylesheet" href="css/bootstrap.min.css">
-  <link rel="stylesheet" href="css/font-awesome.min.css">
-  <link rel="stylesheet" href="css/magnific-popup.css">
-  <link rel="stylesheet" href="css/animsition.min.css">
-  <link rel="stylesheet" href="css/animate.css">
-  <link rel="stylesheet" href="css/pe-icon-7-stroke.css">
-  <link rel="stylesheet" href="css/jquery.fancybox.min.css">
-  <link rel="stylesheet" href="css/swiper3.css">
-  <link rel="stylesheet" href="css/simple-line-icons.css">
-  <link rel="stylesheet" href="css/ionicons.min.css">
-  <link rel="stylesheet" href="css/slick.css">
-  <link rel="stylesheet" href="css/style.min.css">
-  <link rel="stylesheet" href="css/menu.css">
-  <link rel="stylesheet" href="css/style-child-theme.min.css">
-  <link rel="stylesheet" href="css/video_banner.min.css">
-
-  <link rel="stylesheet" href="css/headings.min.css">
-  <link rel="stylesheet" href="css/services.min.css">
-  <link rel="stylesheet" href="css/info_block.min.css">
-  <link rel="stylesheet" href="css/call_to_action.min.css">
-  <link href='https://api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.css' rel='stylesheet' />
 </head>
 
 <body>
-  <!-- MAIN_WRAPPER -->
-
-  <div class="main-wrapper" data-top="992">
-    <div class="header_top_bg  header_trans-fixed menu_dark_text" style="padding-bottom: 0;">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-xs-12">
-            <!-- HEADER -->
-            <header class="right-menu left ">
-              <!-- MOB MENU ICON -->
-              <a href="#" class="mob-nav">
-                <div class="hamburger">
-                  <span class="line"></span>
-                  <span class="line"></span>
-                  <span class="line"></span>
-                </div>
-              </a>
-
-              <!-- NAVIGATION -->
-              <nav id="topmenu" class="topmenu ">
-                <a href="#" class="mob-nav-close">
-                  <span>close</span>
-                  <div class="hamburger">
-                    <span class="line"></span>
-                    <span class="line"></span>
-                  </div>
-                </a>
-                <ul class="menu">
-                  <li class="menu-item">
-                    <a href="index.html">home</a>
-                  </li>
-                  <li id="menu-item-9" class="menu-item menu-item-has-children">
-                    <a href="#">topics</a>
-                    <ul class="sub-menu">
-                      <li class="menu-item">
-                        <a href="ng">National Geographic</a></li>
-                      <li class="menu-item">
-                        <a href="ml">Machine Learning</a></li>
-                      <li class="menu-item">
-                        <a href="sci">Science</a></li>
-                      <li class="menu-item">
-                        <a href="xr">AR/VR</a></li>
-                      <li class="menu-item">
-                        <a href="photo">Photography</a></li>
-                      <li class="menu-item">
-                        <a href="balloon.html">Balloons</a></li>
-                    </ul>
-                  </li>
-                </ul>
-
-              </nav>
-            </header>
-          </div>
+    <div class="container-fluid menu">
+        <div class="d-flex justify-content-end">
+            <a href="/">
+                <button class="button-black">home</button>
+            </a>
         </div>
-      </div>
     </div>
-
+    <div class="container-fluid">
+        <div class="row">
+            <div style="height: 40vh" id="map"></div>
+        </div>
+    </div>
 
     <div class="container-fluid">
-      <div class="hero">
-        <div class="row">
-          <div style="height: 40vh" id="map"></div>
+        <div class="row justify-content-center">
+            <div class="col-12 text-center">
+                <div style="padding-top: 2vw">
+                    <h6 style="font-size: 14px"><b>number of visits</b></br>5 continents - 25 countries - 31 states</h6>
+                    <h6 style="font-size: 14px"><b>furthest geographic extents</b></br>seoul, kr - 127°e / kingman reef, us - 165°w</br>alta, no
+                        - 70°n / punta arenas, cl - 53°s</br>kardung la, in +17,582' / dead sea, il -1,410'</h6>
+                </div>
+            </div>
         </div>
-      </div>
     </div>
-
-
-      <div class="container">
-        <div class="row margin-lg-20t margin-md-20t margin-sm-20t margin-xs-20t margin-xs-20b">
-            <div class="col-xs-12">
-              <div class="headings-wrap not-bg-title">
-                <div class="headings style2">
-                  <div class="content">
-                    <div class="info">
-                      <h6><b>number of visits</b></br>5 continents - 25 countries - 31 states</h6>
-                      <h6><b>furthest geographic extents</b></br>seoul, kr - 127°e / kingman reef, us - 165°w</br>alta, no - 70°n / punta arenas, cl - 53°s</h6>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div class="row margin-lg-100t margin-md-100t margin-sm-60t margin-xs-30t margin-lg-80b margin-md-55b margin-sm-40b margin-xs-20b">
-          <div class="col-xs-12">
-            <div class="headings-wrap not-bg-title">
-              <div class="headings style2">
-                <div class="content">
-                  <div class="info">
-                    <h5 class="subtitle" style="color:#4384d9">map-based storytelling</h5>
-                    <h3 class="title" style="color:#222222">tying stories to places and encouraging people to look closely at the world</h3>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
     <div class="container">
-      <div class="row">
-
-        <!-- REEF TO AQUARIUM -->
-
-        <div class="col-sm-6 col-xs-12 margin-xs-50b margin-sm-50b">
-          <a href="http://reeftoaquarium.com">
-            <div class="services classic">
-              <div class="img-wrap">
-                <img src="img/map_thumb.jpg" class="s-img-switch" alt="" />
-              </div>
-              <div class="content ">
-                <h4 class="title">reef to aquarium</h4>
-          </a>
-          <div class="text">
-            <p>
-            The blue tang is one of the most popular fish in the marine aquarium trade. However, it cannot be easily bred in captivity. This creates a global supply chain that connects fishermen in small islands with hobby aquarists on the other
-            side of the world.
-          </p>
-          <p>
-            Alongside four additional team members I worked in Indonesia, the Philippines, and Colorado to trace the path of this supply chain. I also developed the technology for the project, creating a web experience to tell a map-driven
-            multimedia story, capturing underwater virtual reality video, and drone support.
-          </p>
-          <p>
-            This project was recognized as one of <a href="https://www.mapbox.com/community/impact-2018/">Mapbox's featured community maps of 2018</a>
-          </p>
-            <br />
-            <br />
-          </div>
+        <div class="row justify-content-center">
+            <div class="col-10 text-center">
+                <h5 class="small-heading">map-based storytelling</h5>
+                <h3 class="page-heading">
+                    tying stories to places and encouraging people to look closely at the world
+                </h3>
+            </div>
         </div>
-      </div>
     </div>
 
+    <div class="container-fluid card-container">
+        <div class="row justify-content-center">
+            <div class="col-lg-5 col-md-9 col-xs-12 content-card">
+                <a href="./wikitrip/">
+                    <img class="card-image" src="./img/wikitrip_thumb_tilt.jpg">
+                    <h3 class="card-title">wikitrip</h3>
+                </a>
+                <div class="card-text">
+                    <p>
+                        I've always enjoyed keeping an eye out for roadside historic site markers on road trips. The
+                        stories of nearby events can make even the most bleak landscapes interesting. I made a tool that
+                        expands on this idea of roadside markers. It takes wikipedia articles near to your location, and
+                        presents them like a travel guide.
+                    </p>
+                </div>
+            </div>
 
+            <div class="col-lg-5 col-md-9 col-xs-12 content-card">
+                <a href="http://reeftoaquarium.com">
+                    <img class="card-image" src="./img/tang-header-light.jpg">
+                    <h3 class="card-title">reef to aquarium</h3>
+                </a>
+                <div class="card-text">
+                    <p>
+                        The blue tang is one of the most popular fish in the marine aquarium trade. However, it
+                        cannot
+                        be
+                        easily bred in captivity. This creates a global supply chain that connects fishermen in
+                        small
+                        islands with hobby aquarists on the other
+                        side of the world.
+                    </p>
+                    <p>
+                        Alongside four additional team members I worked in Indonesia, the Philippines, and
+                        Colorado to
+                        trace
+                        the path of this supply chain. I also developed the technology for the project, creating
+                        a web
+                        experience to tell a map-driven multimedia story, capturing underwater virtual reality
+                        video,
+                        and
+                        drone support.
+                    </p>
+                    <p>
+                        This project was recognized as one of <a
+                            href="https://web.archive.org/web/20190224212053/https://www.mapbox.com/community/impact-2018/">
+                            Mapbox's featured community maps of 2018
+                        </a>
+                    </p>
+                </div>
+            </div>
 
+            <div class="col-lg-5 col-md-9 col-xs-12 content-card">
+                <a href="./osm">
+                    <img class="card-image" src="./10-projects/osm/osm_edits.jpg">
+                    <h3 class="card-title">openstreetmap</h3>
+                </a>
+                <div class="card-text">
+                    <p>
+                        A trail is being created in an open space near my home. Because the area was private
+                        land for so long and the park is not yet open, maps of the area are sparsely populated.
+                        In this project, I mapped the trail and ponds and added the data to
+                        <a href="http://openstreetmap.org/">OpenStreetMap</a>.
+                    </p>
+                </div>
+            </div>
 
-    <!-- Wikitrip -->
-    <div class="col-sm-6 col-xs-12 margin-xs-50b margin-sm-50b">
-      <a href="./nearby-wiki/wikitrip">
-        <div class="services classic">
-          <div class="img-wrap">
-            <img src="img/wikitrip_thumb_tilt.jpg" class="s-img-switch" alt="" />
-          </div>
-          <div class="content ">
-            <h4 class="title">wikitrip</h4>
-      </a>
-      <div class="text">
-        <p>
-        I've always enjoyed keeping an eye out for roadside historic site markers on road trips. The stories of nearby events can make even the most bleak landscapes interesting. I made a tool that expands on this idea of roadside markers. It takes wikipedia articles near to your location, and presents them like a travel guide.
-        </p>
-        </br>
-      </div>
-    </div>
-  </div>
-  </div>
-  </div>
+            <div class="col-lg-5 col-md-9 col-xs-12 content-card">
+                <a href="./fire-mapping">
+                    <img class="card-image" src="./10-projects/fire-mapping/bf5.gif">
+                    <h3 class="card-title">mapping tree loss from space</h3>
+                </a>
+                <div class="card-text">
+                    <p>
+                        In 2013, my family's home burned down in the Black Forest Fire. It also burned part of the open
+                        space I mapped in Project #2. In this project, I created a map of where the fire burned based on
+                        remotely sensed forest cover data.
+                    </p>
+                </div>
+            </div>
 
-  <!-- Open Street Mapping -->
-  <div class="col-sm-6 col-xs-12 margin-xs-50b margin-sm-50b">
-    <a href="osm">
-      <div class="services classic">
-        <div class="img-wrap">
-          <img src="10-projects/osm/osm_edits.jpg" class="s-img-switch" alt="" />
+            <div class="col-lg-5 col-md-9 col-xs-12 content-card">
+                <a href="./balloons/balloon-map.html">
+                    <img class="card-image" src="./img/balloon_launch.jpg">
+                    <h3 class="card-title">high altitude balloons</h3>
+                </a>
+                <div class="card-text">
+                    <p>
+                        A work-in-progress map of my stratospheric balloon launches.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Empty section for spacing if odd number of cards -->
+            <div class="col-lg-5 col-md-9 col-sm-12 content-card"></div>
         </div>
-        <div class="content ">
-          <h4 class="title">openstreetmap</h4>
-    </a>
-    <div class="text">
-      <p>
-      A trail is being created in an open space near my home. Because the area was private land for so long and the park is not yet open, maps of the area are sparsely populated. In this project, I mapped the trail and ponds and added the data to
-      <a href="http://openstreetmap.org/">OpenStreetMap</a>.
-      </p>
-      </br>
     </div>
-  </div>
-</div>
-</div>
 
-<div class="col-sm-6 col-xs-12 margin-xs-50b margin-sm-50b">
-  <a href="fire-mapping">
-    <div class="services classic">
-      <div class="img-wrap">
-        <img src="10-projects/fire-mapping/bf5.gif" class="s-img-switch" alt="" />
-      </div>
-      <div class="content ">
-        <h4 class="title">mapping tree loss from space</h4>
-  </a>
-  <div class="text">
-    In 2013, my family's home burned down in the Black Forest Fire. It also burned part of the open space I mapped in Project #2. In this project, I created a map of where the fire burned based on remotely sensed forest cover data.
-    </br>
-    </br></br>
-  </div>
-</div>
-</div>
-</div>
+    <footer id="footer" class="footer">
+        <div class="row align-items-center">
+            <div class="col-xs-12 col-6">
+                <div class="footer-socials text-left">
+                    <a href="https://twitter.com/clkruse" target="_blank">
+                        <i class="fa fa-twitter"></i>
+                    </a>
+                    <a href="https://www.instagram.com/clkruse" target="_blank">
+                        <i class="fa fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-xs-12 col-6">
+                <p class="copyright">© Caleb Kruse</p>
+            </div>
+        </div>
+    </footer>
 
-<!-- Balloon Map -->
-<div class="col-sm-6 col-xs-12 margin-xs-50b margin-sm-50b">
-  <a href="./balloons/balloon-map.html">
-    <div class="services classic">
-      <div class="img-wrap">
-        <img src="img/balloon_launch.jpg" class="s-img-switch" alt="" />
-      </div>
-      <div class="content ">
-        <h4 class="title">high altitude balloons</h4>
-  </a>
+    <script>
+        mapboxgl.accessToken = 'pk.eyJ1IjoiY2xrcnVzZSIsImEiOiJjaXIxY2M2dGcwMnNiZnZtZzN0Znk3MXRuIn0.MyKHSjxjG-ZcI2BkRUSGJA';
+        var map = new mapboxgl.Map({
+            container: 'map', // container id
+            style: 'mapbox://styles/clkruse/ck9dfepwt09ut1jplf9e7lbp2', // stylesheet location
+            //center: [123.4339, -1.5416],
+            center: [0, 15],
+            bearing: 0,
+            zoom: 1.0,
+            pitch: 0,
+            projection: {
+                name: 'naturalEarth'
+            },
+            attributionControl: true,
+            customAttribution: "Countries and states I've visited"
+        });
+    </script>
 
-  <div class="text">
-    <p>
-      A work-in-progress map of my stratospheric balloon launches.
-    </p>
-
-    <br />
-    <br />
-  </div>
-</div>
-</div>
-</div>
-  </div>
-  </div>
-  </div>
-
-
-  <footer id="footer" class="modern">
-    <div class="container no-padd">
-
-      <div class="col-xs-12 footer-socials text-left col-sm-6">
-        <a href="https://twitter.com/clkruse" target="_blank">
-          <i class="fa fa-twitter"></i>
-        </a>
-        <a href="https://www.instagram.com/clkruse" target="_blank">
-          <i class="fa fa-instagram"></i>
-        </a>
-      </div>
-
-      <div class="copyright col-xs-12 text-right col-sm-6">
-        © Caleb Kruse, 2019
-      </div>
-
-    </div>
-  </footer>
-
-  <script src="js/jquery.min.js"></script>
-  <script src="https://www.youtube.com/iframe_api"></script>
-  <script src="js/lib/modernizr-2.6.2.min.js"></script>
-  <script src="js/lib/scripts.js"></script>
-  <script src="js/jquery.countdown.min.js"></script>
-  <script src="js/foxlazy.js"></script>
-  <script src="js/jquery.easings.min.js"></script>
-  <script src="js/jquery.multiscroll.min.js"></script>
-  <script src="js/magnific.js"></script>
-  <script src="js/TweenMax.min.js"></script>
-  <script src="js/equalHeightsPlugin.js"></script>
-  <script src="js/jquery.fancybox.min.js"></script>
-  <script src="js/jquery.fitvids.js"></script>
-  <script src="js/swiper3.js"></script>
-  <script src="js/imagesloaded.pkgd.min.js"></script>
-  <script src="js/fragment.js"></script>
-  <script src="js/scrollMonitor.js"></script>
-  <script src="js/slider-transition.js"></script>
-  <script src="js/slick.js"></script>
-  <script src="js/jquery.sliphover.min.js"></script>
-  <script src="js/pixi.min.js"></script>
-  <script src="js/script.js"></script>
-
-  <script src="js/parallax.js"></script>
-  <script src="js/typed.js"></script>
-  <script src="js/headings.js"></script>
-  <script src="js/services.js"></script>
-  <script src="js/info_block.js"></script>
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.6.1/mapbox-gl.js"></script>
-
-  <script>
-    mapboxgl.accessToken = 'pk.eyJ1IjoiY2xrcnVzZSIsImEiOiJjaXIxY2M2dGcwMnNiZnZtZzN0Znk3MXRuIn0.MyKHSjxjG-ZcI2BkRUSGJA';
-    var map = new mapboxgl.Map({
-      container: 'map', // container id
-      style: 'mapbox://styles/clkruse/ck9dfepwt09ut1jplf9e7lbp2', // stylesheet location
-      //center: [123.4339, -1.5416],
-      center: [0, 15],
-      bearing: 0,
-      zoom: 1.0,
-      pitch: 0,
-      projection: {
-        name: 'naturalEarth'
-      },
-      attributionControl: true,
-      customAttribution: "Countries and states I've visited"
-    });
-
-    function rotateCamera(timestamp) {
-        // clamp the rotation between 0 -360 degrees
-        // Divide timestamp by 100 to slow rotation to ~10 degrees / sec
-        map.rotateTo((timestamp / 1000) % 360, { duration: 0 });
-        // Request the next frame of the animation.
-        requestAnimationFrame(rotateCamera);
-      }
-
-      map.on('load', function() {
-        // Start the animation.
-        //rotateCamera(0);
-      })
-
-  </script>
 </body>
 
 </html>

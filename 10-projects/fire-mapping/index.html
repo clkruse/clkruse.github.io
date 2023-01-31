@@ -2,278 +2,227 @@
 <html lang="en">
 
 <head>
-  <meta name="This is Caleb Kruse's portfolio site: a place to build, show, and save projects">
-	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-105607174-2"></script>
-	<script>
-		window.dataLayer = window.dataLayer || [];
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105607174-2"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
 
-		function gtag() {
-			dataLayer.push(arguments);
-		}
-		gtag('js', new Date());
-
-		gtag('config', 'UA-105607174-2');
-	</script>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Mapping Forest Loss - 10 Projects</title>
-  <meta property="og:image" content="world_forest_map.jpg" />
-
-  <link rel="stylesheet" href="../../css/bootstrap.min.css">
-  <link rel="stylesheet" href="../../css/font-awesome.min.css">
-  <link rel="stylesheet" href="../../css/magnific-popup.css">
-  <link rel="stylesheet" href="../../css/animsition.min.css">
-  <link rel="stylesheet" href="../../css/animate.css">
-  <link rel="stylesheet" href="../../css/pe-icon-7-stroke.css">
-  <link rel="stylesheet" href="../../css/jquery.fancybox.min.css">
-  <link rel="stylesheet" href="../../css/swiper3.css">
-  <link rel="stylesheet" href="../../css/simple-line-icons.css">
-  <link rel="stylesheet" href="../../css/ionicons.min.css">
-  <link rel="stylesheet" href="../../css/slick.css">
-  <link rel="stylesheet" href="../../css/style.min.css">
-  <link rel="stylesheet" href="../../css/menu.css">
-  <link rel="stylesheet" href="../../css/style-child-theme.min.css">
-  <link rel="stylesheet" href="../../css/video_banner.min.css">
-  <link rel="stylesheet" href="../../css/lightgallery.min.css">
-  <link href='https://api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.css' rel='stylesheet' />
+    gtag('config', 'UA-105607174-2');
+    </script>
+    <title>Caleb Kruse - Mapping Forest Loss</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- css. Last sheet takes priority -->
+    <link rel="stylesheet" href="/css/style-v2.css">
+    <link rel="stylesheet" href="/css/header-backgrounds.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+        crossorigin="anonymous"></script>
+    <script src='https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v2.12.0/mapbox-gl.css' rel='stylesheet' />
 </head>
 
 <body>
-  <!-- MAIN_WRAPPER -->
-  <div class="main-wrapper" data-top="992">
-    <div class="header_top_bg  header_trans-fixed menu_dark_text" style="padding-bottom: 0;">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-xs-12">
-            <!-- HEADER -->
-            <header class="right-menu left ">
-              <!-- MOB MENU ICON -->
-              <a href="#" class="mob-nav">
-                <div class="hamburger">
-                  <span class="line"></span>
-                  <span class="line"></span>
-                  <span class="line"></span>
-                </div>
-              </a>
 
-              <!-- NAVIGATION -->
-              <nav id="topmenu" class="topmenu ">
-                <a href="#" class="mob-nav-close">
-                  <span>close</span>
-                  <div class="hamburger">
-                    <span class="line"></span>
-                    <span class="line"></span>
-                  </div>
+    <header class="proto-fire">
+        <div class="container-fluid menu">
+            <div class="d-flex justify-content-end">
+                <a href="/">
+                    <button class="button-white">home</button>
                 </a>
-                <ul class="menu">
-                  <li class="menu-item">
-                    <a href="http://calebkruse.com/">home</a>
-                  </li>
-                  <li id="menu-item-9" class="menu-item menu-item-has-children">
-                    <a href="#">topics</a>
-                    <ul class="sub-menu">
-                      <li class="menu-item">
-                        <a href="http://calebkruse.com/ng">National Geographic</a></li>
-                      <li class="menu-item">
-                        <a href="http://calebkruse.com/ml">Machine Learning</a></li>
-                      <li class="menu-item">
-                        <a href="http://calebkruse.com/sci">Science</a></li>
-                      <li class="menu-item">
-                        <a href="http://calebkruse.com/xr">AR/VR</a></li>
-                      <li class="menu-item">
-                        <a href="http://calebkruse.com/photo">Photography</a></li>
-                      <li class="menu-item">
-                        <a href="http://calebkruse.com/balloon.html">Balloons</a></li>
-                      <li class="menu-item">
-                        <a href="http://calebkruse.com/maps.html">Maps</a></li>
-                      <li class="menu-item">
-                        <a href="http://calebkruse.com/10-projects">Prototypes</a></li>
+            </div>
+        </div>
+    </header>
+
+
+
+    <div class="article">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <h3 class="article-heading-blue mt-5">10 projects - #3</h3>
+                    <h3 class="article-heading-blue mb-0">mapping tree loss from space</h3>
+                    <h5 class="article-heading-black mt-0">using google earth engine to create a map of the black forest
+                        fire</h5>
+
+                    <h5>project goal</h5>
+                    <p>
+                        In 2013, my family's home burned down in the <a
+                            href=https://en.wikipedia.org/wiki/Black_Forest_Fire>Black Forest Fire</a>. As the name
+                        implies, the Black Forest area is densely wooded, and the fire quickly burned over 14,000 acres
+                        and more than 500 homes. Related to the mapping in <a
+                            href=https://calebkruse.com/10-projects/osm />Project #2</a>, I wanted to create a map of
+                        where the fire had burned.
+                    </p>
+
+                    <h5>methods</h5>
+                    <p>
+                        The official fire perimeter map shows the greatest extent of the fire. However, there are
+                        many pockets of healthy forest inside the fire perimeter. I needed another source of data
+                        that could show the burned areas more directly.
+                    </p>
+                    <p>
+                        I looked to use remote sensing data as the record covers the time periods of change, and the
+                        spatial resolution would be high enough. For processing, I used <a
+                            href="https://earthengine.google.com/">Google Earth Engine</a>. It's a powerful tool
+                        that aggregates remote sensing datasets, and also provides a framework to do large scale
+                        data processing in the cloud. Unfortunately, the python API is quite challenging for me to
+                        use in my typical mindset of local data processing, and it seems like a second-class citizen
+                        to their JavaScript API. So, I used the JavaScript API through the <a
+                            href="code.earthengine.google.com"> Earth Engine Code Editor</a> for this project.
+                    </p>
+                    <p>
+                        I searched for an appropriate remote sensing dataset that might capture the change in
+                        vegetation. Initially, I anticipated using a normalized difference vegetation index (NDVI)
+                        which uses the ratio of infrared to red light to detect the presence and amount of
+                        vegetation. Here, you can see a visualization of NDVI in Black Forest throughout 2013. The
+                        dark green area in the center is Black Forest, and you can see a lighter scar emerge
+                        following the fire.
+                    </p>
+                    <img src="./bf5.gif"></img>
+                    <p class="caption">NDVI of Black Forest: 1/2013-1/2014</p>
+                    </p>
+                    NDVI could be used for this analysis, but I found the <a
+                        href="https://earthenginepartners.appspot.com/science-2013-global-forest">Global Forest
+                        Change dataset</a> from Hansen et al. This uses data from Landsat 8, and marks changes in
+                    forest density from a reference baseline in the year 2000. The data clearly shows regions of
+                    forest loss, and forest gain. It's astonishing to be able to instantly get a snapshot of forest
+                    change at a 30m resolution across the globe.
+                    </p>
+                    <img src="./world_forest_map.jpg"></img>
+                    <p class="caption">Forest coverage and change in North America from the Hansen dataset -
+                        Green: Forest cover, Red: Forest loss, Blue: Forest gain</p>
+                    </p>
+                    After limiting the data to the Black Forest area, the burn scar becomes apparent.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-sm-12">
+                    <div class="ratio ratio-16x9">
+                        <iframe class="juxtapose"
+                            src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=cb4abdee-91ab-11ea-a879-0edaf8f81e27"></iframe>
+                    </div>
+                    <p class="caption">Comparison of base imagery vs. forest loss metric</p>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <p>
+                        The burn scar can also be seen in the Landsat Burned Area Index dataset from August of 2013.
+                        White areas represent a burned classification.
+                    </p>
+                    <img src="bf_bai.jpg"></img>
+                    <p class="caption">Landsat Burned Area Index data of Black Forest in August, 2013</p>
+                    <p>
+                        Next, I wanted to convert this raster pixel data into a vector format for display on a stylized
+                        map. In order to do this, I needed to convert the pixel layer to a vector form in Google Earth
+                        Engine. The vector data still had retained the pixel artifact structure, so I exported the
+                        GeoJSON data to QGIS, and then filtered the small regions, smoothed the edges using a "snakes"
+                        generalization algorithm, and removed any islands. This smoothing and filtering took much longer
+                        than the remote sensing part! Below, you can see the vector output before and after filtering.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-sm-12">
+                    <div class="ratio" style="--bs-aspect-ratio: 48%;">
+                        <iframe class="juxtapose"
+                            src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=8720cab2-91ad-11ea-a879-0edaf8f81e27"></iframe>
+                    </div>
+                    <p class="caption">Filtered vs. unfiltered vectorization of the raster data</p>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <h5>results</h5>
+                    <p>
+                        I was happy with how the map of the fire turned out. The sensed burned areas correspond to what
+                        I see in the forest, and the vector format output looks good on the map. I added the burn scar
+                        to a map of the Pineries Open Space that I've been working on.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-sm-12">
+                    <div style="height:45vw" id="map"></div>
+                    <p class="caption">Map of the Black Forest fire scar overlaid on the Pineries Open Space</p>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <h5>conclusion</h5>
+                    <p>
+                        My biggest takeaway from this project is the ease of access for this powerful remote sensing
+                        data. After getting spun up on the tools, there is no shortage of data available to analyze, and
+                        this project only scratches the surface. It's astonishing to be able to work with data with this
+                        level of spatial fidelity, temporal span and resolution, and multimodal sensing.
+                    </p>
+
+                    <h5>what would i do next</h5>
+                    <ul>
+                        <li>
+                            I'd be interested to monitor the regrowth of the burned forest. There have been extensive
+                            efforts to cut down and remove trees following the fire. I'd be curious to see whether this
+                            heavily managed area recovers at a different rate than other nearby burn sites.
+                        </li>
+                        <li>
+                            Monitor forest regrowth over time. Does the forest encroach on open spaces, or do new forest
+                            grow from the meadows where competition is absent.
+                        </li>
                     </ul>
-                  </li>
-                </ul>
-
-              </nav>
-            </header>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-    <div class="container-fluid">
-      <div class="hero">
-        <div class="row bg_img_forest_map">
-          <div class="container">
-            <div class="row">
+                </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="container">
-      <div class="row margin-lg-100t margin-md-80t margin-sm-40t margin-xs-30t margin-lg-80b margin-md-55b margin-sm-40b margin-xs-20b">
-        <div class="col-xs-12 col-md-offset-1 col-md-10">
-          <h1 style="color:#4384d9">10 projects - #3</h1>
-          <h1 style="color:#4384d9">mapping tree loss from space</h1>
-          <h3 class="title" style="color:#222222">using google earth engine to create a map of the black forest fire</h3>
         </div>
 
-      </div>
-    </div>
-
-    <div class="container">
-      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
-        <div class="col-md-offset-1 col-md-11">
-
-          <div class="text">
-            <h5 class="subtitle">project goal</h5>
-            <p>
-              In 2013, my family's home burned down in the <a href=https://en.wikipedia.org/wiki/Black_Forest_Fire>Black Forest Fire</a>. As the name implies, the Black Forest area is densely wooded, and the fire quickly burned over 14,000 acres and more than 500 homes. Related to the mapping in <a href=https://calebkruse.com/10-projects/osm/>Project #2</a>, I wanted to create a map of where the fire had burned.
-            </p>
-          </div>
-        </div>
-      </div>
-
-
-      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
-        <div class="col-md-offset-1 col-md-11">
-          <div class="text">
-            <h5 class="subtitle">methods</h5>
-            <p>
-              The official fire perimeter map shows the greatest extent of the fire. However, there are many pockets of healthy forest inside the fire perimeter. I needed another source of data that could show the burned areas more directly.
-              </br>
-              </br>
-              I looked to use remote sensing data as the record covers the time periods of change, and the spatial resolution would be high enough. For processing, I used <a href="https://earthengine.google.com/">Google Earth Engine</a>. It's a powerful tool that aggregates remote sensing datasets, and also provides a framework to do large scale data processing in the cloud. Unfortunately, the python API is quite challenging for me to use in my typical mindset of local data processing, and it seems like a second-class citizen to their JavaScript API. So, I used the JavaScript API through the <a href="code.earthengine.google.com"> Earth Engine Code Editor</a> for this project.
-              </br>
-              </br>
-              I searched for an appropriate remote sensing dataset that might capture the change in vegetation. Initially, I anticipated using a normalized difference vegetation index (NDVI) which uses the ratio of infrared to red light to detect the presence and amount of vegetation. Here, you can see a visualization of NDVI in Black Forest throughout 2013. The dark green area in the center is Black Forest, and you can see a lighter scar emerge following the fire.
-            </p>
-            <img src="bf5.gif"></img>
-            <p class="subtext">NDVI of Black Forest: 1/2013-1/2014</p>
-            </p>
-              NDVI could be used for this analysis, but I found the <a href="https://earthenginepartners.appspot.com/science-2013-global-forest">Global Forest Change dataset</a> from Hansen et al. This uses data from Landsat 8, and marks changes in forest density from a reference baseline in the year 2000. The data clearly shows regions of forest loss, and forest gain. It's astonishing to be able to instantly get a snapshot of forest change at a 30m resolution across the globe.
-            </p>
-            <img src="world_forest_map.jpg"></img>
-            <p class="subtext">Forest coverage and change in North America from the Hansen dataset - Green: Forest cover, Red: Forest loss, Blue: Forest gain</p>
-            <p>
-              After limiting the data to the Black Forest area, the burn scar becomes apparent.
-            </p>
-            <div style="position:relative; padding-top:63.2%">
-              <iframe frameborder="0" class="juxtapose" style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=cb4abdee-91ab-11ea-a879-0edaf8f81e27"></iframe>
+        <footer id="footer" class="footer">
+            <div class="row align-items-center">
+                <div class="col-xs-12 col-6">
+                    <div class="footer-socials text-left">
+                        <a href="https://twitter.com/clkruse" target="_blank">
+                            <i class="fa fa-twitter"></i>
+                        </a>
+                        <a href="https://www.instagram.com/clkruse" target="_blank">
+                            <i class="fa fa-instagram"></i>
+                        </a>
+                    </div>
+                </div>
+                <div class="col-xs-12 col-6">
+                    <p class="copyright">© Caleb Kruse</p>
+                </div>
             </div>
-            <p>
-              The burn scar can also be seen in the Landsat Burned Area Index dataset from August of 2013. White areas represent a burned classification.
-            </p>
-            <img src="bf_bai.jpg"></img>
-            <p class="subtext">Landsat Burned Area Index data of Black Forest in August, 2013</p>
-            <p>
-              Next, I wanted to convert this raster pixel data into a vector format for display on a stylized map. In order to do this, I needed to convert the pixel layer to a vector form in Google Earth Engine. The vector data still had retained the pixel artifact structure, so I exported the GeoJSON data to QGIS, and then filtered the small regions, smoothed the edges using a "snakes" generalization algorithm, and removed any islands. This smoothing and filtering took much longer than the remote sensing part! Below, you can see the vector output before and after filtering.
-            </p>
-            <div style="position:relative; padding-top:45.5%">
-              <iframe frameborder="0" class="juxtapose" style="position:absolute;top:0;left:0;width:100%;height:100%;" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=8720cab2-91ad-11ea-a879-0edaf8f81e27"></iframe>
-            </div>
-          </div>
-        </div>
-      </div>
+        </footer>
 
-      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
-        <div class="col-md-offset-1 col-md-11">
-          <div class="text">
-            <h5 class="subtitle">results</h5>
-            <p>
-              I was happy with how the map of the fire turned out. The sensed burned areas correspond to what I see in the forest, and the vector format output looks good on the map. I added the burn scar to a map of the Pineries Open Space that I've been working on.
-            </p>
-            <div style="height: 40vh" id="map"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
-        <div class="col-md-offset-1 col-md-11">
-          <div class="text">
-            <h5 class="subtitle">conclusion</h5>
-            <p>
-              My biggest takeaway from this project is the ease of access for this powerful remote sensing data. After getting spun up on the tools, there is no shortage of data available to analyze, and this project only scratches the surface. It's astonishing to be able to work with data with this level of spatial fidelity, temporal span and resolution, and multimodal sensing.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
-        <div class="col-md-offset-1 col-md-11">
-          <div class="text">
-            <h5 class="subtitle">next steps</h5>
-            <ul>
-              <li>
-                I'd be interested to monitor the regrowth of the burned forest. There have been extensive efforts to cut down and remove trees following the fire. I'd be curious to see whether this heavily managed area recovers at a different rate than other nearby burn sites.
-              </li>
-              <li>
-                Monitor forest regrowth over time. Does the forest encroach on open spaces, or do new forest grow from the meadows where competition is absent.
-              </li>
-            </ul>
-            </br>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <footer id="footer" class="modern">
-    <div class="container no-padd">
-
-      <div class="col-xs-12 footer-socials text-left col-sm-6">
-        <a href="https://twitter.com/clkruse" target="_blank">
-          <i class="fa fa-twitter"></i>
-        </a>
-        <a href="https://www.instagram.com/clkruse" target="_blank">
-          <i class="fa fa-instagram"></i>
-        </a>
-      </div>
-
-      <div class="copyright col-xs-12 text-right col-sm-6">
-        © Caleb Kruse, 2019
-      </div>
-
-    </div>
-  </footer>
-
-  <script src="../../js/jquery.min.js"></script>
-  <script src="https://www.youtube.com/iframe_api"></script>
-  <script src="../../js/lib/modernizr-2.6.2.min.js"></script>
-  <script src="../../js/lib/scripts.js"></script>
-  <script src="../../js/jquery.countdown.min.js"></script>
-  <script src="../../js/foxlazy.js"></script>
-  <script src="../../js/jquery.easings.min.js"></script>
-  <script src="../../js/jquery.multiscroll.min.js"></script>
-  <script src="../../js/magnific.js"></script>
-  <script src="../../js/TweenMax.min.js"></script>
-  <script src="../../js/equalHeightsPlugin.js"></script>
-  <script src="../../js/jquery.fancybox.min.js"></script>
-  <script src="../../js/jquery.fitvids.js"></script>
-  <script src="../../js/swiper3.js"></script>
-  <script src="../../js/imagesloaded.pkgd.min.js"></script>
-  <script src="../../js/fragment.js"></script>
-  <script src="../../js/scrollMonitor.js"></script>
-  <script src="../../js/slider-transition.js"></script>
-  <script src="../../js/slick.js"></script>
-  <script src="../../js/jquery.sliphover.min.js"></script>
-  <script src="../../js/pixi.min.js"></script>
-  <script src="../../js/lightgallery.min.js"></script>
-  <script src="../../js/lib/thumbnails-popup.js"></script>
-  <script src="../../js/script.js"></script>
-  <script src="https://api.mapbox.com/mapbox-gl-js/v1.9.1/mapbox-gl.js"></script>
-
-  <script>
-  mapboxgl.accessToken = 'pk.eyJ1IjoiY2xrcnVzZSIsImEiOiJjaXIxY2M2dGcwMnNiZnZtZzN0Znk3MXRuIn0.MyKHSjxjG-ZcI2BkRUSGJA';
-  var map = new mapboxgl.Map({
-    container: 'map', // container id
-    style: "mapbox://styles/clkruse/ck8s8ml4i0qim1imnbhbkstie", //YOUR TURN: choose a style: https://docs.mapbox.com/api/maps/#styles
-    center: [-104.683900, 39.035300], // starting position [lng, lat]
-    zoom: 11, // starting zoom
-  });
-  </script>
+        <script>
+            mapboxgl.accessToken = 'pk.eyJ1IjoiY2xrcnVzZSIsImEiOiJjaXIxY2M2dGcwMnNiZnZtZzN0Znk3MXRuIn0.MyKHSjxjG-ZcI2BkRUSGJA';
+            var map = new mapboxgl.Map({
+                container: 'map', // container id
+                style: "mapbox://styles/clkruse/ck8s8ml4i0qim1imnbhbkstie", //YOUR TURN: choose a style: https://docs.mapbox.com/api/maps/#styles
+                center: [-104.683900, 39.035300], // starting position [lng, lat]
+                zoom: 11.5, // starting zoom
+            });
+        </script>
 </body>
 
 </html>

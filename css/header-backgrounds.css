@@ -1,0 +1,161 @@
+.sci-header {
+  background-image: url("../img/sea-helm.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 60%;
+  height: 35vw
+}
+
+.ng-header {
+  background-image: url("/img/1Y2A2125 - Version 2.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 60%;
+  height: 35vw
+}
+
+.ml-header {
+  background-image: url("/img/tiltShiftScreenshot.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 60%;
+  height: 35vw
+}
+
+.run-header {
+  background-image: url("/img/2022-Caleb-Color-Dist.png");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 60%;
+  height: 35vw
+}
+
+.proto-header {
+  background-image: url("/10-projects/bird-clustering/birds_subset.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 60%;
+  height: 35vw
+}
+
+.proto-birds {
+  background-image: url("/10-projects/bird-clustering/birds_header.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 5%;
+  height: 20vw
+}
+
+.proto-fire {
+  background-image: url("/10-projects/fire-mapping/world_forest_map.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 40%;
+  height: 20vw
+}
+
+.proto-instagrammetry {
+  background-image: url("/10-projects/instagrammetry/photogrammetry_header.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 40%;
+  height: 20vw
+}
+
+.proto-microcolor {
+  background-image: url("/10-projects/microcolor/microcolor-header-slim.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 40%;
+  height: 20vw
+}
+
+.proto-microgrammetry {
+  background-image: url("/10-projects/microgrammetry/feather.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 40%;
+  height: 20vw
+}
+
+.proto-ocean-super-resolution {
+  background-image: url("/10-projects/ocean-super-resolution/ocean_color.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 40%;
+  height: 20vw
+}
+
+.proto-osm {
+  background-image: url("/10-projects/osm/pond.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 40%;
+  height: 20vw
+}
+
+.proto-pinhole {
+  background-image: url("/10-projects/pinhole-camera/pinhole-header-wide.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 40%;
+  height: 20vw
+}
+
+.proto-run-track {
+  background-image: url("/img/marathon-photos/medals.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 75%;
+  height: 20vw
+}
+
+.proto-schlieren {
+  background-image: url("/10-projects/schlieren/Line Integral Convolution - Frame 211.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 40%;
+  height: 20vw
+}
+
+.proto-blue {
+  background-image: url("/10-projects//seeing-blue/focal-header.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 53%;
+  height: 20vw
+}
+
+.old-faithful {
+  background-image: url("../img/IMG_9860.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 90%;
+  height: 20vw
+}
+
+.coral-bleaching-analysis {
+  background-image: url("../img/bahamas.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 0%;
+  height: 35vw
+}
