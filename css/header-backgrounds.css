@@ -96,3 +96,48 @@
   background-position: 0% 40%;
   height: 20vw
 }
+
+.proto-osm {
+  background-image: url("/10-projects/osm/pond.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 40%;
+  height: 20vw
+}
+
+.proto-pinhole {
+  background-image: url("/10-projects/pinhole-camera/pinhole-header-wide.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 40%;
+  height: 20vw
+}
+
+.proto-run-track {
+  background-image: url("/img/marathon-photos/medals.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 75%;
+  height: 20vw
+}
+
+.proto-schlieren {
+  background-image: url("/10-projects/schlieren/Line Integral Convolution - Frame 211.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 40%;
+  height: 20vw
+}
+
+.proto-blue {
+  background-image: url("/10-projects//seeing-blue/focal-header.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 53%;
+  height: 20vw
+}

@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Caleb Kruse - Pose Tracking for Runners</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- css. Last sheet takes priority -->
+    <link rel="stylesheet" href="/css/style-v2.css">
+    <link rel="stylesheet" href="/css/header-backgrounds.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <header class="proto-run-track">
+        <div class="container-fluid menu">
+            <div class="d-flex justify-content-end">
+                <a href="/">
+                    <button class="button-white">home</button>
+                </a>
+            </div>
+        </div>
+    </header>
+
+
+
+    <div class="article">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <h3 class="article-heading-blue mt-5">10 projects - #4</h3>
+                    <h3 class="article-heading-blue mb-0">running form analysis</h3>
+                    <h5 class="article-heading-black mt-0">
+                        using a neural network to generate a 3d pose of a runner and analyze characteristics of their
+                        form
+                    </h5>
+
+                    <h5>project goal</h5>
+                    <p>
+                        Much of running improvement involves physiological changes in muscle development, lactate
+                        threshold, VO2 max, etc. However, improving running economy/form can lead to improvement
+                        independent of physiology.
+                    </p>
+                    <p>
+                        For this project, I looked to track the pose of a runner, and then use that tracked data to do
+                        basic analyses of elements of running form. I think the project is a little bit of a stretch to
+                        do in a single day, but it's still fun to get a start on the idea.
+                    </p>
+
+                    <h5>methods</h5>
+                    <h6>pose tracking</h6>
+                    <p>
+                        The crux of this analysis was accurate pose tracking. After working on skeletal hand tracking at
+                        <a href="http://leapmotion.com/">Leap Motion</a> for nearly 5 years, I know that this is no
+                        trivial problem. However, open-source neural-network based pose tracking solutions have become
+                        quite good in recent years.
+                    </p>
+                    <p>
+                        For my desired analyses, I needed a 3D pose output. Facebook Research released <a
+                            href="https://github.com/facebookresearch/VideoPose3D">VideoPose3D</a>. This network first
+                        identifies joint keypoints, and then has a secondary network that outputs the most probable 3D
+                        pose for that joint configuration. This is one of the few networks that I was able to find that
+                        was able to produce a 3D skeletal model from a monocular camera in an uncontrolled setting. An
+                        impressive feat to be sure!
+                    </p>
+                    <p>
+                        I found that the tracking performed best when the runner was close to the camera and at an
+                        oblique angle, when the subject was easy to isolate from the background, and when the footage
+                        was captured at a high frame rate.
+                    </p>
+                    <p>
+                    <h6>running form analysis</h6>
+                    <p>
+                        I hoped to be able to quantify cadence, position of the foot relative to the body when striking
+                        the ground, spine angle, and vertical head movement. Unfortunately, a day is not enough time to
+                        work on all of these outputs. To see the analysis in progress, and run it for yourself, you can
+                        open this <a
+                            href="https://colab.research.google.com/drive/1dvhPAageFaUJCm7SGH757O4oIqS-NcHx?usp=sharing">Google
+                            Colab notebook</a>.
+                    </p>
+                    <p>
+                        The most successful metric that I was able to compute was cadence. Here, I tracked the x or y
+                        position of a foot through time, and found the dominant frequency components in a Fourier
+                        transform of the path.
+                    </p>
+                    <h5>results - pose tracking</h5>
+                    <p>
+                        These are the tracked pose outputs. The 2D keypoints are visualized on the left side on top of
+                        the original video, and the 3D reconstruction is displayed on the right.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-sm-12">
+                    <h6>alden - jogging</h6>
+                    <div class="ratio ratio-16x9  mb-4">
+                        <iframe src="https://www.youtube.com/embed/yKLi2U9eeFI" frameborder="0"
+                            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                    </div>
+                    <h6>alden - sprinting</h6>
+                    <div class="ratio ratio-16x9  mb-4">
+                        <iframe src="https://www.youtube.com/embed/XGMjg0v4NI4" frameborder="0"
+                            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                    </div>
+                    <h6>shepherd - jogging</h6>
+                    <div class="ratio ratio-16x9  mb-4">
+                        <iframe src="https://www.youtube.com/embed/KEBpG0Qv-U4" frameborder="0"
+                            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                    </div>
+                    <h6>shepherd - sprinting</h6>
+                    <div class="ratio ratio-16x9  mb-4">
+                        <iframe src="https://www.youtube.com/embed/vHll8su07LI" frameborder="0"
+                            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                    </div>
+                    <h6>caleb - jogging</h6>
+                    <div class="ratio ratio-16x9  mb-4">
+                        <iframe src="https://www.youtube.com/embed/xe6U3eh2eRg" frameborder="0"
+                            allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <h5>results - analysis</h5>
+                    <p>
+                        From the extracted keypoints, we can plot the cyclic motions of running. Here, we see the
+                        alternating motions of a left and right foot during running, and also compare those motions
+                        against sprinting.
+                    </p>
+                    <img src="figures/Foot Position (X) - Alden Jog.png"></img>
+                    <p class="caption">Forward/backward foot motion while jogging</p>
+                    <img src="figures/Foot Position (X) - Alden Sprint.png"></img>
+                    <p class="caption">Forward/backward foot motion while sprinting</p>
+                    <p>
+                        We can then find the dominant frequency of these positions in order to calculate the cadence of
+                        the runner. Here is an example of a foot position while jogging, displaying the fundamental
+                        frequencies and extracting the cadence from that frequency in steps per minute.
+                        The figure on the right shows the position of a runner's left foot. On the left, this signal is
+                        shown in the frequency domain. The spike near 1.5 Hz corresponds to a cadence of 168 steps/min
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-sm-12">
+                    <img src="figures/Left Foot Y.png"></img>
+                    <p class="caption">Frequency and spatial representations of runner's foot position</p>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <h5>conclusion</h5>
+                    <p>
+                        I was hoping to do more advanced analyses beyond cadence. However, there wasn't enough time. I
+                        think the idea certainly has potential, but the accuracy of the metrics will only be as good as
+                        the tracking data that is analyzed.
+                    </p>
+                    <p>
+                        The tracking quality was quite impressive. Though it took some effort to optimize the
+                        environment for peak tracking performance, the fact that the network can estimate 3D pose with
+                        such fidelity from only a monocular camera is very impressive.
+                    </p>
+
+                    <h5>what would i do next</h5>
+                    <ul>
+                        <li>
+                            Complete the other analyses that were suggested in the project goal.
+                        </li>
+                        <li>
+                            Pull footage of world-class runners from youtube and analyze their form.
+                        </li>
+                        <li>
+                            It would be amazing to run some biomechanical analysis based on the skeletal outputs. For
+                            example, plot the runner's center of mass over time.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer id="footer" class="footer">
+        <div class="row align-items-center">
+            <div class="col-xs-12 col-6">
+                <div class="footer-socials text-left">
+                    <a href="https://twitter.com/clkruse" target="_blank">
+                        <i class="fa fa-twitter"></i>
+                    </a>
+                    <a href="https://www.instagram.com/clkruse" target="_blank">
+                        <i class="fa fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-xs-12 col-6">
+                <p class="copyright">© Caleb Kruse</p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>

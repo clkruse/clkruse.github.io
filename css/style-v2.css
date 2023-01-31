@@ -137,6 +137,9 @@ p, li {
     font-size: 14px;
 }
 
+.footer-socials a {
+    text-decoration: none;
+}
 .fa {
     color: #fff;
     font-size: 20px;

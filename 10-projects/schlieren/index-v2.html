@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <title>Caleb Kruse - Visualizing Density</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- css. Last sheet takes priority -->
+    <link rel="stylesheet" href="/css/style-v2.css">
+    <link rel="stylesheet" href="/css/header-backgrounds.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <header class="proto-schlieren">
+        <div class="container-fluid menu">
+            <div class="d-flex justify-content-end">
+                <a href="/">
+                    <button class="button-white">home</button>
+                </a>
+            </div>
+        </div>
+    </header>
+
+
+
+    <div class="article">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <h3 class="article-heading-blue mt-5">10 projects - #8</h3>
+                    <h3 class="article-heading-blue mb-0">visualizing density</h3>
+                    <h5 class="article-heading-black mt-0">
+                        using a technique called background oriented schlieren imaging to visualize density differences
+                        in air created by a candle
+                    </h5>
+
+                    <h5>project goal</h5>
+                    <p>
+                        I asked a lot of questions growing up. How do planes fly? What is sound? Why do hurricanes form?
+                        Why doesn't water fall out of my straw when I hold one end? Each time, the answer was
+                        differences in air pressure. Intuitively, this never made much sense, even as I went off to
+                        college. I couldn't see the differences in air pressure that were apparently all around, so I
+                        couldn't wrap my head around how they worked. This made me excited when I first came across
+                        schlieren photography, a photographic technique invented in the mid-1800's that enables you to
+                        visualize these density differences.
+                    </p>
+                    <p>
+                        Schlieren photography is based on Snell's law, which describes how light bends when it moves
+                        between mediums of different densities. This concept is covered in depth in <a
+                            href="https://calebkruse.com/10-projects/seeing-blue/">Project #6</a>.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-sm-12">
+                    <video class="img" autoplay playsinline loop muted>
+                        <source src="/10-projects/seeing-blue/snells-law.mp4" type="video/mp4" />
+                    </video>
+                    <p class="caption">
+                        Illustration of how light changes direction when changing speeds. This relationship is given by
+                        <a href="https://en.wikipedia.org/wiki/Snell%27s_law">Snell's law.</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <p>
+                        Given that pressure is a correlary of density, light will bend as it passes through different
+                        pressures. If you can somehow observe this bending, then you can see pressure changes. This is
+                        the core of classical schlieren imaging. Unfortunately, this technique requires a complex and
+                        precisely tuned setup of large parabolic mirrors.
+                    </p>
+                    <p>
+                        There is a derivative of schlieren imaging called background-oriented schlieren. This technique
+                        is much more feasible to set up. In this project, I used background-oriented schlieren to
+                        visualize the airflow and density differences around a candle.
+                    </p>
+
+                    <h5>methods</h5>
+                    <p>
+                        In background-oriented schlieren, a textured background is placed behind the subject and is
+                        imaged. The camera and background are stationary, so if there were no disturbance, the
+                        background would appear identical from frame to frame. However, if a density difference is
+                        introduced, the light traveling from the background to the sensor will be bent in the areas with
+                        a pressure change. In the image, it will appear that the background has shifted/warped in the
+                        areas of a density disturbance between frames. The sequences of images can be processed to find
+                        the direction and magnitude of background movement. This motion will reveal the density
+                        differences.
+                    </p>
+                    <p>
+                        For my test, I created a pattern of random dots on a sheet of paper as a background. The
+                        contrast of the dots makes it easy to see where the background shifted. To visualize density
+                        differences in air, I held a flame between the camera and the background.
+                    </p>
+                    <img src="flame.jpg"></img>
+                    <p class="caption">The subject and background as seen from the camera.</p>
+                    <p>
+                        I took a 60 fps video of a moving a flame in front of the background. I extracted the frames as
+                        images, and analyzed them with <a href="http://pivlab.blogspot.com/">PIVlab</a>. PIVlab is a
+                        fluid dynamics tool meant for tracking the motions of particles (particle image velocimetry),
+                        and I can't recommend it more highly. Though it requires MATLAB to use, the quality of a free
+                        software package was amazing.
+                    </p>
+                    <p>
+                        PIV software is well-suited for my purposes as the background appears as particles, and I need to find the relative motion between frames. I removed the region where my lighter and hand were captured as that interfered with the analysis.
+                    </p>
+                    <h5>results</h5>
+                    <p>
+                        When looking at sequential frames from the setup, you are able to observe the background shift just slightly in regions with hot air. This movement is then captured by PIVlab, and motion vectors are plotted on the image.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-sm-12">
+                    <video class="img" autoplay playsinline loop muted>
+                        <source src="./frame-comparison-vectors.mp4" type="video/mp4" />
+                    </video>
+                    <p class="caption">
+                        Apparent movement in the background that is caused by density differences between frames. The measured motion vector field is plotted on top of the second frame.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <p>
+                        I processed 475 frames from the source a video to produce a video of the changes in density through time. I visualized the density changes by both plotting the background motion vectors on top of the original video, and also mapping the magnitude of the vector to a colormap.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-sm-12">
+                    <video class="img" autoplay playsinline loop muted>
+                        <source src="./combined-480.mp4" type="video/mp4" />
+                    </video>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-md-4">
+                    <p class="caption mb-0">Left: Vector field of background motion overlaid on video of flame. Areas of motion indicate a density change between frames. Note: the red region is excluded from the analysis.</p>
+                </div>
+                <div class="col-md-4 mt-0">
+                    <p class="caption">Right: Plotting the magnitude of each background motion vector. Here, regions of density change are isolated and highlighted.</p>
+                </div>
+            </div>
+        </div>
+        
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <h5>conclusion</h5>
+                    <p>
+                        I'm quite happy with the outputs. I originaly worked on a project with background-oriented schlieren in 2015. I've been so interested in the concept ever since that time, but haven't been able to revisit it. I think the concept of density visualization is very powerful, and I would love to stretch its sensitivity.
+                    </p>
+                    <p>
+                        The tracking quality was quite impressive. Though it took some effort to optimize the
+                        environment for peak tracking performance, the fact that the network can estimate 3D pose with
+                        such fidelity from only a monocular camera is very impressive.
+                    </p>
+
+                    <h5>what would i do next</h5>
+                    <ul>
+                        <li>
+                          I want to think through the fundamentals of sensitivity of the system given a camera's angular resolution, and the background's texture density. If resolution were high enough, would it ever be possible to capture wingtip vortices from a bird? That would be a dream!
+                        </li>
+                        <li>
+                          Capture other phenomena. I'd especially like to image some mixing fluids.
+                      </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer id="footer" class="footer">
+        <div class="row align-items-center">
+            <div class="col-xs-12 col-6">
+                <div class="footer-socials text-left">
+                    <a href="https://twitter.com/clkruse" target="_blank">
+                        <i class="fa fa-twitter"></i>
+                    </a>
+                    <a href="https://www.instagram.com/clkruse" target="_blank">
+                        <i class="fa fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-xs-12 col-6">
+                <p class="copyright">© Caleb Kruse</p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>
