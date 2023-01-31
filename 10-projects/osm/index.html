@@ -2,276 +2,204 @@
 <html lang="en">
 
 <head>
-  <meta name="This is Caleb Kruse's portfolio site: a place to build, show, and save projects">
-	<script async src="https://www.googletagmanager.com/gtag/js?id=UA-105607174-2"></script>
-	<script>
-		window.dataLayer = window.dataLayer || [];
-
-		function gtag() {
-			dataLayer.push(arguments);
-		}
-		gtag('js', new Date());
-
-		gtag('config', 'UA-105607174-2');
-	</script>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <title>Open Street Map - 10 Projects</title>
-  <meta property="og:image" content="osm_edits.jpg" />
-
-  <link rel="stylesheet" href="../../css/bootstrap.min.css">
-  <link rel="stylesheet" href="../../css/font-awesome.min.css">
-  <link rel="stylesheet" href="../../css/magnific-popup.css">
-  <link rel="stylesheet" href="../../css/animsition.min.css">
-  <link rel="stylesheet" href="../../css/animate.css">
-  <link rel="stylesheet" href="../../css/pe-icon-7-stroke.css">
-  <link rel="stylesheet" href="../../css/jquery.fancybox.min.css">
-  <link rel="stylesheet" href="../../css/swiper3.css">
-  <link rel="stylesheet" href="../../css/simple-line-icons.css">
-  <link rel="stylesheet" href="../../css/ionicons.min.css">
-  <link rel="stylesheet" href="../../css/slick.css">
-  <link rel="stylesheet" href="../../css/style.min.css">
-  <link rel="stylesheet" href="../../css/menu.css">
-  <link rel="stylesheet" href="../../css/style-child-theme.min.css">
-  <link rel="stylesheet" href="../../css/video_banner.min.css">
-  <link rel="stylesheet" href="../../css/lightgallery.min.css">
-  <link href='https://api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.css' rel='stylesheet' />
+    <title>Caleb Kruse - Open Street Mapping</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- css. Last sheet takes priority -->
+    <link rel="stylesheet" href="/css/style-v2.css">
+    <link rel="stylesheet" href="/css/header-backgrounds.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+        crossorigin="anonymous"></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v1.6.1/mapbox-gl.css' rel='stylesheet' />
 </head>
 
 <body>
-  <!-- MAIN_WRAPPER -->
-  <div class="main-wrapper" data-top="992">
-    <div class="header_top_bg  header_trans-fixed menu_dark_text" style="padding-bottom: 0;">
-      <div class="container-fluid">
-        <div class="row">
-          <div class="col-xs-12">
-            <!-- HEADER -->
-            <header class="right-menu left ">
-              <!-- MOB MENU ICON -->
-              <a href="#" class="mob-nav">
-                <div class="hamburger">
-                  <span class="line"></span>
-                  <span class="line"></span>
-                  <span class="line"></span>
-                </div>
-              </a>
 
-              <!-- NAVIGATION -->
-              <nav id="topmenu" class="topmenu ">
-                <a href="#" class="mob-nav-close">
-                  <span>close</span>
-                  <div class="hamburger">
-                    <span class="line"></span>
-                    <span class="line"></span>
-                  </div>
+    <header class="proto-osm">
+        <div class="container-fluid menu">
+            <div class="d-flex justify-content-end">
+                <a href="/">
+                    <button class="button-black">home</button>
                 </a>
-                <ul class="menu">
-                  <li class="menu-item">
-                    <a href="http://calebkruse.com/">home</a>
-                  </li>
-                  <li id="menu-item-9" class="menu-item menu-item-has-children">
-                    <a href="#">topics</a>
-                    <ul class="sub-menu">
-                      <li class="menu-item">
-                        <a href="http://calebkruse.com/ng">National Geographic</a></li>
-                      <li class="menu-item">
-                        <a href="http://calebkruse.com/ml">Machine Learning</a></li>
-                      <li class="menu-item">
-                        <a href="http://calebkruse.com/sci">Science</a></li>
-                      <li class="menu-item">
-                        <a href="http://calebkruse.com/xr">AR/VR</a></li>
-                      <li class="menu-item">
-                        <a href="http://calebkruse.com/photo">Photography</a></li>
-                      <li class="menu-item">
-                        <a href="http://calebkruse.com/balloon.html">Balloons</a></li>
-                      <li class="menu-item">
-                        <a href="http://calebkruse.com/maps.html">Maps</a></li>
-                      <li class="menu-item">
-                        <a href="http://calebkruse.com/10-projects">Prototypes</a></li>
-                    </ul>
-                  </li>
-                </ul>
-
-              </nav>
-            </header>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-    <div class="container-fluid">
-      <div class="hero">
-        <div class="row bg_img_pond">
-          <div class="container">
-            <div class="row">
             </div>
-          </div>
         </div>
-      </div>
+    </header>
+
+
+
+    <div class="article">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <h3 class="article-heading-blue mt-5">10 projects - #2</h3>
+                    <h3 class="article-heading-blue mb-0">open street mapping</h3>
+                    <h5 class="article-heading-black mt-0">adding trails and ponds in the pineries open space to open
+                        street map</h5>
+
+                    <h5>project goal</h5>
+                    <p>
+                        A new set of trails is being opened near my family's home called <a
+                            href="https://www.blackforesttrails.org/the-pineries-open-space.html">The Pineries Open
+                            Space</a>. The land had been used for ranching since the early 1900's, but was purchased by
+                        the city and is scheduled to open to the public in the summer of 2020. I stumbled on a
+                        newly-created single-track trail recently on a run, and have been enjoying exploring these woods
+                        ever since.
+                    </p>
+                    <p>
+                        Because the area was private land for so long, and the park is not yet open, maps of the area
+                        are sparsely populated. While running in the woods this morning, I decided that the project of
+                        the day would be to add the trail and ponds to public maps.
+                    </p>
+                    <p>
+                        The idea of mapping a trail alone doesn't seem so difficult, but it does force you to think
+                        about where data on digital maps comes from. In the earlier days of internet mapping, map data
+                        started to become collected by big companies and locked down. In response, OpenStreetMap was
+                        created on the model of Wikipedia. People know their environments best, and can add that data to
+                        a public and open map. Since the founding in 2004, OpenStreetMap has become one of the great
+                        public wonders of the internet, with more than 6 million mappers contributing data to a global
+                        map. This data is in turn used by different applications.
+                    </p>
+                    <p>
+                        To visualize the scale of mapping, and the collaborative nature of the data, check out this map
+                        created by <a href="https://twitter.com/enf">Eric Fischer</a> and the associated <a
+                            href="https://blog.mapbox.com/openstreetmaps-contributor-community-visualized-individual-by-individual-d52e953aa83f">blog
+                            post</a> from Mapbox. Each feature on the map is colored by the user that contributed the
+                        map data.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-lg-8 col-md-10 col-sm-12">
+                <div style="height:40vw" id="map"></div>
+                <p class="caption">OpenStreetMap edits colored by user editing</p>
+            </div>
+        </div>
+    </div>
+    <div class="article">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+
+                    <h5>methods</h5>
+                    <p>
+                        As you might expect, OpenStreetMap makes the onboarding process easy. Simply create an account,
+                        and go through an informative tutorial. Most map editing is visual, done through the "iD
+                        Editor."
+                    </p>
+                    <p>
+                        To map the trail, I first imported a GPS track from a run along the trail to use as a reference.
+                        Because of GPS inaccuracies, it is recommended to visually trace the path of the trail as it
+                        appears on satellite imagery.
+                    </p>
+                    <p>
+                        Spotting the trail in the satellite imagery was challenging because most of the images were
+                        taken before the trail was constructed. I was able to use a combination of Bing maps imagery,
+                        and imagery from the National Agricultural Imagery Program (NAIP). Here you can see the trail on
+                        the Bing imagery (L) and on the NAIP imagery (R).
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-md-5 col-sm-10">
+                    <img src="./bing.jpg">
+                    <p class="caption">Bing Maps imagery.</p>
+                </div>
+                <div class="col-md-5 col-sm-10">
+                    <img src="./naip.jpg">
+                    <p class="caption">NAIP imagery.</p>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <p>
+                        I also added ponds and dams present in the woods as well. These were easier to find and trace
+                        than the trail.
+                    </p>
+                    <h5>results</h5>
+                    <p>
+                        Here are the trail, ponds, and earthen dams in the woods that I added to the map. You can <a
+                            href="https://www.openstreetmap.org/user/clkruse/history">view the data on OpenStreetMap</a>
+                        as well.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-sm-12">
+                    <img src="osm_edits.jpg"></img>
+                    <p class="caption">My edits to OpenStreetMap.</p>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <h5>conclusion</h5>
+                    <p>
+                        This was a simpler project, but it's a good feeling to add to a public record like OpenStreetMap
+                        or Wikipedia. I'll be very interested to see how this data spreads.
+                    </p>
+
+                    <h5>what would i do next</h5>
+                    <ul>
+                        <li>
+                            Monitor sites like Strava and Mapbox to see when they pull new data from OpenStreetMap.
+                        </li>
+                        <li>
+                            Update the path position as the more satellite imagery sources show the trail.
+                        </li>
+                        <li>
+                            A new trail is being constructed. Add that trail to the map after it is complete.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="container">
-      <div class="row margin-lg-100t margin-md-80t margin-sm-40t margin-xs-30t margin-lg-80b margin-md-55b margin-sm-40b margin-xs-20b">
-        <div class="col-xs-12 col-md-offset-1 col-md-10">
-          <h1 style="color:#4384d9">10 projects - #2</h1>
-          <h1 style="color:#4384d9">open street mapping</h1>
-          <h3 class="title" style="color:#222222">adding trails and ponds in the pineries open space to open street map</h3>
+    <footer id="footer" class="footer">
+        <div class="row align-items-center">
+            <div class="col-xs-12 col-6">
+                <div class="footer-socials text-left">
+                    <a href="https://twitter.com/clkruse" target="_blank">
+                        <i class="fa fa-twitter"></i>
+                    </a>
+                    <a href="https://www.instagram.com/clkruse" target="_blank">
+                        <i class="fa fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-xs-12 col-6">
+                <p class="copyright">© Caleb Kruse</p>
+            </div>
         </div>
-
-      </div>
-    </div>
-
-    <div class="container">
-      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
-        <div class="col-md-offset-1 col-md-11">
-
-          <div class="text">
-            <h5 class="subtitle">project goal</h5>
-            <p>
-              A new set of trails is being opened near my family's home called <a href="https://www.blackforesttrails.org/the-pineries-open-space.html">The Pineries Open Space</a>. The land had been used for ranching since the early 1900's, but was purchased by the city and is scheduled to open to the public in the summer of 2020. I stumbled on a newly-created single-track trail recently on a run, and have been enjoying exploring these woods ever since.
-            </br>
-            </br>
-              Because the area was private land for so long, and the park is not yet open, maps of the area are sparsely populated. While running in the woods this morning, I decided that the project of the day would be to add the trail and ponds to public maps.
-            </br>
-            </br>
-              The idea of mapping a trail alone doesn't seem so difficult, but it does force you to think about where data on digital maps comes from. In the earlier days of internet mapping, map data started to become collected by big companies and locked down. In response, OpenStreetMap was created on the model of Wikipedia. People know their environments best, and can add that data to a public and open map. Since the founding in 2004, OpenStreetMap has become one of the great public wonders of the internet, with more than 6 million mappers contributing data to a global map. This data is in turn used by different applications.
-            </br>
-            </br>
-              To visualize the scale of mapping, and the collaborative nature of the data, check out this map created by <a href="https://twitter.com/enf">Eric Fischer</a> and the associated <a href="https://blog.mapbox.com/openstreetmaps-contributor-community-visualized-individual-by-individual-d52e953aa83f">blog post</a> from Mapbox. Each feature on the map is colored by the user that contributed the map data.
-            </p>
-            <div style="height: 40vh" id="map"></div>
-          </div>
-        </div>
-      </div>
-
-
-      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
-        <div class="col-md-offset-1 col-md-11">
-          <div class="text">
-            <h5 class="subtitle">methods</h5>
-            <p>
-              As you might expect, OpenStreetMap makes the onboarding process easy. Simply create an account, and go through an informative tutorial. Most map editing is visual, done through the "iD Editor."
-              </br>
-              </br>
-                To map the trail, I first imported a GPS track from a run along the trail to use as a reference. Because of GPS inaccuracies, it is recommended to visually trace the path of the trail as it appears on satellite imagery.
-              </br>
-              </br>
-              Spotting the trail in the satellite imagery was challenging because most of the images were taken before the trail was constructed. I was able to use a combination of Bing maps imagery, and imagery from the National Agricultural Imagery Program (NAIP). Here you can see the trail on the Bing imagery (L) and on the NAIP imagery (R).
-              <div class='row'>
-                <img class="col-xs-6 col-md-6" src="bing.jpg"></img>
-                <img class="col-xs-6 col-md-6" src="naip.jpg"></img>
-              </div>
-            </br>
-              I also added ponds and dams present in the woods as well. These were easier to find and trace than the trail.
-            </p>
-
-          </div>
-        </div>
-      </div>
-
-      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
-        <div class="col-md-offset-1 col-md-11">
-          <div class="text">
-            <h5 class="subtitle">results</h5>
-            <p>
-              Here are the trail, ponds, and earthen dams in the woods that I added to the map. You can <a href="https://www.openstreetmap.org/user/clkruse/history">view the data on OpenStreetMap</a> as well.
-            <img src="osm_edits.jpg"></img>
-          </div>
-        </div>
-      </div>
-
-      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
-        <div class="col-md-offset-1 col-md-11">
-          <div class="text">
-            <h5 class="subtitle">conclusion</h5>
-            <p>
-              This was a simpler project, but it's a good feeling to add to a public record like OpenStreetMap or Wikipedia. I'll be very interested to see how this data spreads.
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <div class="row margin-xs-20b margin-md-20b margin-lg-40b">
-        <div class="col-md-offset-1 col-md-11">
-          <div class="text">
-            <h5 class="subtitle">next steps</h5>
-            <ul>
-              <li>
-                Monitor sites like Strava and Mapbox to see when they pull new data from OpenStreetMap.
-              </li>
-              <li>
-                Update the path position as the more satellite imagery sources show the trail.
-              </li>
-              <li>
-                A new trail is being constructed. Add that trail to the map after it is complete.
-              </li>
-            </ul>
-            </br>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <footer id="footer" class="modern">
-    <div class="container no-padd">
-
-      <div class="col-xs-12 footer-socials text-left col-sm-6">
-        <a href="https://twitter.com/clkruse" target="_blank">
-          <i class="fa fa-twitter"></i>
-        </a>
-        <a href="https://www.instagram.com/clkruse" target="_blank">
-          <i class="fa fa-instagram"></i>
-        </a>
-      </div>
-
-      <div class="copyright col-xs-12 text-right col-sm-6">
-        © Caleb Kruse, 2019
-      </div>
-
-    </div>
-  </footer>
-
-  <script src="../../js/jquery.min.js"></script>
-  <script src="https://www.youtube.com/iframe_api"></script>
-  <script src="../../js/lib/modernizr-2.6.2.min.js"></script>
-  <script src="../../js/lib/scripts.js"></script>
-  <script src="../../js/jquery.countdown.min.js"></script>
-  <script src="../../js/foxlazy.js"></script>
-  <script src="../../js/jquery.easings.min.js"></script>
-  <script src="../../js/jquery.multiscroll.min.js"></script>
-  <script src="../../js/magnific.js"></script>
-  <script src="../../js/TweenMax.min.js"></script>
-  <script src="../../js/equalHeightsPlugin.js"></script>
-  <script src="../../js/jquery.fancybox.min.js"></script>
-  <script src="../../js/jquery.fitvids.js"></script>
-  <script src="../../js/swiper3.js"></script>
-  <script src="../../js/imagesloaded.pkgd.min.js"></script>
-  <script src="../../js/fragment.js"></script>
-  <script src="../../js/scrollMonitor.js"></script>
-  <script src="../../js/slider-transition.js"></script>
-  <script src="../../js/slick.js"></script>
-  <script src="../../js/jquery.sliphover.min.js"></script>
-  <script src="../../js/pixi.min.js"></script>
-  <script src="../../js/lightgallery.min.js"></script>
-  <script src="../../js/lib/thumbnails-popup.js"></script>
-  <script src="../../js/script.js"></script>
-  <script src="https://api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.js"></script>
-  <script src='leaflet-hash.js'></script>
-  <link href="https://api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.css" rel='stylesheet' />
-  <script type="text/javascript">
-    var map = L.mapbox.map('map', 'enf.osm-who')
-        .setView([39.7064, -105.0365], 10);
-    new L.Hash(map);
-    var attribution = new L.Control.Attribution();
-    attribution.addAttribution("<a href='http://www.mapbox.com/blog/osm-community-visualized/'>OpenStreetMap's Contributor Community Visualized - Individual by Individual</a> | Data: OpenStreetMap, Design: MapBox / Eric Fischer");
-    attribution.setPrefix("");
-    map.addControl(attribution);
-</script>
-
-
+    </footer>
+    <script src="https://api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.js"></script>
+    <link href="https://api.tiles.mapbox.com/mapbox.js/v1.3.1/mapbox.css" rel='stylesheet' />
+    <script type="text/javascript">
+        var map = L.mapbox.map('map', 'enf.osm-who')
+            .setView([39.7064, -105.0365], 10);
+        var attribution = new L.Control.Attribution();
+        attribution.addAttribution("<a href='http://www.mapbox.com/blog/osm-community-visualized/'>OpenStreetMap's Contributor Community Visualized - Individual by Individual</a> | Data: OpenStreetMap, Design: MapBox / Eric Fischer");
+        attribution.setPrefix("");
+        map.addControl(attribution);
+    </script>
 </body>
 
 </html>

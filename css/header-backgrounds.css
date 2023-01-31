@@ -141,3 +141,21 @@
   background-position: 0% 53%;
   height: 20vw
 }
+
+.old-faithful {
+  background-image: url("../img/IMG_9860.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 90%;
+  height: 20vw
+}
+
+.coral-bleaching-analysis {
+  background-image: url("../img/bahamas.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 0%;
+  height: 35vw
+}
