@@ -9,132 +9,157 @@
 
 <url>
   <loc>https://calebkruse.com/</loc>
-  <lastmod>2020-05-19T05:36:38+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:13+00:00</lastmod>
   <priority>1.00</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/ng</loc>
-  <lastmod>2020-05-19T05:36:38+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:13+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/ml</loc>
-  <lastmod>2020-05-19T05:36:38+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:13+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/sci</loc>
-  <lastmod>2020-05-19T05:36:38+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:13+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/map</loc>
-  <lastmod>2020-05-19T05:36:38+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:13+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/10-projects/</loc>
-  <lastmod>2020-05-19T05:36:36+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
+  <priority>0.80</priority>
+</url>
+<url>
+  <loc>https://calebkruse.com/run</loc>
+  <lastmod>2023-01-31T16:28:13+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/balloons/</loc>
-  <lastmod>2020-05-19T05:36:37+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:13+00:00</lastmod>
   <priority>0.80</priority>
 </url>
 <url>
-  <loc>https://calebkruse.com/index.html</loc>
-  <lastmod>2020-05-19T05:36:38+00:00</lastmod>
-  <priority>0.64</priority>
-</url>
-<url>
   <loc>https://calebkruse.com/old-faithful</loc>
-  <lastmod>2020-05-19T05:36:38+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:13+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/sketches2legos/</loc>
-  <lastmod>2020-05-19T05:36:38+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:13+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/bleaching-analysis.html</loc>
-  <lastmod>2020-05-19T05:36:37+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:13+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/docs/PatagoniaModel.pdf</loc>
-  <lastmod>2020-05-19T05:36:37+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:13+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
-  <loc>https://calebkruse.com/nearby-wiki/wikitrip</loc>
-  <lastmod>2020-05-19T05:36:38+00:00</lastmod>
+  <loc>https://calebkruse.com/wikitrip/</loc>
+  <lastmod>2023-01-31T16:28:15+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/balloons/balloon-map.html</loc>
-  <lastmod>2020-05-19T05:36:37+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://calebkruse.com/10-projects/roller-coaster/</loc>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://calebkruse.com/10-projects/tall-trees/</loc>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://calebkruse.com/10-projects/microgrammetry/</loc>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
+  <priority>0.64</priority>
+</url>
+<url>
+  <loc>https://calebkruse.com/10-projects/scotus/</loc>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/10-projects/ocean-super-resolution/</loc>
-  <lastmod>2020-05-19T05:36:36+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/10-projects/osm/</loc>
-  <lastmod>2020-05-19T05:36:36+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/10-projects/fire-mapping/</loc>
-  <lastmod>2020-05-19T05:36:36+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/10-projects/run-tracking/</loc>
-  <lastmod>2020-05-19T05:36:36+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/10-projects/bird-clustering/</loc>
-  <lastmod>2020-05-19T05:36:36+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/10-projects/seeing-blue/</loc>
-  <lastmod>2020-05-19T05:36:37+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/10-projects/pinhole-camera/</loc>
-  <lastmod>2020-05-19T05:36:36+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/10-projects/schlieren/</loc>
-  <lastmod>2020-05-19T05:36:37+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/10-projects/microcolor/</loc>
-  <lastmod>2020-05-19T05:36:36+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/10-projects/instagrammetry/</loc>
-  <lastmod>2020-05-19T05:36:36+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/balloons/index.html</loc>
-  <lastmod>2020-05-19T05:36:37+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:13+00:00</lastmod>
   <priority>0.64</priority>
 </url>
 <url>
   <loc>https://calebkruse.com/nearby-wiki/wikitrip.html</loc>
-  <lastmod>2020-05-19T05:36:38+00:00</lastmod>
+  <lastmod>2023-01-31T16:28:13+00:00</lastmod>
+  <priority>0.51</priority>
+</url>
+<url>
+  <loc>https://calebkruse.com/10-projects/tall-trees/kepler.gl.html</loc>
+  <lastmod>2023-01-31T16:28:12+00:00</lastmod>
   <priority>0.51</priority>
 </url>
 
