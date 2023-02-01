@@ -99,6 +99,7 @@ p, li {
     position: relative;
     width: 100%;
     min-height: 30vw;
+    padding-bottom: 2rem;
 }
 
 @media only screen and (max-width:1000px) {

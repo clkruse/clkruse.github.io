@@ -5,11 +5,11 @@
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105607174-2"></script>
     <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
-    gtag('js', new Date());
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-    gtag('config', 'UA-105607174-2');
+        gtag('config', 'UA-105607174-2');
     </script>
     <title>Caleb Kruse - Mapping</title>
     <meta charset="utf-8">
@@ -51,7 +51,8 @@
             <div class="col-12 text-center">
                 <div style="padding-top: 2vw">
                     <h6 style="font-size: 14px"><b>number of visits</b></br>5 continents - 25 countries - 31 states</h6>
-                    <h6 style="font-size: 14px"><b>furthest geographic extents</b></br>seoul, kr - 127°e / kingman reef, us - 165°w</br>alta, no
+                    <h6 style="font-size: 14px"><b>furthest geographic extents</b></br>seoul, kr - 127°e / kingman reef,
+                        us - 165°w</br>alta, no
                         - 70°n / punta arenas, cl - 53°s</br>kardung la, in +17,582' / dead sea, il -1,410'</h6>
                 </div>
             </div>
@@ -200,6 +201,119 @@
             },
             attributionControl: true,
             customAttribution: "Countries and states I've visited"
+        });
+
+        // add points
+        map.on('load', function () {
+            map.addSource('points', {
+                'type': 'geojson',
+                'data': {
+                    'type': 'FeatureCollection',
+                    'features': [{
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [126.9780, 37.5665]
+                        },
+                        'properties': {
+                            'title': 'Furthest East',
+                            'description': 'Seoul - Furthest East'
+                        }
+                    }, {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [-162.4167, 6.3833]
+                        },
+                        'properties': {
+                            'title': 'Furthest West',
+                            'description': 'Kingman Reef - Furthest West'
+                        }
+                    }, {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [23.530, 70.020]
+                        },
+                        'properties': {
+                            'title': 'Furthest North',
+                            'description': 'Furthest North - Alta'
+                        }
+                    }, {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [-70.926, -53.123]
+                        },
+                        'properties': {
+                            'title': 'Furthest South',
+                            'description': 'Furthest South - Punta Arenas'
+                        }
+                    }, {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [77.605, 34.279]
+                        },
+                        'properties': {
+                            'title': 'Highest',
+                            'description': 'Highest - Kardung La'
+                        }
+                    }, {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [35.400, 31.508]
+                        },
+                        'properties': {
+                            'title': 'Lowest',
+                            'description': 'Lowest - Dead Sea'
+                        }
+                    }]
+                }
+            });
+
+            map.addLayer({
+                'id': 'points-layer',
+                'type': 'circle',
+                'source': 'points',
+                'paint': {
+                    'circle-radius': 5,
+                    'circle-color': '#AE060F',
+                    'circle-stroke-width': 2,
+                    'circle-stroke-color': '#fff'
+                }
+            });
+            // Create a popup, but don't add it to the map yet.
+            const popup = new mapboxgl.Popup({
+                closeButton: false,
+                closeOnClick: false
+            });
+
+            map.on('mouseenter', 'points-layer', (e) => {
+                // Change the cursor style as a UI indicator.
+                map.getCanvas().style.cursor = 'pointer';
+
+                // Copy coordinates array.
+                const coordinates = e.features[0].geometry.coordinates.slice();
+                const description = e.features[0].properties.description;
+
+                // Ensure that if the map is zoomed out such that multiple
+                // copies of the feature are visible, the popup appears
+                // over the copy being pointed to.
+                while (Math.abs(e.lngLat.lng - coordinates[0]) > 180) {
+                    coordinates[0] += e.lngLat.lng > coordinates[0] ? 360 : -360;
+                }
+
+                // Populate the popup and set its coordinates
+                // based on the feature found.
+                popup.setLngLat(coordinates).setHTML(description).addTo(map);
+            });
+
+            map.on('mouseleave', 'points-layer', () => {
+                map.getCanvas().style.cursor = '';
+                popup.remove();
+            });
         });
     </script>
 
