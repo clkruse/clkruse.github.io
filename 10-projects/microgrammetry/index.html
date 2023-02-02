@@ -27,6 +27,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
         crossorigin="anonymous"></script>
+        <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
 
 <body>
@@ -97,11 +98,11 @@
         <div class="container-fluid">
             <div class="row justify-content-center">
                 <div class="col-lg-8 col-md-10 col-sm-12">
-                    <a href="feather-rotated-scaled.usdz" rel="ar">
-                        <img src="feather.jpg">
-                    </a>
-                    <p class="caption">3D model of a feather section. Note the scale is approximately 1 cm. <br>Using an
-                        iPhone in the Safari browser, tap on the image to view the model in AR.</p>
+                    <div class="ratio ratio-16x9">
+                        <!-- Use it like any other HTML element -->
+                        <model-viewer alt="" src="microscopic_photogrammetry_feather.glb" ar auto-rotate auto-rotate-delay="0" camera-orbit="0deg 75deg -155%" poster="feather.jpg" shadow-intensity="1" camera-controls touch-action="pan-y" generate-schema></model-viewer>
+                    </div>
+                    <p class="caption">3D model of a feather section. Note the scale is approximately 1 cm.</p>
                 </div>
             </div>
         </div>

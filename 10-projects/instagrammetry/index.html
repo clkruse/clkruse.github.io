@@ -27,6 +27,7 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
         integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
         crossorigin="anonymous"></script>
+    <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 </head>
 
 <body>
@@ -126,17 +127,18 @@
                 </div>
             </div>
         </div>
+
         <div class="container-fluid">
             <div class="row justify-content-center">
                 <div class="col-lg-8 col-md-10 col-sm-12">
-                    <a href="statue_of_liberty.usdz" rel="ar">
-                        <img src="statue_of_liberty_oblique.jpg">
-                    </a>
-                    <p class="caption">On an iPhone in the Safari browser, click on the image to view the model
-                        in AR.</p>
+                    <div class="ratio ratio-16x9">
+                        <!-- Use it like any other HTML element -->
+                        <model-viewer alt="" src="instagrammetry_statue_of_liberty.glb" ar poster="statue_of_liberty_oblique.jpg" shadow-intensity="1" camera-controls touch-action="pan-y" generate-schema></model-viewer>
+                    </div>
                 </div>
             </div>
         </div>
+        
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8 col-md-10 col-xs-12">
