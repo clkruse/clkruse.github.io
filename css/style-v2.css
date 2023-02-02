@@ -2,9 +2,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;700');
 @import url('https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,700&family=Raleway:wght@400;700&family=Roboto+Mono:wght@100;200;300&display=swap');
 
-body {
-    -webkit-font-smoothing: antialiased;
-}
+
 h1, h2, h3, h4, h5, h6 {
     font-family: 'Major Mono Display', monospace;
   }
