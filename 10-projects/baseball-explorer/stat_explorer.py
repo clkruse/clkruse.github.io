@@ -7,7 +7,7 @@ import plotly.express as px
 # load data
 #@st.cache
 def load_data():
-    data_path = 'fangraphs-batter-stats-simple.csv'
+    data_path = 'https://raw.githubusercontent.com/clkruse/clkruse.github.io/master/10-projects/baseball-explorer/fangraphs-batter-stats-simple.csv'
     df = pd.read_csv(data_path)
     # convert columns with percentages from strings to floats
     for c in df.columns:
