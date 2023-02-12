@@ -134,12 +134,21 @@
 }
 
 .proto-blue {
-  background-image: url("/10-projects//seeing-blue/focal-header.jpg");
+  background-image: url("/10-projects/seeing-blue/focal-header.jpg");
   -webkit-background-size: cover;
   background-size: cover;
   position: relative;
   background-position: 0% 53%;
   height: 20vw
+}
+
+.proto-baseball-scatter {
+  background-image: url("/img/baseball-composite.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 63%;
+  height: 40vw
 }
 
 .old-faithful {

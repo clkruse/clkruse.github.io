@@ -56,9 +56,6 @@ def stat_scatter():
     fig.update_layout(title_font_size=20)
     # make the points bigger
     fig.update_traces(marker_size=7)
-    # set linear colormap for markers
-    #fig.update_traces()
-    fig.update_layout(title_x=0.5)
     return fig
 
 # initialize stat_a and stat_b
