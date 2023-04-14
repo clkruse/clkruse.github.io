@@ -1,0 +1,129 @@
+<!-- 
+  Hello! Assuming you've run a dataset with an x & y column
+  through quadfeather into a folder called tiles located in the
+  root of this repo, then this file should launch your scatter plot
+  exactly as is, no changes necessary.
+  It demonstrates the bare minimum needed to get started.
+  Checkout other examples for more advanced possibilities.
+-->
+<body>
+  <div id="deepscatter"></div>
+  <div id="controls" style="z-index: 99; position: fixed">
+    <button id="position">Change Position</button>
+    <button id="color">Change Color</button>
+  </div>
+</body>
+<script src="https://d3js.org/d3.v7.min.js"></script>
+<script type="module">
+  import Scatterplot from './dist/deepscatter.es.js';
+  const select = d3.select
+
+  const prefs = {
+    source_url: '/tiles', // the output of the quadfeather tiling engine
+    max_points: 1000000, // a full cap.
+    alpha: 100, // Target saturation for the full page.
+    zoom_balance: 0.7, // Rate at which points increase size. https://observablehq.com/@bmschmidt/zoom-strategies-for-huge-scatterplots-with-three-js
+    point_size: 2, // Default point size before application of size scaling
+    background_color: '#c6c7bf',
+    click_function: 'console.log(JSON.stringify(datum, undefined, 2))',
+
+    // encoding API based roughly on Vega Lite: https://vega.github.io/vega-lite/docs/encoding.html
+    encoding: {
+      x: {
+        field: 'x',
+        transform: 'literal',
+      },
+      y: {
+        field: 'y',
+        transform: 'literal',
+      },
+      color: {
+        field: 'color',
+        range: ['#153142', '#415459', '#233a4b', '#5d646b', '#203b4b', '#324651', '#1d3345', '#57565e', '#173645', '#1c3948', '#153146', '#26404f', '#3a4352', '#335154', '#3d5a66', '#425a5c', '#626973', '#1b3546', '#283b4c', '#2e3d4d', '#6a5b61', '#3d4f57', '#4c4e5a', '#4e585e', '#6c6567', '#7d6f70', '#27485a', '#223547', '#173345', '#20384a', '#47585b', '#305061', '#2d424f', '#132d3f', '#495d64', '#203d4d', '#545e63', '#163753', '#394954', '#a19394', '#1e3647', '#394e55', '#344150', '#193746', '#3a5356', '#434756', '#193343', '#293f4d', '#344b53', '#1e4155', '#243d4c', '#48555d', '#243949', '#6d6f78', '#28384a', '#183142', '#434f57', '#1b3648', '#162f40', '#3c5759', '#5f5e63', '#1e3649', '#1e3b4a', '#2b4650'],
+        domain: [0, 63]
+      },
+    },
+  };
+  // on click, set encoding to x0, and y0
+  const tsne = [
+    {
+      field: 'x',
+      transform: 'literal',
+    },
+    {
+      field: 'y',
+      transform: 'literal',
+    },
+  ];
+
+  const geographic = [
+    {
+      field: 'x0',
+      transform: 'literal',
+    },
+    {
+      field: 'y0',
+      transform: 'literal',
+    },
+  ];
+
+  const natural_color = [
+    {
+      field: 'color',
+      range: ['#153142', '#415459', '#233a4b', '#5d646b', '#203b4b', '#324651', '#1d3345', '#57565e', '#173645', '#1c3948', '#153146', '#26404f', '#3a4352', '#335154', '#3d5a66', '#425a5c', '#626973', '#1b3546', '#283b4c', '#2e3d4d', '#6a5b61', '#3d4f57', '#4c4e5a', '#4e585e', '#6c6567', '#7d6f70', '#27485a', '#223547', '#173345', '#20384a', '#47585b', '#305061', '#2d424f', '#132d3f', '#495d64', '#203d4d', '#545e63', '#163753', '#394954', '#a19394', '#1e3647', '#394e55', '#344150', '#193746', '#3a5356', '#434756', '#193343', '#293f4d', '#344b53', '#1e4155', '#243d4c', '#48555d', '#243949', '#6d6f78', '#28384a', '#183142', '#434f57', '#1b3648', '#162f40', '#3c5759', '#5f5e63', '#1e3649', '#1e3b4a', '#2b4650'],
+      domain: [0, 63]
+    }
+  ]
+
+  const landcover = [
+    {
+      field: 'landcover',
+      //range: ['#419BDF', '#397D49', '#88B053', '#7A87C6', '#E49635', '#DFC35A', '#C4281B', '#A59B8F', '#B39FE1'],
+      range: ['#419BDF', '#B39FE1', '#A59B8F', '#C4281B', '#DFC35A', '#E49635', '#7A87C6', '#88B053', '#397D49'],
+      domain: [0, 8]
+    }
+  ]
+
+  const pca = [
+    {
+      field: 'pca',
+      range: 'cividis',
+      domain: [0, 1]
+    }
+  ]
+
+  const positions = [tsne, geographic];
+  const position_names = ['Embeddings', 'Geographic']
+  const colors = [natural_color, landcover, pca];
+  const color_names = ['Natural', 'Landcover', 'PCA']
+  
+  let position_cycle = 0;
+  select('#position').on('click', () => {
+    position_cycle += 1;
+    let index = position_cycle % positions.length;
+    const new_coding = {
+      encoding: {
+        x: positions[index][0],
+        y: positions[index][1],
+      },
+    };
+    scatterplot.plotAPI(new_coding);
+    select('#position').text(position_names[index]);
+  });
+
+  let color_cycle = 0;
+  select('#color').on('click', () => {
+    color_cycle += 1;
+    let index = color_cycle % colors.length;
+    const new_coding = {
+      encoding: {
+        color: colors[index][0],
+      },
+    };
+    scatterplot.plotAPI(new_coding);
+    select('#color').text(color_names[index]);
+  });
+
+  const scatterplot = new Scatterplot('#deepscatter');
+  scatterplot.plotAPI(prefs);
+</script>
