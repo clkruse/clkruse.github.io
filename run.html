@@ -295,6 +295,25 @@
     <script src="https://d3js.org/d3.v4.js"></script>
 
     <script>
+        // Declare variables outside the function
+        var currentYear, currentDate, daysInYear, daysElapsed, percentOfYearComplete;
+        d3.csv("running_yearly_stats.csv", function (data) {
+            // Get the current year
+            currentYear = new Date().getFullYear();
+
+            // Get the current date
+            currentDate = new Date();
+            currentYear = currentDate.getFullYear();
+
+            // Calculate percentage of year that is complete
+            daysInYear = 365;
+            if (currentYear % 4 == 0) {
+                daysInYear = 366;
+            }
+            daysElapsed = Math.floor((currentDate - new Date(currentYear, 0, 0)) / 1000 / 60 / 60 / 24);
+            percentOfYearComplete = daysElapsed / daysInYear;
+        });
+
         // set the dimensions and margins of the graph
         var margin = { top: 30, right: 30, bottom: 70, left: 60 },
             width = document.getElementById("miles_per_year").offsetWidth - margin.left - margin.right,
@@ -310,21 +329,32 @@
 
         // Parse the Data
         d3.csv("running_yearly_stats.csv", function (data) {
+
+            // Calculate the extrapolated climb for the current year
+            var currentYearData = data.find(d => d.Year == currentYear);
+            var extrapolatedData = {
+                Year: currentYear.toString() + "*",
+                Miles: Math.round(currentYearData.Miles * (1 / percentOfYearComplete))
+            };
+            data.push(extrapolatedData);
+
             // X axis
             var x = d3.scaleBand()
                 .range([0, width])
-                .domain(data.map(function (d) { return d.Year; }))
+                .domain(data.slice(0, -1).map(function (d) { return d.Year; })) // Exclude last element from x-axis domain
                 .padding(0.2);
             miles.append("g")
                 .attr("transform", "translate(0," + height + ")")
                 .call(d3.axisBottom(x))
                 .selectAll("text")
                 .attr("transform", "translate(-10,0)rotate(-45)")
-                .style("text-anchor", "end");
+                .style("text-anchor", "end")
+                .filter(function (d, i, nodes) { return i === nodes.length; }) // Remove last x-axis tick
+                .remove();
 
             // Add Y axis
             var y = d3.scaleLinear()
-                .domain([0, 1900]).nice()
+                .domain([0, 2250]).nice()
                 .range([height, 0]);
             miles.append("g")
                 .call(d3.axisLeft(y));
@@ -339,7 +369,14 @@
                 .data(data)
                 .enter()
                 .append("rect")
-                .attr("x", function (d) { return x(d.Year); })
+                .attr("x", function (d) {
+                    if (d.Year.endsWith("*")) {
+                        // Plot the bar at the x position for the current year
+                        return x(currentYear.toString());
+                    } else {
+                        return x(d.Year);
+                    }
+                })
                 .attr("y", function (d) { return y(d.Miles); })
                 .attr("width", x.bandwidth())
                 .attr("height", function (d) { return height - y(d.Miles); })
@@ -349,9 +386,9 @@
                 .on("mouseenter", function (d) {
                     var barHeight = d.Miles;
                     d3.select(this)
-                        .attr("fill", "orange");
+                        .attr("fill", "#bdd9ff");
                     d3.select("#miles_per_year_title")
-                        .text(barHeight + " miles in " + d.Year);
+                        .text(barHeight + " miles run in " + d.Year);
                 })
                 .on("mouseleave", function () {
                     d3.select(this)
@@ -360,7 +397,10 @@
                         .remove();
                     d3.select("#miles_per_year_title")
                         .text("number of miles per year");
-                });
+                })
+                .filter(function (d) { return d.Year.endsWith("*"); }) // Select only the #bdd9ff bar
+                .lower() // Move the #bdd9ff bar behind the blue bars
+                .attr("fill", "#bdd9ff");
         });
 
         width = document.getElementById("avg_length_per_year").offsetWidth - margin.left - margin.right,
@@ -415,7 +455,7 @@
                 .on("mouseenter", function (d) {
                     var barHeight = d.Miles / d.Runs;
                     d3.select(this)
-                        .attr("fill", "orange");
+                        .attr("fill", "#bdd9ff");
                     d3.select("#avg_length_per_year_title")
                         .text(barHeight.toPrecision(2) + " miles per run in " + d.Year);
                 })
@@ -442,21 +482,32 @@
 
         // Parse the Data
         d3.csv("running_yearly_stats.csv", function (data) {
+
+            // Calculate the extrapolated climb for the current year
+            var currentYearData = data.find(d => d.Year == currentYear);
+            var extrapolatedData = {
+                Year: currentYear.toString() + "*",
+                Hours: Math.round(currentYearData.Hours * (1 / percentOfYearComplete))
+            };
+            data.push(extrapolatedData);
+
             // X axis
             var x = d3.scaleBand()
                 .range([0, width])
-                .domain(data.map(function (d) { return d.Year; }))
+                .domain(data.slice(0, -1).map(function (d) { return d.Year; })) // Exclude last element from x-axis domain
                 .padding(0.2);
             hours.append("g")
                 .attr("transform", "translate(0," + height + ")")
                 .call(d3.axisBottom(x))
                 .selectAll("text")
                 .attr("transform", "translate(-10,0)rotate(-45)")
-                .style("text-anchor", "end");
+                .style("text-anchor", "end")
+                .filter(function (d, i, nodes) { return i === nodes.length; }) // Remove last x-axis tick
+                .remove();
 
             // Add Y axis
             var y = d3.scaleLinear()
-                .domain([0, 310]).nice()
+                .domain([0, 400]).nice()
                 .range([height, 0]);
             hours.append("g")
                 .call(d3.axisLeft(y));
@@ -471,7 +522,14 @@
                 .data(data)
                 .enter()
                 .append("rect")
-                .attr("x", function (d) { return x(d.Year); })
+                .attr("x", function (d) {
+                    if (d.Year.endsWith("*")) {
+                        // Plot the bar at the x position for the current year
+                        return x(currentYear.toString());
+                    } else {
+                        return x(d.Year);
+                    }
+                })
                 .attr("y", function (d) { return y(d.Hours); })
                 .attr("width", x.bandwidth())
                 .attr("height", function (d) { return height - y(d.Hours); })
@@ -481,7 +539,7 @@
                 .on("mouseenter", function (d) {
                     var barHeight = d.Hours;
                     d3.select(this)
-                        .attr("fill", "orange");
+                        .attr("fill", "#bdd9ff");
                     d3.select("#hours_per_year_title")
                         .text(barHeight + " hours run in " + d.Year);
                 })
@@ -492,7 +550,10 @@
                         .remove();
                     d3.select("#hours_per_year_title")
                         .text("number of hours per year");
-                });
+                })
+                .filter(function (d) { return d.Year.endsWith("*"); }) // Select only the #bdd9ff bar
+                .lower() // Move the #bdd9ff bar behind the blue bars
+                .attr("fill", "#bdd9ff");
         });
 
 
@@ -509,17 +570,28 @@
 
         // Parse the Data
         d3.csv("running_yearly_stats.csv", function (data) {
+
+            // Calculate the extrapolated climb for the current year
+            var currentYearData = data.find(d => d.Year == currentYear);
+            var extrapolatedData = {
+                Year: currentYear.toString() + "*",
+                Elevation: Math.round(currentYearData.Elevation * (1 / percentOfYearComplete))
+            };
+            data.push(extrapolatedData);
+
             // X axis
             var x = d3.scaleBand()
                 .range([0, width])
-                .domain(data.map(function (d) { return d.Year; }))
+                .domain(data.slice(0, -1).map(function (d) { return d.Year; })) // Exclude last element from x-axis domain
                 .padding(0.2);
             elevation.append("g")
                 .attr("transform", "translate(0," + height + ")")
                 .call(d3.axisBottom(x))
                 .selectAll("text")
                 .attr("transform", "translate(-10,0)rotate(-45)")
-                .style("text-anchor", "end");
+                .style("text-anchor", "end")
+                .filter(function (d, i, nodes) { return i === nodes.length; }) // Remove last x-axis tick
+                .remove();
 
             // Add Y axis
             var y = d3.scaleLinear()
@@ -538,7 +610,14 @@
                 .data(data)
                 .enter()
                 .append("rect")
-                .attr("x", function (d) { return x(d.Year); })
+                .attr("x", function (d) {
+                    if (d.Year.endsWith("*")) {
+                        // Plot the bar at the x position for the current year
+                        return x(currentYear.toString());
+                    } else {
+                        return x(d.Year);
+                    }
+                })
                 .attr("y", function (d) { return y(d.Elevation); })
                 .attr("width", x.bandwidth())
                 .attr("height", function (d) { return height - y(d.Elevation); })
@@ -548,7 +627,7 @@
                 .on("mouseenter", function (d) {
                     var barHeight = d.Elevation;
                     d3.select(this)
-                        .attr("fill", "orange");
+                        .attr("fill", "#bdd9ff");
                     d3.select("#elevation_per_year_title")
                         .text(barHeight + " feet climbed in " + d.Year);
                 })
@@ -559,9 +638,14 @@
                         .remove();
                     d3.select("#elevation_per_year_title")
                         .text("elevation climbed per year");
-                });
+                })
+                .filter(function (d) { return d.Year.endsWith("*"); }) // Select only the #bdd9ff bar
+                .lower() // Move the #bdd9ff bar behind the blue bars
+                .attr("fill", "#bdd9ff");
         });
-        
+
+
+
     </script>
 </body>
 
