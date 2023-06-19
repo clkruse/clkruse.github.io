@@ -7,7 +7,7 @@ import streamlit as st
 st.title('Western States 100 Split Calculator')
 split_names = ['Lyon Ridge', 'Red Star Ridge', 'Duncan Canyon', 'Robinson Flat', "Miller's Defeat", 'Dusty Corners', 'Last Chance', "Devil's Thumb", 'El Dorado Creek', 'Michigan Bluff', 'Foresthill', 'Dardanelles (Cal-1)', 'Peachstone (Cal-2)', 'Rucky Chucky', 'Green Gate', 'Auburn Lake Trails', 'Quarry Road', 'Pointed Rocks', 'Robie Point', 'Finish']
 split_mileage = [10.3, 15.8, 24.4, 30.3, 34.4, 38.0, 43.3, 47.8, 52.9, 55.7, 62.0, 65.7, 70.7, 78.0, 79.8, 85.2, 90.7, 94.3, 98.9, 100.2]
-splits = pd.read_csv('./wser_splits/wser_splits_clean.csv')
+splits = pd.read_csv('https://raw.githubusercontent.com/clkruse/clkruse.github.io/master/wser/wser_splits/wser_splits_clean.csv')
 
 def get_cohort(df, start, end):
     return df[(df['Time'] >= start) & (df['Time'] < end)]
