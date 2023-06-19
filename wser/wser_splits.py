@@ -27,34 +27,47 @@ def compute_splits(df, start, end, write=False):
         median_times.to_csv(f'{start}-{end} Hour Finishers Split Times.csv', index=False)
     return median_times
 
+st.markdown('Select a start and end time to see the distribution of split times for runners who finished between those times.')
 # create a start and end time slider in a two column layout
 col1, col2 = st.columns(2)
 with col1:
-    cohort_start = st.slider('Start Time', 0.0, 30.0, 23.0, 0.5)
+    cohort_start = st.slider('Goal Finish Time Begin', 0.0, 30.0, 23.0, 0.5)
 with col2:
-    cohort_end = st.slider('End Time', 0.0, 30.0, 24.0, 0.5)
+    cohort_end = st.slider('Goal Finish Time End', 0.0, 30.0, 24.0, 0.5)
 
 # convert decimal hours into hours:minutes
 cohort_start_time = f'{int(cohort_start)}:{int((cohort_start-int(cohort_start))*60):02d}'
 cohort_end_time = f'{int(cohort_end)}:{int((cohort_end-int(cohort_end))*60):02d}'
 
-
 # create a dataframe of the median times for each split
 cohort_splits = compute_splits(splits, cohort_start, cohort_end)
 # set the index to the split name
 cohort_splits.set_index('Split', inplace=True)
-st.dataframe(cohort_splits)
+st.subheader(f'Split Times for Runners Finishing Between {cohort_start_time} and {cohort_end_time}')
+st.dataframe(cohort_splits.T)
 
 # create a joyplot of times at each split
 cohort = get_cohort(splits, cohort_start, cohort_end)
-joyplot, ax = joypy.joyplot(cohort[split_names], figsize=(10, 10), overlap=2, title=f'Distribution of Finish Times for {len(cohort)} WSER {cohort_start_time}-{cohort_end_time} Finishers - 2017-2022', x_range=[-1, cohort_end + 1], colormap=plt.cm.copper, grid='x')
+title = f'Distribution of Split Times for {len(cohort)} WSER {cohort_start_time}-{cohort_end_time} Finishers - 2017-2022'
+fig, ax = plt.subplots(figsize=(10, 6), facecolor='white', dpi=250)
+joyplot, ax = joypy.joyplot(
+    cohort[split_names], 
+    ax = ax,
+    overlap=2, 
+    title=title, 
+    x_range=[-1, cohort_end + 1], 
+    colormap=plt.cm.copper, 
+    grid='x'
+    )
+ax[-1].set_xlabel('Time (hours)')
+st.subheader(f'Distributions of Split Times for {cohort_start_time}-{cohort_end_time} Finishers')
 st.pyplot(joyplot)
 
 # create a seaborn kdeplot of times at each split
 cohort = get_cohort(splits, cohort_start, cohort_end)
 sns.set_style('darkgrid')
 # create a figure with 5,4 subplots
-fig, ax = plt.subplots(5, 4, figsize=(20, 20), facecolor='white')
+fig, ax = plt.subplots(5, 4, figsize=(12, 12), dpi=250, facecolor='white')
 # plot each split on a subplot
 for i, split in enumerate(split_names):
     sub_ax = ax[i//4, i%4]
@@ -76,7 +89,7 @@ for i, split in enumerate(split_names):
     # label the median time and time of day
     sub_ax.text(cohort[split].median()+0.1, 0.1, f'{hours}:{minutes:02d}\n{time_of_day}', color=color)
 
-plt.suptitle(f'Distribution of Finish Times for {len(cohort)} WSER {cohort_start_time}-{cohort_end_time} Finishers - 2017-2022', y=1.0, fontsize=20)
+plt.suptitle(f'Distribution of Split Times for {len(cohort)} WSER {cohort_start_time}-{cohort_end_time} Finishers - 2017-2022', y=1.0, fontsize=20)
 plt.tight_layout()
-# display the figure across the full window
+st.subheader(f'Detailed Spit Time Distributions for {cohort_start_time}-{cohort_end_time} Finishers')
 st.pyplot(fig)
