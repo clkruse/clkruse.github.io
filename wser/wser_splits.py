@@ -56,7 +56,7 @@ joyplot, ax = joypy.joyplot(
     overlap=2, 
     title=title, 
     x_range=[-1, cohort_end + 1], 
-    colormap=plt.cm.copper, 
+    colormap=plt.cm.PuBuGn_r, 
     grid='x'
     )
 ax[-1].set_xlabel('Time (hours)')
