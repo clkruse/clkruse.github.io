@@ -34,6 +34,10 @@ with col1:
 with col2:
     cohort_end = st.slider('End Time', 0.0, 30.0, 24.0, 0.5)
 
+# convert decimal hours into hours:minutes
+cohort_start_time = f'{int(cohort_start)}:{int((cohort_start-int(cohort_start))*60):02d}'
+cohort_end_time = f'{int(cohort_end)}:{int((cohort_end-int(cohort_end))*60):02d}'
+
 
 # create a dataframe of the median times for each split
 cohort_splits = compute_splits(splits, cohort_start, cohort_end)
@@ -43,7 +47,7 @@ st.dataframe(cohort_splits)
 
 # create a joyplot of times at each split
 cohort = get_cohort(splits, cohort_start, cohort_end)
-joyplot, ax = joypy.joyplot(cohort[split_names], figsize=(10, 10), overlap=2, title=f'Distribution of Finish Times for {len(cohort)} WSER {cohort_start_time}-{cohort_end_time} Finishers - 2017-2022', x_range=[-1, cohort_end + 1], colormap=plt.cm.rainbow)
+joyplot, ax = joypy.joyplot(cohort[split_names], figsize=(10, 10), overlap=2, title=f'Distribution of Finish Times for {len(cohort)} WSER {cohort_start_time}-{cohort_end_time} Finishers - 2017-2022', x_range=[-1, cohort_end + 1], colormap=plt.cm.copper)
 # set the x-axis label
 #ax.set_xlabel('Time (hours)')
 #plt.savefig(f'{cohort_start}-{cohort_end} Hour Finishers Joyplot.png', bbox_inches='tight')
@@ -74,10 +78,6 @@ for i, split in enumerate(split_names):
     minutes = int((median_time - hours)*60)
     # label the median time and time of day
     sub_ax.text(cohort[split].median()+0.1, 0.1, f'{hours}:{minutes:02d}\n{time_of_day}', color=color)
-
-# convert decimal hours into hours:minutes
-cohort_start_time = f'{int(cohort_start)}:{int((cohort_start-int(cohort_start))*60):02d}'
-cohort_end_time = f'{int(cohort_end)}:{int((cohort_end-int(cohort_end))*60):02d}'
 
 plt.suptitle(f'Distribution of Finish Times for {len(cohort)} WSER {cohort_start_time}-{cohort_end_time} Finishers - 2017-2022', y=1.0, fontsize=20)
 plt.tight_layout()
