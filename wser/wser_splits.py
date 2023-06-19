@@ -11,7 +11,12 @@ split_mileage = [10.3, 15.8, 24.4, 30.3, 34.4, 38.0, 43.3, 47.8, 52.9, 55.7, 62.
 splits = pd.read_csv('https://raw.githubusercontent.com/clkruse/clkruse.github.io/master/wser/wser_splits/wser_finishers.csv')
 
 def get_cohort(df, start, end):
-    return df[(df['Time'] >= start) & (df['Time'] < end)]
+    cohort = df[(df['Time'] >= start) & (df['Time'] < end)]
+    if len(cohort) == 0:
+        st.write('No runners finished between those times.')
+        st.stop()
+    else:
+        return cohort
 
 def compute_splits(df, start, end, write=False):
     cohort = get_cohort(df, start, end)
@@ -21,6 +26,19 @@ def compute_splits(df, start, end, write=False):
     median_times['Median'] = [cohort[split].median() for split in split_names]
     median_times['Time of Day'] = [datetime(2020, 1, 1, 5, 0) + pd.to_timedelta(time, unit="h") for time in median_times['Median']]
     median_times['Time of Day'] = median_times['Time of Day'].dt.strftime('%I:%M %p')
+    # create split pace column in minutes/mile
+    paces = []
+    for i, split in enumerate(split_names):
+        if i == 0:
+            split_dist = split_mileage[i]
+            split_time = median_times['Median'][i]
+        else:
+            split_dist = split_mileage[i] - split_mileage[i-1]
+            split_time = median_times['Median'][i] - median_times['Median'][i-1]
+        paces.append(split_time/split_dist * 60)
+    # convert paces from decimal minutes to minutes:seconds
+    paces = [f'{int(p)}:{int((p-int(p))*60):02d}' for p in paces]
+    median_times['Pace (min/mile)'] = paces
     # convert decimal hours into hours:minutes
     median_times['Median'] = median_times['Median'].apply(lambda x: f'{int(x)}:{int((x-int(x))*60):02d}')
     if write:
