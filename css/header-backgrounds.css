@@ -151,6 +151,15 @@
   height: 30vw
 }
 
+.wser-splits {
+  background-image: url("/img/wser-header.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 60%;
+  height: 30vw
+}
+
 .old-faithful {
   background-image: url("../img/IMG_9860.jpg");
   -webkit-background-size: cover;
