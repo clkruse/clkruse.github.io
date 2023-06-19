@@ -26,24 +26,27 @@ def compute_splits(df, start, end, write=False):
         median_times.to_csv(f'{start}-{end} Hour Finishers Split Times.csv', index=False)
     return median_times
 
-# create a start and end time slider
-cohort_start = st.slider('Start Time', 0.0, 30.0, 22.0, 0.5)
-cohort_end = st.slider('End Time', 0.0, 30.0, 23.0, 0.5)
+# create a start and end time slider in a two column layout
+col1, col2 = st.columns(2)
+with col1:
+    cohort_start = st.slider('Start Time', 0.0, 30.0, 23.0, 0.5)
+with col2:
+    cohort_end = st.slider('End Time', 0.0, 30.0, 24.0, 0.5)
 
 
 # create a dataframe of the median times for each split
 cohort_splits = compute_splits(splits, cohort_start, cohort_end)
-# show the cohort_splits
+# set the index to the split name
+cohort_splits.set_index('Split', inplace=True)
 st.dataframe(cohort_splits)
 
 # create a seaborn kdeplot of times at each split
 cohort = get_cohort(splits, cohort_start, cohort_end)
 sns.set_style('darkgrid')
 # create a figure with 5,4 subplots
-fig, ax = plt.subplots(5, 4, figsize=(20, 20), facecolor='white')
+fig, ax = plt.subplots(5, 4, figsize=(10, 10), facecolor='white')
 # plot each split on a subplot
 for i, split in enumerate(split_names):
-    #sns.kdeplot(goal_finishers[split]ax=ax[i//4, i%4])
     sub_ax = ax[i//4, i%4]
     sns.kdeplot(cohort[split], fill=True, ax=sub_ax)
     sub_ax.set_title(f'{split} - {split_mileage[i]} miles')
@@ -69,6 +72,5 @@ cohort_end_time = f'{int(cohort_end)}:{int((cohort_end-int(cohort_end))*60):02d}
 
 plt.suptitle(f'Distribution of Finish Times for {len(cohort)} WSER {cohort_start_time}-{cohort_end_time} Finishers - 2017-2022', y=1.0, fontsize=20)
 plt.tight_layout()
-#plt.savefig(f'{cohort_start}-{cohort_end} Hour Finishers.png', bbox_inches='tight')
 # display the figure across the full window
-st.pyplot(fig, use_container_width=False)
+st.pyplot(fig, use_container_width=True)
