@@ -3,6 +3,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 from datetime import datetime
 import streamlit as st
+import joypy
 
 st.title('Western States 100 Split Calculator')
 split_names = ['Lyon Ridge', 'Red Star Ridge', 'Duncan Canyon', 'Robinson Flat', "Miller's Defeat", 'Dusty Corners', 'Last Chance', "Devil's Thumb", 'El Dorado Creek', 'Michigan Bluff', 'Foresthill', 'Dardanelles (Cal-1)', 'Peachstone (Cal-2)', 'Rucky Chucky', 'Green Gate', 'Auburn Lake Trails', 'Quarry Road', 'Pointed Rocks', 'Robie Point', 'Finish']
@@ -40,11 +41,19 @@ cohort_splits = compute_splits(splits, cohort_start, cohort_end)
 cohort_splits.set_index('Split', inplace=True)
 st.dataframe(cohort_splits)
 
+# create a joyplot of times at each split
+cohort = get_cohort(splits, cohort_start, cohort_end)
+joyplot, ax = joypy.joyplot(cohort[split_names], figsize=(10, 10), overlap=2, title=f'Distribution of Finish Times for {len(cohort)} WSER {cohort_start_time}-{cohort_end_time} Finishers - 2017-2022', x_range=[-1, cohort_end + 1], colormap=plt.cm.rainbow)
+# set the x-axis label
+#ax.set_xlabel('Time (hours)')
+#plt.savefig(f'{cohort_start}-{cohort_end} Hour Finishers Joyplot.png', bbox_inches='tight')
+st.pyplot(joyplot, use_container_width=False)
+
 # create a seaborn kdeplot of times at each split
 cohort = get_cohort(splits, cohort_start, cohort_end)
 sns.set_style('darkgrid')
 # create a figure with 5,4 subplots
-fig, ax = plt.subplots(5, 4, figsize=(10, 10), facecolor='white')
+fig, ax = plt.subplots(5, 4, figsize=(20, 20), facecolor='white')
 # plot each split on a subplot
 for i, split in enumerate(split_names):
     sub_ax = ax[i//4, i%4]
