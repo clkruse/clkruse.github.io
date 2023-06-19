@@ -51,7 +51,7 @@ joyplot, ax = joypy.joyplot(cohort[split_names], figsize=(10, 10), overlap=2, ti
 # set the x-axis label
 #ax.set_xlabel('Time (hours)')
 #plt.savefig(f'{cohort_start}-{cohort_end} Hour Finishers Joyplot.png', bbox_inches='tight')
-st.pyplot(joyplot, use_container_width=False)
+st.pyplot(joyplot)
 
 # create a seaborn kdeplot of times at each split
 cohort = get_cohort(splits, cohort_start, cohort_end)
@@ -82,4 +82,4 @@ for i, split in enumerate(split_names):
 plt.suptitle(f'Distribution of Finish Times for {len(cohort)} WSER {cohort_start_time}-{cohort_end_time} Finishers - 2017-2022', y=1.0, fontsize=20)
 plt.tight_layout()
 # display the figure across the full window
-st.pyplot(fig, use_container_width=True)
+st.pyplot(fig)
