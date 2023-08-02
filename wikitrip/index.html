@@ -197,7 +197,7 @@
       list: "geosearch",
       gscoord: pos.lat.toString() + "|" + pos.lng.toString(),
       gsradius: "10000",
-      gslimit: "12",
+      gslimit: "32",
       format: "json"
     };
 
@@ -300,7 +300,7 @@
       explaintext: "True"
     };
 
-    // We're appending the keys and info to create an api query url. e.g. https://en.wikipedia.org/w/api.php?origin=*&action=query&list=geosearch&gscoord=37.7891838|-122.4033522&gsradius=10000&gslimit=10&format=json
+    // We're appending the keys and info to create an api query url. e.g. https://en.wikipedia.org/w/api.php?origin=*&action=query&list=geosearch&gscoord=37.7891838|-122.4033522&gsradius=10000&gslimit=32&format=json
     url = url + "?origin=*";
 
     // For each key in the params, append the key and value to the url
