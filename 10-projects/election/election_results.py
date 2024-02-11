@@ -77,10 +77,13 @@ if store_name:
         for fips in fips_codes:
             results.append(fips_results[fips])
         results_df = pd.DataFrame(locations, columns=["lon", "lat"])
+        results_df["FIPS"] = fips_codes
         results_df["Biden"] = [result["bidenj"] for result in results]
         results_df["Trump"] = [result["trumpd"] for result in results]
         results_df["Winner"] = ["Biden" if result["bidenj"] > result["trumpd"] else "Trump" for result in results]
+        # de-duplicate based on fips code
+        results_df = results_df.drop_duplicates(subset="FIPS")
         biden_wins = results_df["Winner"].value_counts()["Biden"]
         trump_wins = results_df["Winner"].value_counts()["Trump"]
         # display how many stores voted for each candidate
-        st.write(f"{biden_wins:,} counties with a {store_name} voted for Biden ({biden_wins / (biden_wins + trump_wins):.1%}) and {trump_wins:,} counties voted for Trump ({trump_wins / (biden_wins + trump_wins):.1%})")
+        st.write(f"{biden_wins:,} counties with a {store_name} voted for Biden ({biden_wins / (biden_wins + trump_wins):.1%}) and {trump_wins:,} voted for Trump ({trump_wins / (biden_wins + trump_wins):.1%})")
