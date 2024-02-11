@@ -2,6 +2,7 @@ import json
 import numpy as np
 import overpy
 import pandas as pd
+import requests
 import streamlit as st
 
 
@@ -44,9 +45,12 @@ def get_fips(lon, lat):
 
 
 # Load the fips data
-fips_center = pd.read_csv("raw.githubusercontent.com/clkruse/clkruse.github.io/master/10-projects/election/fips-county-center.csv", dtype={"fips_code": str})
-with open("raw.githubusercontent.com/clkruse/clkruse.github.io/master/10-projects/election/election_results_by_fips.json") as f:
-    fips_results = json.load(f)
+fips_center = pd.read_csv("https://raw.githubusercontent.com/clkruse/clkruse.github.io/master/10-projects/election/fips-county-center.csv", dtype={"fips_code": str})
+# make a request for the json data at https://raw.githubusercontent.com/clkruse/clkruse.github.io/master/10-projects/election/election_results_by_fips.json
+results = requests.get("https://raw.githubusercontent.com/clkruse/clkruse.github.io/master/10-projects/election/election_results_by_fips.json")
+# load the json data
+fips_results = json.loads(results.text)
+
 
 # create an input box to get the store name
 store_name = st.text_input("Enter the store name")
