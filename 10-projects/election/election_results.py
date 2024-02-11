@@ -10,7 +10,7 @@ def parse_store_name(store_name):
     # Use OpenAI to convert the store name to the OSM name
     # For example, "whole foods" -> "Whole Foods Market"
 
-    client = OpenAI(api_key=OPENAI_KEY)
+    client = OpenAI(api_key= st.secrets["OPENAI_KEY"])
     response = client.chat.completions.create(
         model="gpt-3.5-turbo-0125",
         response_format={ "type": "json_object" },
