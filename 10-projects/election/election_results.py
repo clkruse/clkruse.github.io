@@ -4,7 +4,22 @@ import overpy
 import pandas as pd
 import requests
 import streamlit as st
+from openai import OpenAI
 
+def parse_store_name(store_name):
+    # Use OpenAI to convert the store name to the OSM name
+    # For example, "whole foods" -> "Whole Foods Market"
+
+    client = OpenAI(api_key=OPENAI_KEY)
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo-0125",
+        response_format={ "type": "json_object" },
+        messages=[
+            {"role": "system", "content": "You convert unstructured names of stores to their name on OpenStreetMap in JSON format."},
+            {"role": "user", "content": "The OSM name for " + store_name + " is "},
+        ]
+    )
+    return json.loads(response.choices[0].message.content)['osm_name']
 
 def get_locations(store_name):
     # Define the bounding box coordinates for the mainland US
@@ -56,11 +71,12 @@ store_name = st.text_input("Enter the store name")
 
 # get the locations of the store
 if store_name:
+    store_name = parse_store_name(store_name)
     locations = get_locations(store_name)
     if len(locations) == 0:
         st.write(f"No stores found with the name {store_name}")
     else:
-        st.write(f"Found {len(locations)} stores")
+        st.write(f"Found {len(locations)} stores with the name {store_name}")
         # create a locations dataframe
         locations_df = pd.DataFrame(locations, columns=["lon", "lat"])
         # create a map
