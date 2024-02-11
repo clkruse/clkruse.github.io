@@ -46,7 +46,6 @@ def get_fips(lon, lat):
 
 # Load the fips data
 fips_center = pd.read_csv("https://raw.githubusercontent.com/clkruse/clkruse.github.io/master/10-projects/election/fips-county-center.csv", dtype={"fips_code": str})
-# make a request for the json data at https://raw.githubusercontent.com/clkruse/clkruse.github.io/master/10-projects/election/election_results_by_fips.json
 results = requests.get("https://raw.githubusercontent.com/clkruse/clkruse.github.io/master/10-projects/election/election_results_by_fips.json")
 # load the json data
 fips_results = json.loads(results.text)
@@ -57,11 +56,11 @@ store_name = st.text_input("Enter the store name")
 
 # get the locations of the store
 if store_name:
-    print(store_name)
     locations = get_locations(store_name)
     if len(locations) == 0:
         st.write(f"No stores found with the name {store_name}")
     else:
+        st.write(f"Found {len(locations)} stores")
         # create a locations dataframe
         locations_df = pd.DataFrame(locations, columns=["lon", "lat"])
         # create a map
