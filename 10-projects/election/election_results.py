@@ -16,11 +16,16 @@ def parse_store_name(store_name):
         response_format={ "type": "json_object" },
         messages=[
             {"role": "system", "content": "You convert unstructured names of stores to their name on OpenStreetMap in JSON format."},
-            {"role": "user", "content": "The OSM name for " + store_name[:100] + " is "},
-        ],
-        max_tokens=20,
+            {"role": "user", "content": "The OSM name for " + store_name + " is "},
+        ]
     )
-    return json.loads(response.choices[0].message.content)['osm_name']
+    try:
+        name = json.loads(response.choices[0].message.content)['osm_name']
+        return name
+    except:
+        print(response.choices[0].message.content)
+        return store_name
+    
 
 def get_locations(store_name):
     # Define the bounding box coordinates for the mainland US
