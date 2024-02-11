@@ -44,8 +44,8 @@ def get_fips(lon, lat):
 
 
 # Load the fips data
-fips_center = pd.read_csv("https://raw.githubusercontent.com/clkruse/clkruse.github.io/master/10-projects/election/fips-county-center.csv", dtype={"fips_code": str})
-with open("https://raw.githubusercontent.com/clkruse/clkruse.github.io/master/10-projects/election/election_results_by_fips.json") as f:
+fips_center = pd.read_csv("raw.githubusercontent.com/clkruse/clkruse.github.io/master/10-projects/election/fips-county-center.csv", dtype={"fips_code": str})
+with open("raw.githubusercontent.com/clkruse/clkruse.github.io/master/10-projects/election/election_results_by_fips.json") as f:
     fips_results = json.load(f)
 
 # create an input box to get the store name
