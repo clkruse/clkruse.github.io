@@ -71,9 +71,14 @@ results = requests.get("https://raw.githubusercontent.com/clkruse/clkruse.github
 # load the json data
 fips_results = json.loads(results.text)
 
+# create a title
+st.title("If stores could vote...")
+st.write("A friend once told me that if you're standing in a Whole foods, there's a high chance that the county voted for Biden in 2020. I was curious and built a tool to find the election results for any store in the US.")
+st.write("Enter the name of a store and I'll show you how counties with that store voted. Two of my favorite examples are Whole Foods and Dollar General.")
+st.write("Note that stores are often built in cities, and cities tend to vote for Democrats. Anything that shows >50% for Trump is an interesting finding.")
 
 # create an input box to get the store name
-store_name = st.text_input("Enter the store name")
+store_name = st.text_input("Enter a store name")
 
 # get the locations of the store
 if store_name:
