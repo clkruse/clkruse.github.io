@@ -16,8 +16,9 @@ def parse_store_name(store_name):
         response_format={ "type": "json_object" },
         messages=[
             {"role": "system", "content": "You convert unstructured names of stores to their name on OpenStreetMap in JSON format."},
-            {"role": "user", "content": "The OSM name for " + store_name + " is "},
-        ]
+            {"role": "user", "content": "The OSM name for " + store_name[:100] + " is "},
+        ],
+        max_tokens=20,
     )
     return json.loads(response.choices[0].message.content)['osm_name']
 
