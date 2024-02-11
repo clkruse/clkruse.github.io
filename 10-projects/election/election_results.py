@@ -106,5 +106,3 @@ if store_name:
             trump_wins = results_df["Winner"].value_counts()["Trump"]
             # display how many stores voted for each candidate
             st.write(f"{biden_wins:,} counties with a {store_name} voted for Biden ({biden_wins / (biden_wins + trump_wins):.1%}) and {trump_wins:,} voted for Trump ({trump_wins / (biden_wins + trump_wins):.1%})")
-            # make a bar chart
-            st.bar_chart(results_df["Winner"].value_counts())
