@@ -79,4 +79,4 @@ if store_name:
         biden_wins = results_df["Winner"].value_counts()["Biden"]
         trump_wins = results_df["Winner"].value_counts()["Trump"]
         # display how many stores voted for each candidate
-        st.write(f"{biden_wins:,} {store_name} stores voted for Biden ({biden_wins / (biden_wins + trump_wins):.1%}) and {trump_wins:,} stores voted for Trump ({trump_wins / (biden_wins + trump_wins):.1%})")
+        st.write(f"{biden_wins:,} counties with a {store_name} voted for Biden ({biden_wins / (biden_wins + trump_wins):.1%}) and {trump_wins:,} counties voted for Trump ({trump_wins / (biden_wins + trump_wins):.1%})")
