@@ -98,7 +98,11 @@ if store_name:
         results_df["Winner"] = ["Biden" if result["bidenj"] > result["trumpd"] else "Trump" for result in results]
         # de-duplicate based on fips code
         results_df = results_df.drop_duplicates(subset="FIPS")
-        biden_wins = results_df["Winner"].value_counts()["Biden"]
-        trump_wins = results_df["Winner"].value_counts()["Trump"]
-        # display how many stores voted for each candidate
-        st.write(f"{biden_wins:,} counties with a {store_name} voted for Biden ({biden_wins / (biden_wins + trump_wins):.1%}) and {trump_wins:,} voted for Trump ({trump_wins / (biden_wins + trump_wins):.1%})")
+        # check if one candidate won all of the counties
+        if len(results_df["Winner"].unique()) == 1:
+            st.write(f"All {len(results_df)} counties with a {store_name} voted for {results_df['Winner'].unique()[0]}")
+        else:
+            biden_wins = results_df["Winner"].value_counts()["Biden"]
+            trump_wins = results_df["Winner"].value_counts()["Trump"]
+            # display how many stores voted for each candidate
+            st.write(f"{biden_wins:,} counties with a {store_name} voted for Biden ({biden_wins / (biden_wins + trump_wins):.1%}) and {trump_wins:,} voted for Trump ({trump_wins / (biden_wins + trump_wins):.1%})")
