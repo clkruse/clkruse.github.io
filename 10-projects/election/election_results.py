@@ -117,3 +117,20 @@ if store_name:
             trump_wins = results_df["Winner"].value_counts()["Trump"]
             # display how many stores voted for each candidate
             st.write(f"{biden_wins:,} counties with a {store_name} voted for Biden ({biden_wins / (biden_wins + trump_wins):.1%}) and {trump_wins:,} voted for Trump ({trump_wins / (biden_wins + trump_wins):.1%})")
+
+footer="""<style>
+.footer {
+position: fixed;
+left: 0;
+bottom: 0;
+width: 100%;
+background-color: white;
+color: black;
+text-align: center;
+}
+</style>
+<div class="footer">
+<p>Made by <a href="https://calebkruse.com/" target="_blank">Caleb Kruse</a></p>
+</div>
+"""
+st.markdown(footer,unsafe_allow_html=True)
