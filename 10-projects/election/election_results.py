@@ -107,7 +107,7 @@ if store_name:
             try:
                 results.append(fips_results[fips])
             except:
-                results.append({"bidenj": 0, "trumpd": 0})
+                pass
         results_df = pd.DataFrame(locations, columns=["lon", "lat"])
         results_df["FIPS"] = fips_codes
         results_df["Biden"] = [result["bidenj"] for result in results]
