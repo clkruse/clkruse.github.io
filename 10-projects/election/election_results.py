@@ -132,7 +132,9 @@ if store_name:
             st.write(
                 f"{biden_wins:,} counties with a {store_name} voted for Biden ({biden_wins / (biden_wins + trump_wins):.1%}) and {trump_wins:,} voted for Trump ({trump_wins / (biden_wins + trump_wins):.1%})"
             )
-        st.map(locations_df)
+        # set colors for points. If the county voted for Biden, make it blue. If it voted for Trump, make it red.
+        colors = ["#244999" if winner == "Biden" else "#d22532" for winner in results_df["Winner"]]
+        st.map(locations_df, color=colors, use_container_width=True)
 
 footer = """<style>
 .footer {
