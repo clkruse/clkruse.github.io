@@ -108,6 +108,7 @@ if store_name:
             try:
                 results.append(fips_results[fips])
             except:
+                st.write(f"No election results found for {fips}")
                 # remove the location
                 locations.pop(fips_codes.index(fips))
                 # remove the fips code
