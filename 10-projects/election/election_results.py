@@ -134,7 +134,7 @@ if store_name:
                 f"{biden_wins:,} counties with a {store_name} voted for Biden ({biden_wins / (biden_wins + trump_wins):.1%}) and {trump_wins:,} voted for Trump ({trump_wins / (biden_wins + trump_wins):.1%})"
             )
         # set colors for points. If the county voted for Biden, make it blue. If it voted for Trump, make it red.
-        results_df['color'] = ["#244999" if winner == "Biden" else "#d22532" for winner in results_df["Winner"]]
+        results_df['color'] = [[36, 73, 153] if winner == "Biden" else [210, 37, 50] for winner in results_df["Winner"]]
         # make a map
         st.pydeck_chart(
             pdk.Deck(
