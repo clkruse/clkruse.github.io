@@ -150,7 +150,7 @@ if store_name:
                         "ScatterplotLayer",
                         data=results_df,
                         get_position=["lon", "lat"],
-                        get_radius=10000,
+                        get_radius=15000,
                         get_fill_color="color",
                     ),
                 ],
