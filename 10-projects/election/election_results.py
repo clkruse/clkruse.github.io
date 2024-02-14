@@ -144,7 +144,9 @@ if store_name:
                     longitude=-99,
                     zoom=5,
                     pitch=0,
-                )
+                ),
+
+            )
         )
 
 
