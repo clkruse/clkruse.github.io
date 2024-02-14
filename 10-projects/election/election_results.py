@@ -142,10 +142,18 @@ if store_name:
                 initial_view_state=pdk.ViewState(
                     latitude=38,
                     longitude=-99,
-                    zoom=5,
+                    zoom=3,
                     pitch=0,
                 ),
-
+                layers=[
+                    pdk.Layer(
+                        "ScatterplotLayer",
+                        data=results_df,
+                        get_position=["lon", "lat"],
+                        get_fill_color=colors,
+                        get_radius=200,
+                    ),
+                ],
             )
         )
 
