@@ -103,19 +103,15 @@ if store_name:
 
         # get the election results for each fips code
         results = []
-        st.write(len(locations), len(fips_codes), len(results))
         for fips in fips_codes:
             if fips in fips_results:
                 results.append(fips_results[fips])
             else:
                 st.write(f"No election results found for {fips}")
-                # remove the location and fips code from locations and fips_codes
                 locations.pop(fips_codes.index(fips))
                 fips_codes.remove(fips)
-                # add placeholder for results
-                results.append({"bidenj": 0, "trumpd": 0})
+                results.append({"bidenj": 0, "trumpd": 0}) # I do not know why I need to add this
 
-        st.write(len(locations), len(fips_codes), len(results))
         results_df = pd.DataFrame(locations, columns=["lon", "lat"])
         results_df["FIPS"] = fips_codes
         results_df["Biden"] = [result["bidenj"] for result in results]
