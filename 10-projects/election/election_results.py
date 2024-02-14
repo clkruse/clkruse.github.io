@@ -107,7 +107,6 @@ if store_name:
             if fips in fips_results:
                 results.append(fips_results[fips])
             else:
-                st.write(f"No election results found for {fips}")
                 locations.pop(fips_codes.index(fips))
                 fips_codes.remove(fips)
                 results.append({"bidenj": 0, "trumpd": 0}) # I do not know why I need to add this
