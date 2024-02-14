@@ -103,6 +103,7 @@ if store_name:
 
         # get the election results for each fips code
         results = []
+        st.write(len(locations), len(fips_codes), len(results))
         for fips in fips_codes:
             try:
                 results.append(fips_results[fips])
