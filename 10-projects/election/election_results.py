@@ -12,7 +12,8 @@ def parse_store_name(store_name):
     # Use OpenAI to convert the store name to the OSM name
     # For example, "whole foods" -> "Whole Foods Market"
 
-    client = OpenAI(api_key=st.secrets["OPENAI_KEY"])
+    #client = OpenAI(api_key=st.secrets["OPENAI_KEY"])
+    client = OpenAI(api_key="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")
     response = client.chat.completions.create(
         model="gpt-3.5-turbo-0125",
         response_format={"type": "json_object"},
@@ -33,21 +34,14 @@ def parse_store_name(store_name):
 
 
 def get_locations(store_name):
-    # Define the bounding box coordinates for the mainland US
-    bbox = (24, -128, 50, -66.0)
-
-    # Convert the bounding box coordinates to Overpass API format
-    bbox_str = ",".join(map(str, bbox))
 
     # Define the Overpass query
     query = """
     [out:json];
-    node["name"="{store_name}"]({bbox});
+    area["ISO3166-1"="US"]->.boundaryarea;
+    node["name"="{store_name}"](area.boundaryarea);
     out;
-    """.format(
-        bbox=bbox_str, store_name=store_name
-    )
-    print(query)
+    """.format(store_name=store_name)
     # Create Overpass API object
     api = overpy.Overpass()
 
