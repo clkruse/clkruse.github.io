@@ -12,8 +12,8 @@ def parse_store_name(store_name):
     # Use OpenAI to convert the store name to the OSM name
     # For example, "whole foods" -> "Whole Foods Market"
 
-    #client = OpenAI(api_key=st.secrets["OPENAI_KEY"])
-    client = OpenAI(api_key="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")
+    client = OpenAI(api_key=st.secrets["OPENAI_KEY"])
+    #client = OpenAI(api_key="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")
     response = client.chat.completions.create(
         model="gpt-3.5-turbo-0125",
         response_format={"type": "json_object"},
@@ -104,7 +104,10 @@ if store_name:
         # get the election results for each fips code
         results = []
         for fips in fips_codes:
-            results.append(fips_results[fips])
+            try:
+                results.append(fips_results[fips])
+            except:
+                results.append({"bidenj": 0, "trumpd": 0})
         results_df = pd.DataFrame(locations, columns=["lon", "lat"])
         results_df["FIPS"] = fips_codes
         results_df["Biden"] = [result["bidenj"] for result in results]
