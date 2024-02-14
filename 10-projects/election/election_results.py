@@ -140,21 +140,11 @@ if store_name:
             pdk.Deck(
                 map_style="mapbox://styles/mapbox/light-v9",
                 initial_view_state=pdk.ViewState(
-                    latitude=locations_df["lat"].mean(),
-                    longitude=locations_df["lon"].mean(),
+                    latitude=38,
+                    longitude=-99,
                     zoom=5,
                     pitch=0,
-                ),
-                layers=[
-                    pdk.Layer(
-                        "ScatterplotLayer",
-                        data=results_df,
-                        get_position=["lon", "lat"],
-                        get_fill_color=colors,
-                        get_radius=10000,
-                    ),
-                ],
-            )
+                )
         )
 
 
