@@ -112,7 +112,8 @@ if store_name:
                 # remove the location and fips code from locations and fips_codes
                 locations.pop(fips_codes.index(fips))
                 fips_codes.remove(fips)
-                results.append({})
+                # add placeholder for results
+                results.append({"bidenj": 0, "trumpd": 0})
 
         st.write(len(locations), len(fips_codes), len(results))
         results_df = pd.DataFrame(locations, columns=["lon", "lat"])
