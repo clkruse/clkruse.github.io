@@ -154,7 +154,9 @@ if store_name:
                         get_fill_color="color",
                     ),
                 ],
-            )
+            ),
+            # set full width
+            use_container_width=True,
         )
 
 
