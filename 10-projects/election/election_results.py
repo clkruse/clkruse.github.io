@@ -134,7 +134,7 @@ if store_name:
                 f"{biden_wins:,} counties with a {store_name} voted for Biden ({biden_wins / (biden_wins + trump_wins):.1%}) and {trump_wins:,} voted for Trump ({trump_wins / (biden_wins + trump_wins):.1%})"
             )
         # set colors for points. If the county voted for Biden, make it blue. If it voted for Trump, make it red.
-        colors = ["#244999" if winner == "Biden" else "#d22532" for winner in results_df["Winner"]]
+        results_df['color'] = ["#244999" if winner == "Biden" else "#d22532" for winner in results_df["Winner"]]
         # make a map
         st.pydeck_chart(
             pdk.Deck(
@@ -150,8 +150,8 @@ if store_name:
                         "ScatterplotLayer",
                         data=results_df,
                         get_position=["lon", "lat"],
-                        get_fill_color=colors,
                         get_radius=10000,
+                        get_fill_color="color",
                     ),
                 ],
             )
