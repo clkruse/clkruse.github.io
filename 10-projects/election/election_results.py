@@ -105,14 +105,14 @@ if store_name:
         results = []
         st.write(len(locations), len(fips_codes), len(results))
         for fips in fips_codes:
-            try:
+            if fips in fips_results:
                 results.append(fips_results[fips])
-            except:
+            else:
                 st.write(f"No election results found for {fips}")
-                # remove the location
+                # remove the location and fips code from locations and fips_codes
                 locations.pop(fips_codes.index(fips))
-                # remove the fips code
                 fips_codes.remove(fips)
+
         st.write(len(locations), len(fips_codes), len(results))
         results_df = pd.DataFrame(locations, columns=["lon", "lat"])
         results_df["FIPS"] = fips_codes
