@@ -5,6 +5,7 @@ import pandas as pd
 import requests
 import streamlit as st
 from openai import OpenAI
+import pydeck as pdk
 
 
 def parse_store_name(store_name):
@@ -134,7 +135,28 @@ if store_name:
             )
         # set colors for points. If the county voted for Biden, make it blue. If it voted for Trump, make it red.
         colors = ["#244999" if winner == "Biden" else "#d22532" for winner in results_df["Winner"]]
-        st.map(locations_df, color=colors, use_container_width=True)
+        # make a map
+        st.pydeck_chart(
+            pdk.Deck(
+                map_style="mapbox://styles/mapbox/light-v9",
+                initial_view_state=pdk.ViewState(
+                    latitude=locations_df["lat"].mean(),
+                    longitude=locations_df["lon"].mean(),
+                    zoom=5,
+                    pitch=0,
+                ),
+                layers=[
+                    pdk.Layer(
+                        "ScatterplotLayer",
+                        data=results_df,
+                        get_position=["lon", "lat"],
+                        get_fill_color=colors,
+                        get_radius=10000,
+                    ),
+                ],
+            )
+        )
+
 
 footer = """<style>
 .footer {
