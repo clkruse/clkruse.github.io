@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Law Offices of Mark N. White</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            height: 100%;
+        }
+        .container {
+            display: flex;
+            height: 100%;
+        }
+        .sidebar {
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            width: 200px;
+        }
+        .main-content {
+            flex-grow: 1;
+            padding: 20px;
+        }
+        .header-image-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+        .header-image {
+            width: 100%;
+            height: auto;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0.1) inset;
+        }
+        .header-image:before, .header-image:after {
+            content: "";
+            position: absolute;
+            z-index: -1;
+            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+            top: 50%;
+            bottom: 0;
+            left: 10px;
+            right: 10px;
+            border-radius: 100px / 10px;
+        }
+        .header-image:after {
+            right: 10px;
+            left: auto;
+            transform: skew(8deg) rotate(3deg);
+        }
+        .search-bar {
+            margin: 20px 0;
+            text-align: right;
+        }
+        .search-bar input {
+            padding: 5px;
+        }
+        .search-bar button {
+            padding: 5px 10px;
+        }
+        h1 {
+            color: #d9534f;
+        }
+        .footer {
+            margin-top: 20px;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sidebar">
+            <p>mnwhitelaw.com</p>
+            <p>cell 510.499.0393</p>
+            <p>VOIP/fax 510.922.8672</p>
+        </div>
+        <div class="main-content">
+            <div class="header-image-container">
+                <img src="header.jpg" alt="Law Office Header" class="header-image">
+            </div>
+            <div class="search-bar">
+                <input type="text" placeholder="Search...">
+                <button>Go!</button>
+            </div>
+            <h1>Home</h1>
+            <p>Mark N. White advises owners and contractors on project-related problems that arise during and after construction of structures and facilities in the western United States and other jurisdictions in the Pacific region. A member of the California bar since 1979 and formerly a partner for more than 20 years at Pillsbury Winthrop Shaw Pittman, LLP in San Francisco, Mark assists his clients in bringing closure to claims arising from the design and construction of institutional facilities (such as campuses, medium- and high-rise buildings, hospitals, stadiums, hotels and manufacturing facilities). Because many of these structures and facilities are vulnerable to earthquake damage, Mark assists many clients with managing seismic risk in the legal arena--a topic about which he regularly speaks and writes. In addition to participating at seismic engineering conferences, Mark regularly conducts continuing legal education courses for his clients.</p>
+            <div class="footer">
+                <p>The Law Offices of Mark N. White, 1550 La Vereda Road, Berkeley, CA 94708</p>
+                <p>mark.white@mnwhitelaw.com</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
