@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enhanced 3-Ellipse Demo</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        canvas {
+            border: 2px solid #333;
+            border-radius: 8px;
+            background-color: white;
+        }
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        #colorPicker {
+            height: 40px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Enhanced 3-Ellipse Demo</h1>
+    <p>Click or drag to place points. The 3-ellipse will update in real-time.</p>
+    <canvas id="canvas" width="600" height="400"></canvas>
+    <div class="controls">
+        <button id="clearBtn">Clear Canvas</button>
+        <input type="color" id="colorPicker" value="#0000FF">
+        <button id="animateBtn">Animate</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        const clearBtn = document.getElementById('clearBtn');
+        const colorPicker = document.getElementById('colorPicker');
+        const animateBtn = document.getElementById('animateBtn');
+        let points = [];
+        let isDragging = false;
+        let dragIndex = -1;
+        let animationId = null;
+
+        canvas.addEventListener('mousedown', startDrag);
+        canvas.addEventListener('mousemove', drag);
+        canvas.addEventListener('mouseup', endDrag);
+        canvas.addEventListener('mouseleave', endDrag);
+        clearBtn.addEventListener('click', clearCanvas);
+        colorPicker.addEventListener('input', drawNEllipse);
+        animateBtn.addEventListener('click', toggleAnimation);
+
+        function startDrag(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            for (let i = 0; i < points.length; i++) {
+                if (distance(points[i], {x, y}) < 10) {
+                    isDragging = true;
+                    dragIndex = i;
+                    return;
+                }
+            }
+
+            if (points.length < 3) {
+                points.push({x, y});
+                drawNEllipse();
+            }
+        }
+
+        function drag(event) {
+            if (!isDragging) return;
+            const rect = canvas.getBoundingClientRect();
+            points[dragIndex] = {
+                x: event.clientX - rect.left,
+                y: event.clientY - rect.top
+            };
+            drawNEllipse();
+        }
+
+        function endDrag() {
+            isDragging = false;
+            dragIndex = -1;
+        }
+
+        function drawPoint(x, y, color = 'red') {
+            ctx.beginPath();
+            ctx.arc(x, y, 5, 0, 2 * Math.PI);
+            ctx.fillStyle = color;
+            ctx.fill();
+            ctx.strokeStyle = 'black';
+            ctx.stroke();
+        }
+
+        function drawNEllipse() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            points.forEach((point, index) => drawPoint(point.x, point.y, `hsl(${index * 120}, 100%, 50%)`));
+
+            if (points.length < 3) return;
+
+            const [A, B, C] = points;
+            const constantSum = distance(A, B) + distance(B, C) + distance(C, A);
+            const color = colorPicker.value;
+
+            for (let x = 0; x < canvas.width; x += 2) {
+                for (let y = 0; y < canvas.height; y += 2) {
+                    const P = {x, y};
+                    const sum = distance(A, P) + distance(B, P) + distance(C, P);
+                    if (Math.abs(sum - constantSum) < 2) {
+                        ctx.fillStyle = color;
+                        ctx.fillRect(x, y, 2, 2);
+                    }
+                }
+            }
+        }
+
+        function distance(p1, p2) {
+            return Math.sqrt((p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2);
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            points = [];
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+                animateBtn.textContent = 'Animate';
+            }
+        }
+
+        function animate() {
+            const time = Date.now() * 0.001;
+            const halfWidth = canvas.width / 2;
+            const halfHeight = canvas.height / 2;
+            
+            points = points.map((point, index) => {
+                let x = point.x + Math.sin(time + index * 2) * 2;
+                let y = point.y + Math.cos(time + index * 2) * 2;
+                
+                // Constrain x and y within half the canvas boundaries
+                x = Math.max(halfWidth / 2, Math.min(x, halfWidth * 1.5));
+                y = Math.max(halfHeight / 2, Math.min(y, halfHeight * 1.5));
+                
+                return { x, y };
+            });
+            drawNEllipse();
+            animationId = requestAnimationFrame(animate);
+        }
+
+        function toggleAnimation() {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+                animationId = null;
+                animateBtn.textContent = 'Animate';
+            } else {
+                animate();
+                animateBtn.textContent = 'Stop Animation';
+            }
+        }
+    </script>
+</body>
+</html>
