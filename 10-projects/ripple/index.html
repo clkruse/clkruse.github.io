@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Globe Event Visualization with Ripple Effect and Auto-Rotation</title>
+    <script src="https://unpkg.com/globe.gl"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+        #globeViz { width: 100vw; height: 100vh; }
+        #controls {
+            display: none; /* Hide the controls div */
+        }
+        button {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        #current-time {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.7);
+            padding: 5px 10px;
+            border-radius: 5px;
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div id="globeViz"></div>
+    <div id="current-time"></div>
+
+    <script>
+        const currentTimeDisplay = document.getElementById('current-time');
+        let events = [];
+        let playInterval;
+        let currentTime;
+
+        const UPDATE_INTERVAL = 33;
+        const DISPLAY_INTERVAL = 33; // 1 second in milliseconds
+
+        // Load and parse CSV file
+        Papa.parse('1hr_jobs_geocoded.csv', {
+            download: true,
+            header: true,
+            complete: function(results) {
+                events = results.data
+                    .map(row => ({
+                        time: new Date(row.event_time).getTime(),
+                        lat: parseFloat(row.latitude),
+                        lon: parseFloat(row.longitude)
+                    }))
+                    .filter(event => !isNaN(event.lat) && !isNaN(event.lon) && !isNaN(event.time))
+                    .sort((a, b) => a.time - b.time);
+
+                currentTime = events[0].time;
+                var globe = initializeGlobe();
+            }
+        });
+
+        function initializeGlobe() {
+            const globe = Globe()
+                .globeImageUrl('//unpkg.com/three-globe/example/img/earth-night.jpg')
+                .ringsData([])
+                .ringColor(() => t => `rgba(255,100,50,${Math.sqrt(1-t)})`)
+                .ringMaxRadius('maxR')
+                .ringPropagationSpeed('propagationSpeed')
+                .ringResolution(64)
+                .ringRepeatPeriod('repeatPeriod')
+                (document.getElementById('globeViz'));
+
+            // Add auto-rotation
+            globe.controls().autoRotate = true;
+            globe.controls().autoRotateSpeed = 1;
+            globe.pointOfView({ lat: 39.8283, lng: -68.5795, altitude: 2 });
+
+            updateGlobe();
+
+            function updateGlobe() {
+                const eventsInInterval = events.filter(event => 
+                    event.time >= currentTime - DISPLAY_INTERVAL && event.time < currentTime
+                );
+
+                const ringsData = eventsInInterval.map(event => ({
+                    lat: event.lat,
+                    lng: event.lon,
+                    maxR: 5,
+                    propagationSpeed: 4,
+                    repeatPeriod: 500
+                }));
+
+                globe.ringsData(ringsData);
+                currentTimeDisplay.textContent = `Current Time: ${new Date(currentTime).toISOString()}`;
+            }
+
+            // Start playing immediately
+            playInterval = setInterval(() => {
+                currentTime += UPDATE_INTERVAL;
+                if (currentTime > events[events.length - 1].time) {
+                    clearInterval(playInterval);
+                    return;
+                }
+                updateGlobe();
+            }, UPDATE_INTERVAL);
+
+            return globe;
+        }
+    </script>
+</body>
+</html>
