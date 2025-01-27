@@ -9,6 +9,9 @@ jobs:
   process-photo-issue:
     if: contains(github.event.issue.labels.*.name, 'photo-update')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      issues: write
     
     steps:
     - uses: actions/checkout@v2
@@ -17,37 +20,72 @@ jobs:
       uses: actions/setup-python@v2
       with:
         python-version: '3.x'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests Pillow
 
     - name: Process issue and update photos
       env:
-        ISSUE_TITLE: ${{ github.event.issue.title }}
         ISSUE_BODY: ${{ github.event.issue.body }}
         ISSUE_NUMBER: ${{ github.event.issue.number }}
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        REPO: ${{ github.repository }}
       run: |
         cat > process_issue.py << 'EOL'
         import json
         import os
         import re
-        from datetime import datetime
         import requests
+        from datetime import datetime
+        from pathlib import Path
+        from PIL import Image
+        from io import BytesIO
+
+        def download_image_from_issue(body):
+            """Extract and download image from issue markdown"""
+            image_match = re.search(r'!\[.*?\]\((.*?)\)', body)
+            if not image_match:
+                return None
+                
+            image_url = image_match.group(1)
+            response = requests.get(image_url)
+            if response.status_code != 200:
+                return None
+                
+            return response.content
+
+        def save_image(image_data, date):
+            """Save image to repository images folder"""
+            # Create images directory if it doesn't exist
+            Path('images').mkdir(exist_ok=True)
+            
+            # Process image
+            img = Image.open(BytesIO(image_data))
+            
+            # Generate filename
+            filename = f"images/photo-{date}.jpg"
+            
+            # Save image
+            img.save(filename, 'JPEG', quality=85)
+            
+            return filename
 
         def parse_issue_body(body):
             """Parse the issue body for photo information"""
-            url_match = re.search(r'URL:\s*(.+)', body)
             description_match = re.search(r'Description:\s*(.+)', body)
             date_match = re.search(r'Date:\s*(\d{4}-\d{2}-\d{2})', body)
             
-            if not all([url_match, description_match, date_match]):
+            if not all([description_match, date_match]):
                 return None
                 
             return {
                 'date': date_match.group(1),
-                'url': url_match.group(1).strip(),
                 'description': description_match.group(1).strip()
             }
 
-        def update_photos(photo_data):
+        def update_photos(photo_data, image_path):
             """Update photos.json with new photo data"""
             try:
                 with open('photos.json', 'r') as f:
@@ -56,6 +94,8 @@ jobs:
                 photos = {}
             
             date = photo_data['date']
+            # Use path relative to /photos/
+            photo_data['url'] = f"/photos/{image_path}"
             del photo_data['date']
             photos[date] = photo_data
             
@@ -64,20 +104,20 @@ jobs:
             
             return True
 
-        def close_issue(issue_number, status):
+        def close_issue(issue_number, status, message=""):
             """Close the GitHub issue with a status message"""
             headers = {
                 'Authorization': f"token {os.environ['GH_TOKEN']}",
                 'Accept': 'application/vnd.github.v3+json'
             }
             
-            url = f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/issues/{issue_number}"
+            url = f"https://api.github.com/repos/{os.environ['REPO']}/issues/{issue_number}"
             
-            message = "✅ Successfully added photo!" if status else "❌ Error: Invalid issue format. Please check the template."
+            status_message = "✅ Successfully added photo!" if status else f"❌ Error: {message}"
             
             data = {
                 'state': 'closed',
-                'body': os.environ['ISSUE_BODY'] + f"\n\n---\n{message}"
+                'body': os.environ['ISSUE_BODY'] + f"\n\n---\n{status_message}"
             }
             
             requests.patch(url, json=data, headers=headers)
@@ -86,13 +126,24 @@ jobs:
             issue_body = os.environ['ISSUE_BODY']
             issue_number = os.environ['ISSUE_NUMBER']
             
+            # Parse issue content
             photo_data = parse_issue_body(issue_body)
+            if not photo_data:
+                close_issue(issue_number, False, "Invalid issue format. Please check the template.")
+                return
             
-            if photo_data:
-                success = update_photos(photo_data)
-                close_issue(issue_number, success)
-            else:
-                close_issue(issue_number, False)
+            # Download image
+            image_data = download_image_from_issue(issue_body)
+            if not image_data:
+                close_issue(issue_number, False, "Could not find or download image from issue.")
+                return
+            
+            # Save image
+            image_path = save_image(image_data, photo_data['date'])
+            
+            # Update photos.json
+            success = update_photos(photo_data, image_path)
+            close_issue(issue_number, success)
 
         if __name__ == '__main__':
             main()
@@ -104,5 +155,6 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
+        git add images/
         git add photos.json
         git diff --quiet && git diff --staged --quiet || (git commit -m "Update photos from issue #${{ github.event.issue.number }}" && git push)
