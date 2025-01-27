@@ -71,7 +71,8 @@ jobs:
             # Save image
             img.save(filename, 'JPEG', quality=85)
             
-            return filename
+            # Return relative path for JSON
+            return f"./img/photo-{date}.jpg"
 
         def parse_issue_body(body):
             """Parse the issue body for photo information"""
@@ -95,8 +96,8 @@ jobs:
                 photos = {}
             
             date = photo_data['date']
-            # Use path relative to /photos/
-            photo_data['url'] = f"/{image_path}"
+            # Use relative path
+            photo_data['url'] = image_path
             del photo_data['date']
             photos[date] = photo_data
             
