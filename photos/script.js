@@ -134,25 +134,36 @@ async function updateModalContent(date, photoInfo) {
         year: 'numeric'
     });
 
-    // Show loading state if image isn't preloaded
-    if (!preloadedImages.has(photoInfo.url)) {
-        modalContent.innerHTML = `
-            <div class="loading-spinner"></div>
-            <div class="modal-date">${displayDate}</div>
-            <div class="modal-description">${photoInfo.description}</div>
-        `;
-    }
+    // Empty the modal content while loading
+    modalContent.innerHTML = '';
 
     try {
         // Wait for image to load (either from cache or new load)
         await preloadImage(photoInfo.url);
         
-        // Update modal with loaded image
+        // Create the new content with everything hidden initially
         modalContent.innerHTML = `
-            <img src="${photoInfo.url}" alt="Photo for ${displayDate}">
-            <div class="modal-date">${displayDate}</div>
-            <div class="modal-description">${photoInfo.description}</div>
+            <div class="modal-image-container" style="opacity: 0; transition: opacity 0.3s">
+                <img src="${photoInfo.url}" alt="Photo for ${displayDate}">
+                <div class="modal-text">
+                    <div class="modal-date">${displayDate}</div>
+                    <div class="modal-description">${photoInfo.description}</div>
+                </div>
+            </div>
         `;
+
+        // Wait for the new image to be fully loaded
+        const img = modalContent.querySelector('img');
+        if (img.complete) {
+            // Image is already loaded (probably from cache)
+            modalContent.querySelector('.modal-image-container').style.opacity = '1';
+        } else {
+            // Wait for image to load before showing content
+            await new Promise((resolve) => {
+                img.onload = resolve;
+            });
+            modalContent.querySelector('.modal-image-container').style.opacity = '1';
+        }
         
         // Start preloading adjacent images
         preloadAdjacentImages(date);
@@ -160,8 +171,6 @@ async function updateModalContent(date, photoInfo) {
         console.error('Error loading image:', error);
         modalContent.innerHTML = `
             <div class="error-message">Error loading image</div>
-            <div class="modal-date">${displayDate}</div>
-            <div class="modal-description">${photoInfo.description}</div>
         `;
     }
 }
@@ -290,32 +299,6 @@ async function loadMorePhotos() {
     displayPhotos();
     isLoading = false;
 }
-
-// Add the loading spinner styles
-const style = document.createElement('style');
-style.textContent = `
-    .loading-spinner {
-        width: 50px;
-        height: 50px;
-        border: 5px solid #f3f3f3;
-        border-top: 5px solid #3498db;
-        border-radius: 50%;
-        animation: spin 1s linear infinite;
-        margin: 20px auto;
-    }
-    
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-    
-    .error-message {
-        color: red;
-        text-align: center;
-        margin: 20px;
-    }
-`;
-document.head.appendChild(style);
 
 // Event Listeners
 document.addEventListener('keydown', (event) => {

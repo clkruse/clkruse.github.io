@@ -199,4 +199,19 @@ body {
     .month-header {
         font-size: 3rem;
     }
+}
+
+.error-message {
+    color: red;
+    text-align: center;
+    margin: 20px;
+}
+
+.modal-image-container {
+    opacity: 0;
+    transition: opacity 0.1s ease;
+}
+
+.modal-text {
+    margin-top: 1rem;
 } 
