@@ -45,7 +45,8 @@ jobs:
 
         # Base URL for GitHub Pages
         BASE_URL = "https://clkruse.github.io/photos"
-        THUMBNAIL_SIZE = 384
+        MIN_DIMENSION = 384
+        MAX_DIMENSION = 2048
 
         def download_image_from_issue(body):
             """Extract and download image from issue markdown"""
@@ -60,17 +61,37 @@ jobs:
                 
             return response.content
 
-        def create_thumbnail(img):
-            """Create a thumbnail while maintaining aspect ratio"""
+        def scale_image(img, min_size=None, max_size=None):
+            """Scale image ensuring either minimum or maximum dimension"""
             width, height = img.size
             aspect_ratio = width / height
             
-            if width > height:
-                new_width = THUMBNAIL_SIZE
-                new_height = int(THUMBNAIL_SIZE / aspect_ratio)
+            if min_size:
+                if width < height:
+                    # Portrait orientation
+                    new_width = min_size
+                    new_height = int(new_width / aspect_ratio)
+                else:
+                    # Landscape orientation
+                    new_height = min_size
+                    new_width = int(new_height * aspect_ratio)
+            elif max_size:
+                if width > height:
+                    # Landscape orientation
+                    if width > max_size:
+                        new_width = max_size
+                        new_height = int(new_width / aspect_ratio)
+                    else:
+                        return img  # No scaling needed
+                else:
+                    # Portrait orientation
+                    if height > max_size:
+                        new_height = max_size
+                        new_width = int(new_height * aspect_ratio)
+                    else:
+                        return img  # No scaling needed
             else:
-                new_height = THUMBNAIL_SIZE
-                new_width = int(THUMBNAIL_SIZE * aspect_ratio)
+                return img
                 
             return img.resize((new_width, new_height), Image.Resampling.LANCZOS)
 
@@ -89,12 +110,13 @@ jobs:
             filename = f"photo-{date}.jpg"
             thumb_filename = f"photo-{date}-thumb.jpg"
             
-            # Save full-res image
+            # Create and save full-size image (max dimension 2048px)
+            full_img = scale_image(img, max_size=MAX_DIMENSION)
             full_path = f"photos/img/{filename}"
-            img.save(full_path, 'JPEG', quality=95)
+            full_img.save(full_path, 'JPEG', quality=95)
             
-            # Create and save thumbnail
-            thumb = create_thumbnail(img)
+            # Create and save thumbnail (min dimension 384px)
+            thumb = scale_image(img, min_size=MIN_DIMENSION)
             thumb_path = f"photos/img/thumbs/{thumb_filename}"
             thumb.save(thumb_path, 'JPEG', quality=85)
             

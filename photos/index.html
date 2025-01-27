@@ -287,8 +287,9 @@
                 const grid = document.createElement('div');
                 grid.className = 'photo-grid';
 
+                // Changed sort order to ascending (oldest first)
                 const sortedPhotos = photosByMonth[monthYear].sort((a, b) => 
-                    new Date(b.date) - new Date(a.date)
+                    new Date(a.date) - new Date(b.date)
                 );
 
                 sortedPhotos.forEach(photoInfo => {
