@@ -1,10 +1,9 @@
 ---
 name: Photo Update
-about: An issue to add a photo to the daily photo update page
-title: ''
-labels: ''
+about: Add a new photo to the gallery
+title: '[Photo] Add photo for YYYY-MM-DD'
+labels: photo-update
 assignees: ''
-
 ---
 
 Date: YYYY-MM-DD
