@@ -1,9 +1,11 @@
+// Global variables
 let photoData = null;
 let currentPhotoDate = null;
 let isLoading = false;
 let page = 1;
 const PHOTOS_PER_PAGE = 12;
 const repoPath = window.location.pathname.split('/')[1];
+const preloadedImages = new Map(); // Cache for preloaded images
 
 async function loadPhotoData() {
     try {
@@ -24,6 +26,47 @@ async function loadPhotoData() {
     } catch (error) {
         console.error('Error loading photos:', error);
     }
+}
+
+function createIntersectionObserver() {
+    const options = {
+        root: null,
+        rootMargin: '50px',
+        threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                if (img.dataset.src) {
+                    img.src = img.dataset.src;
+                    img.removeAttribute('data-src');
+                    observer.unobserve(img);
+                }
+            }
+        });
+    }, options);
+
+    return observer;
+}
+
+function createScrollObserver() {
+    const options = {
+        root: null,
+        rootMargin: '100px',
+        threshold: 0.1
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting && !isLoading) {
+                loadMorePhotos();
+            }
+        });
+    }, options);
+
+    return observer;
 }
 
 // Preload image and store in cache
@@ -70,47 +113,6 @@ async function preloadAdjacentImages(currentDate) {
     Promise.all(preloadPromises).catch(err => {
         console.warn('Error preloading some images:', err);
     });
-}
-
-function createIntersectionObserver() {
-    const options = {
-        root: null,
-        rootMargin: '50px',
-        threshold: 0.1
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                if (img.dataset.src) {
-                    img.src = img.dataset.src;
-                    img.removeAttribute('data-src');
-                    observer.unobserve(img);
-                }
-            }
-        });
-    }, options);
-
-    return observer;
-}
-
-function createScrollObserver() {
-    const options = {
-        root: null,
-        rootMargin: '100px',
-        threshold: 0.1
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting && !isLoading) {
-                loadMorePhotos();
-            }
-        });
-    }, options);
-
-    return observer;
 }
 
 function openModal(date, photoInfo) {
@@ -164,13 +166,12 @@ async function updateModalContent(date, photoInfo) {
     }
 }
 
-
 function closeModal() {
     document.getElementById('photoModal').style.display = 'none';
     currentPhotoDate = null;
 }
 
-function navigatePhotos(direction) {
+async function navigatePhotos(direction) {
     if (!currentPhotoDate || !photoData) return;
     
     const dates = Object.keys(photoData).sort();
@@ -180,7 +181,7 @@ function navigatePhotos(direction) {
     if (newIndex >= 0 && newIndex < dates.length) {
         const newDate = dates[newIndex];
         currentPhotoDate = newDate;
-        updateModalContent(newDate, photoData[newDate]);
+        await updateModalContent(newDate, photoData[newDate]);
     }
 }
 
@@ -289,6 +290,32 @@ async function loadMorePhotos() {
     displayPhotos();
     isLoading = false;
 }
+
+// Add the loading spinner styles
+const style = document.createElement('style');
+style.textContent = `
+    .loading-spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid #3498db;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    
+    .error-message {
+        color: red;
+        text-align: center;
+        margin: 20px;
+    }
+`;
+document.head.appendChild(style);
 
 // Event Listeners
 document.addEventListener('keydown', (event) => {
