@@ -10,7 +10,6 @@ async function loadPhotoData() {
         const response = await fetch('./photos.json');
         photoData = await response.json();
         
-        // Process photo URLs
         Object.keys(photoData).forEach(date => {
             const photo = photoData[date];
             if (photo.url.startsWith('/')) {
@@ -21,10 +20,56 @@ async function loadPhotoData() {
             }
         });
         
-        displayPhotos(true); // true indicates initial load
+        displayPhotos(true);
     } catch (error) {
         console.error('Error loading photos:', error);
     }
+}
+
+// Preload image and store in cache
+function preloadImage(url) {
+    if (preloadedImages.has(url)) {
+        return preloadedImages.get(url);
+    }
+
+    const promise = new Promise((resolve, reject) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = url;
+    });
+
+    preloadedImages.set(url, promise);
+    return promise;
+}
+
+// Get adjacent photo dates
+function getAdjacentDates(currentDate) {
+    const dates = Object.keys(photoData).sort();
+    const currentIndex = dates.indexOf(currentDate);
+    
+    return {
+        prev: currentIndex > 0 ? dates[currentIndex - 1] : null,
+        next: currentIndex < dates.length - 1 ? dates[currentIndex + 1] : null
+    };
+}
+
+// Preload adjacent images
+async function preloadAdjacentImages(currentDate) {
+    const { prev, next } = getAdjacentDates(currentDate);
+    
+    const preloadPromises = [];
+    if (prev) {
+        preloadPromises.push(preloadImage(photoData[prev].url));
+    }
+    if (next) {
+        preloadPromises.push(preloadImage(photoData[next].url));
+    }
+    
+    // Wait for preloading in background
+    Promise.all(preloadPromises).catch(err => {
+        console.warn('Error preloading some images:', err);
+    });
 }
 
 function createIntersectionObserver() {
@@ -74,9 +119,12 @@ function openModal(date, photoInfo) {
     updateModalContent(date, photoInfo);
     modal.style.display = 'block';
     event.stopPropagation();
+    
+    // Start preloading adjacent images
+    preloadAdjacentImages(date);
 }
 
-function updateModalContent(date, photoInfo) {
+async function updateModalContent(date, photoInfo) {
     const modalContent = document.getElementById('modalContent');
     const displayDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
         month: 'long',
@@ -84,12 +132,38 @@ function updateModalContent(date, photoInfo) {
         year: 'numeric'
     });
 
-    modalContent.innerHTML = `
-        <img src="${photoInfo.url}" alt="Photo for ${displayDate}">
-        <div class="modal-date">${displayDate}</div>
-        <div class="modal-description">${photoInfo.description}</div>
-    `;
+    // Show loading state if image isn't preloaded
+    if (!preloadedImages.has(photoInfo.url)) {
+        modalContent.innerHTML = `
+            <div class="loading-spinner"></div>
+            <div class="modal-date">${displayDate}</div>
+            <div class="modal-description">${photoInfo.description}</div>
+        `;
+    }
+
+    try {
+        // Wait for image to load (either from cache or new load)
+        await preloadImage(photoInfo.url);
+        
+        // Update modal with loaded image
+        modalContent.innerHTML = `
+            <img src="${photoInfo.url}" alt="Photo for ${displayDate}">
+            <div class="modal-date">${displayDate}</div>
+            <div class="modal-description">${photoInfo.description}</div>
+        `;
+        
+        // Start preloading adjacent images
+        preloadAdjacentImages(date);
+    } catch (error) {
+        console.error('Error loading image:', error);
+        modalContent.innerHTML = `
+            <div class="error-message">Error loading image</div>
+            <div class="modal-date">${displayDate}</div>
+            <div class="modal-description">${photoInfo.description}</div>
+        `;
+    }
 }
+
 
 function closeModal() {
     document.getElementById('photoModal').style.display = 'none';
