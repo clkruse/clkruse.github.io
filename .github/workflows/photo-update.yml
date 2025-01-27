@@ -118,7 +118,7 @@ jobs:
             # Create and save thumbnail (min dimension 384px)
             thumb = scale_image(img, min_size=MIN_DIMENSION)
             thumb_path = f"photos/img/thumbs/{thumb_filename}"
-            thumb.save(thumb_path, 'JPEG', quality=85)
+            thumb.save(thumb_path, 'JPEG', quality=95)
             
             # Return both URLs for JSON
             return {
