@@ -1,0 +1,202 @@
+body {
+    font-family: 'Crimson Text', serif;
+    margin: 0;
+    padding: 0;
+    background-color: #fff;
+    color: #1a1a1a;
+    line-height: 1.6;
+}
+
+.page-title {
+    background-color: black;
+    color: white;
+    padding: 0;
+    height: 65px;
+    display: flex;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.page-title h1 {
+    margin: 0;
+    font-size: 28px;
+    font-weight: 400;
+    padding-left: 24px;
+}
+
+.month-header {
+    font-size: 6rem;
+    padding: 1.5rem 1.5rem;
+    text-align: left;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    color: #1a1a1a;
+}
+
+.content-wrapper {
+    max-width: 1800px;
+    margin: 0 auto;
+}
+
+.photo-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    padding: 0;
+}
+
+.photo-card {
+    padding: 0.0rem 1.0rem;
+    cursor: pointer;
+    text-decoration: none;
+    color: black;
+    position: relative;
+}
+
+.photo-card:hover {
+    background-color: rgba(0,0,0,0.02);
+}
+
+.thumbnail {
+    width: 100%;
+    position: relative;
+    padding-bottom: 100%;
+    overflow: hidden;
+}
+
+.thumbnail img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.date {
+    font-size: 1.8rem;
+    margin: 0.25rem 0 0.25rem 0;
+    color: #1a1a1a;
+    font-weight: 400;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 1000;
+}
+
+.modal-content {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    max-width: 100%;
+    max-height: 100vh;
+    color: white;
+    text-align: center;
+    padding: 0 1rem;
+    box-sizing: border-box;
+}
+
+.modal-content img {
+    max-width: 100%;
+    max-height: calc(100vh - 150px);
+    object-fit: contain;
+    margin: 0;
+    vertical-align: middle;
+}
+
+.modal-description {
+    font-size: 1.25rem;
+    line-height: 1.7;
+    margin: 0.5rem 0;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.modal-date {
+    font-size: 2rem;
+    color: #fff;
+    margin: 0.5rem 0;
+}
+
+.close-button {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    color: white;
+    font-size: 2rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    z-index: 1010;
+}
+
+@media (min-width: 769px) {
+    .photo-card:not(:last-child):not(:nth-child(4n))::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 1px;
+        height: calc(100% - 1.25rem);
+        background-color: rgba(0,0,0,.5);
+    }
+}
+
+@media (max-width: 1024px) {
+    .photo-card {
+        padding: 0.0rem 0.75rem;
+    }
+    .month-header {
+        font-size: 5rem;
+    }
+}
+
+@media (max-width: 768px) {
+    .photo-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .content-wrapper {
+        padding: 0 0.5rem;
+    }
+    .photo-card:not(:last-child):not(:nth-child(3n))::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        width: 1px;
+        height: calc(100% - 1.0rem);
+        background-color: rgba(0,0,0,.5);
+    }
+    .month-header {
+        font-size: 4rem;
+        padding: 1rem 0.5rem;
+    }
+    
+    .photo-card {
+        padding: 0.0rem 0.25rem;
+    }
+
+    .date {
+        font-size: 1.8rem;
+        margin: 0.25rem 0 0.0rem 0;
+        color: #1a1a1a;
+        font-weight: 400;
+    }
+}
+
+@media (max-width: 480px) {
+    .month-header {
+        font-size: 3rem;
+    }
+} 
