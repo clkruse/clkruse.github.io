@@ -43,6 +43,9 @@ jobs:
         from PIL import Image
         from io import BytesIO
 
+        # Base URL for GitHub Pages
+        BASE_URL = "https://clkruse.github.io/photos"
+
         def download_image_from_issue(body):
             """Extract and download image from issue markdown"""
             image_match = re.search(r'!\[.*?\]\((.*?)\)', body)
@@ -66,13 +69,14 @@ jobs:
             img = Image.open(BytesIO(image_data))
             
             # Generate filename
-            filename = f"photos/img/photo-{date}.jpg"
+            filename = f"photo-{date}.jpg"
+            save_path = f"photos/img/{filename}"
             
             # Save image
-            img.save(filename, 'JPEG', quality=85)
+            img.save(save_path, 'JPEG', quality=95)
             
-            # Return relative path for JSON
-            return f"./img/photo-{date}.jpg"
+            # Return full URL for JSON
+            return f"{BASE_URL}/img/{filename}"
 
         def parse_issue_body(body):
             """Parse the issue body for photo information"""
@@ -87,7 +91,7 @@ jobs:
                 'description': description_match.group(1).strip()
             }
 
-        def update_photos(photo_data, image_path):
+        def update_photos(photo_data, image_url):
             """Update photos.json with new photo data"""
             try:
                 with open('photos/photos.json', 'r') as f:
@@ -96,8 +100,7 @@ jobs:
                 photos = {}
             
             date = photo_data['date']
-            # Use relative path
-            photo_data['url'] = image_path
+            photo_data['url'] = image_url
             del photo_data['date']
             photos[date] = photo_data
             
@@ -141,10 +144,10 @@ jobs:
                 return
             
             # Save image
-            image_path = save_image(image_data, photo_data['date'])
+            image_url = save_image(image_data, photo_data['date'])
             
             # Update photos.json
-            success = update_photos(photo_data, image_path)
+            success = update_photos(photo_data, image_url)
             close_issue(issue_number, success)
 
         if __name__ == '__main__':
