@@ -1,0 +1,108 @@
+name: Update Photos from Issues
+
+on:
+  issues:
+    types: [opened, edited]
+  workflow_dispatch:
+
+jobs:
+  process-photo-issue:
+    if: contains(github.event.issue.labels.*.name, 'photo-update')
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v2
+    
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Process issue and update photos
+      env:
+        ISSUE_TITLE: ${{ github.event.issue.title }}
+        ISSUE_BODY: ${{ github.event.issue.body }}
+        ISSUE_NUMBER: ${{ github.event.issue.number }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        cat > process_issue.py << 'EOL'
+        import json
+        import os
+        import re
+        from datetime import datetime
+        import requests
+
+        def parse_issue_body(body):
+            """Parse the issue body for photo information"""
+            url_match = re.search(r'URL:\s*(.+)', body)
+            description_match = re.search(r'Description:\s*(.+)', body)
+            date_match = re.search(r'Date:\s*(\d{4}-\d{2}-\d{2})', body)
+            
+            if not all([url_match, description_match, date_match]):
+                return None
+                
+            return {
+                'date': date_match.group(1),
+                'url': url_match.group(1).strip(),
+                'description': description_match.group(1).strip()
+            }
+
+        def update_photos(photo_data):
+            """Update photos.json with new photo data"""
+            try:
+                with open('photos.json', 'r') as f:
+                    photos = json.load(f)
+            except FileNotFoundError:
+                photos = {}
+            
+            date = photo_data['date']
+            del photo_data['date']
+            photos[date] = photo_data
+            
+            with open('photos.json', 'w') as f:
+                json.dump(photos, f, indent=2, sort_keys=True)
+            
+            return True
+
+        def close_issue(issue_number, status):
+            """Close the GitHub issue with a status message"""
+            headers = {
+                'Authorization': f"token {os.environ['GH_TOKEN']}",
+                'Accept': 'application/vnd.github.v3+json'
+            }
+            
+            url = f"https://api.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/issues/{issue_number}"
+            
+            message = "✅ Successfully added photo!" if status else "❌ Error: Invalid issue format. Please check the template."
+            
+            data = {
+                'state': 'closed',
+                'body': os.environ['ISSUE_BODY'] + f"\n\n---\n{message}"
+            }
+            
+            requests.patch(url, json=data, headers=headers)
+
+        def main():
+            issue_body = os.environ['ISSUE_BODY']
+            issue_number = os.environ['ISSUE_NUMBER']
+            
+            photo_data = parse_issue_body(issue_body)
+            
+            if photo_data:
+                success = update_photos(photo_data)
+                close_issue(issue_number, success)
+            else:
+                close_issue(issue_number, False)
+
+        if __name__ == '__main__':
+            main()
+        EOL
+        
+        python process_issue.py
+
+    - name: Commit and push if changed
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add photos.json
+        git diff --quiet && git diff --staged --quiet || (git commit -m "Update photos from issue #${{ github.event.issue.number }}" && git push)
