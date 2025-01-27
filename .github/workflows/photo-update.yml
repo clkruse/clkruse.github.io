@@ -57,15 +57,16 @@ jobs:
             return response.content
 
         def save_image(image_data, date):
-            """Save image to repository images folder"""
-            # Create images directory if it doesn't exist
-            Path('images').mkdir(exist_ok=True)
+            """Save image to photos/img folder"""
+            # Create photos/img directory if it doesn't exist
+            img_dir = Path('photos/img')
+            img_dir.mkdir(parents=True, exist_ok=True)
             
             # Process image
             img = Image.open(BytesIO(image_data))
             
             # Generate filename
-            filename = f"images/photo-{date}.jpg"
+            filename = f"photos/img/photo-{date}.jpg"
             
             # Save image
             img.save(filename, 'JPEG', quality=85)
@@ -88,18 +89,18 @@ jobs:
         def update_photos(photo_data, image_path):
             """Update photos.json with new photo data"""
             try:
-                with open('photos.json', 'r') as f:
+                with open('photos/photos.json', 'r') as f:
                     photos = json.load(f)
             except FileNotFoundError:
                 photos = {}
             
             date = photo_data['date']
             # Use path relative to /photos/
-            photo_data['url'] = f"/photos/{image_path}"
+            photo_data['url'] = f"/{image_path}"
             del photo_data['date']
             photos[date] = photo_data
             
-            with open('photos.json', 'w') as f:
+            with open('photos/photos.json', 'w') as f:
                 json.dump(photos, f, indent=2, sort_keys=True)
             
             return True
@@ -155,6 +156,6 @@ jobs:
       run: |
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add images/
-        git add photos.json
+        git add photos/img/
+        git add photos/photos.json
         git diff --quiet && git diff --staged --quiet || (git commit -m "Update photos from issue #${{ github.event.issue.number }}" && git push)
