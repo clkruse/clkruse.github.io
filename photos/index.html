@@ -107,36 +107,45 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            width: 100%;    /* Changed from max-width */
-            height: 100vh;  /* Full viewport height */
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            max-width: 98%;  /* Increased from 95% */
+            max-height: 98vh;
             color: white;
             text-align: center;
-        }
-
-        .modal img {
-            width: 100%;    /* Changed from max-width */
-            height: auto;   /* Maintain aspect ratio */
-            object-fit: contain;
-            margin: 0;      /* Remove margin */
         }
 
         .modal-description {
             font-size: 1.25rem;
             line-height: 1.7;
-            margin: 0.5rem 0;
-            padding: 0 0.5rem;
-            width: 100%;
+            margin: 1rem 0;
+            padding: 0 1rem;  /* Reduced from 2rem */
+        }
+
+        .modal-date {
+            font-size: 2rem;
+            color: #fff;
+            margin: 1rem 0;
+            padding: 0 1rem;  /* Reduced from 2rem */
+        }
+
+        .modal img {
+            max-width: 100%;
+            max-height: 95vh;
+            object-fit: contain;
+            margin-bottom: 0.25rem;
+        }
+
+        .modal-description {
+            font-size: 1.25rem;
+            line-height: 1.7;
+            margin: 1rem 0;
+            padding: 0 1rem;
         }
 
         .modal-date {
             font-size: 2rem;
             color: #fff;
             margin: 0.5rem 0;
-            padding: 0 0.5rem;
+            padding: 0 1rem;
         }
 
         .close-button {
@@ -184,18 +193,6 @@
             .photo-card {
                 padding: 0.5rem;
             }
-            .modal-content {
-                max-width: 100%;  /* Full width on mobile */
-            }
-            
-            .modal-description {
-                padding: 0 0.5rem;  /* Further reduce padding on mobile */
-                font-size: 1.1rem;  /* Slightly smaller font for better fit */
-            }
-            
-            .modal-date {
-                padding: 0 0.5rem;
-            }
         }
 
         @media (max-width: 480px) {
@@ -221,16 +218,31 @@
 
     <script>
         let photoData = null;
+        const repoPath = window.location.pathname.split('/')[1]; // Get repository name from URL
 
         async function loadPhotoData() {
             try {
                 const response = await fetch('./photos.json');
                 photoData = await response.json();
+                
+                // Convert relative image paths to absolute paths if needed
+                Object.keys(photoData).forEach(date => {
+                    const photo = photoData[date];
+                    if (photo.url.startsWith('/')) {
+                        // Remove leading slash and add repo path if on GitHub Pages
+                        photo.url = photo.url.substring(1);
+                        if (window.location.hostname.includes('github.io')) {
+                            photo.url = `/${repoPath}/${photo.url}`;
+                        }
+                    }
+                });
+                
                 displayPhotos();
             } catch (error) {
                 console.error('Error loading photos:', error);
             }
         }
+
 
         function openModal(date, photoInfo) {
             const modal = document.getElementById('photoModal');
