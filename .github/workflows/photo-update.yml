@@ -45,7 +45,7 @@ jobs:
 
         # Base URL for GitHub Pages
         BASE_URL = "https://clkruse.github.io/photos"
-        MIN_DIMENSION = 384
+        MIN_DIMENSION = 512
         MAX_DIMENSION = 2048
 
         def download_image_from_issue(body):
