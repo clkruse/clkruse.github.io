@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css?family=Crimson+Text:400,400i,600,600i,700,700i&display=swap" rel="stylesheet">
     <style>
+        /* Previous styles remain the same until modal styles */
         body {
             font-family: 'Crimson Text', serif;
             margin: 0;
@@ -58,7 +59,6 @@
             text-decoration: none;
             color: black;
             position: relative;
-
         }
 
         .photo-card {
@@ -91,6 +91,7 @@
             font-weight: 400;
         }
 
+        /* Updated modal styles */
         .modal {
             display: none;
             position: fixed;
@@ -107,57 +108,49 @@
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            max-width: 98%;  /* Increased from 95% */
-            max-height: 98vh;
+            width: 100%;
+            max-width: 100%;
+            max-height: 100vh;
             color: white;
             text-align: center;
-        }
-
-        .modal-description {
-            font-size: 1.25rem;
-            line-height: 1.7;
-            margin: 1rem 0;
-            padding: 0 1rem;  /* Reduced from 2rem */
-        }
-
-        .modal-date {
-            font-size: 2rem;
-            color: #fff;
-            margin: 1rem 0;
-            padding: 0 1rem;  /* Reduced from 2rem */
-        }
-
-        .modal img {
-            max-width: 100%;
-            max-height: 95vh;
-            object-fit: contain;
-            margin-bottom: 0.25rem;
-        }
-
-        .modal-description {
-            font-size: 1.25rem;
-            line-height: 1.7;
-            margin: 1rem 0;
             padding: 0 1rem;
+            box-sizing: border-box;
+        }
+
+        .modal-content img {
+            max-width: 100%;
+            max-height: calc(100vh - 150px); /* Adjusted to account for text */
+            object-fit: contain;
+            margin: 0;
+            vertical-align: middle;
+        }
+
+        .modal-description {
+            font-size: 1.25rem;
+            line-height: 1.7;
+            margin: 0.5rem 0;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .modal-date {
             font-size: 2rem;
             color: #fff;
             margin: 0.5rem 0;
-            padding: 0 1rem;
         }
 
         .close-button {
             position: absolute;
-            top: -3rem;
-            right: 0;
+            top: 1rem;
+            right: 1rem;
             color: white;
             font-size: 2rem;
             cursor: pointer;
             background: none;
             border: none;
             padding: 0.5rem;
+            z-index: 1010;
         }
 
         @media (min-width: 769px) {
@@ -304,7 +297,7 @@
                     const dayOfMonth = new Date(photoInfo.date + 'T00:00:00').getDate();
                     card.innerHTML = `
                         <div class="thumbnail">
-                            <img src="${photoInfo.url}" alt="Photo for ${photoInfo.date}">
+                            <img src="${photoInfo.thumb}" alt="Photo for ${photoInfo.date}">
                         </div>
                         <div class="date">${dayOfMonth}</div>
                     `;

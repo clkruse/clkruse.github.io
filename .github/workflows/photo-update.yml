@@ -45,6 +45,7 @@ jobs:
 
         # Base URL for GitHub Pages
         BASE_URL = "https://clkruse.github.io/photos"
+        THUMBNAIL_SIZE = 384
 
         def download_image_from_issue(body):
             """Extract and download image from issue markdown"""
@@ -59,24 +60,49 @@ jobs:
                 
             return response.content
 
+        def create_thumbnail(img):
+            """Create a thumbnail while maintaining aspect ratio"""
+            width, height = img.size
+            aspect_ratio = width / height
+            
+            if width > height:
+                new_width = THUMBNAIL_SIZE
+                new_height = int(THUMBNAIL_SIZE / aspect_ratio)
+            else:
+                new_height = THUMBNAIL_SIZE
+                new_width = int(THUMBNAIL_SIZE * aspect_ratio)
+                
+            return img.resize((new_width, new_height), Image.Resampling.LANCZOS)
+
         def save_image(image_data, date):
-            """Save image to photos/img folder"""
-            # Create photos/img directory if it doesn't exist
+            """Save both full-res and thumbnail versions of the image"""
+            # Create directories if they don't exist
             img_dir = Path('photos/img')
+            thumb_dir = Path('photos/img/thumbs')
             img_dir.mkdir(parents=True, exist_ok=True)
+            thumb_dir.mkdir(parents=True, exist_ok=True)
             
             # Process image
             img = Image.open(BytesIO(image_data))
             
-            # Generate filename
+            # Generate filenames
             filename = f"photo-{date}.jpg"
-            save_path = f"photos/img/{filename}"
+            thumb_filename = f"photo-{date}-thumb.jpg"
             
-            # Save image
-            img.save(save_path, 'JPEG', quality=95)
+            # Save full-res image
+            full_path = f"photos/img/{filename}"
+            img.save(full_path, 'JPEG', quality=95)
             
-            # Return full URL for JSON
-            return f"{BASE_URL}/img/{filename}"
+            # Create and save thumbnail
+            thumb = create_thumbnail(img)
+            thumb_path = f"photos/img/thumbs/{thumb_filename}"
+            thumb.save(thumb_path, 'JPEG', quality=85)
+            
+            # Return both URLs for JSON
+            return {
+                'full': f"{BASE_URL}/img/{filename}",
+                'thumb': f"{BASE_URL}/img/thumbs/{thumb_filename}"
+            }
 
         def parse_issue_body(body):
             """Parse the issue body for photo information"""
@@ -91,7 +117,7 @@ jobs:
                 'description': description_match.group(1).strip()
             }
 
-        def update_photos(photo_data, image_url):
+        def update_photos(photo_data, image_urls):
             """Update photos.json with new photo data"""
             try:
                 with open('photos/photos.json', 'r') as f:
@@ -100,7 +126,8 @@ jobs:
                 photos = {}
             
             date = photo_data['date']
-            photo_data['url'] = image_url
+            photo_data['url'] = image_urls['full']
+            photo_data['thumb'] = image_urls['thumb']
             del photo_data['date']
             photos[date] = photo_data
             
@@ -143,11 +170,11 @@ jobs:
                 close_issue(issue_number, False, "Could not find or download image from issue.")
                 return
             
-            # Save image
-            image_url = save_image(image_data, photo_data['date'])
+            # Save images and get URLs
+            image_urls = save_image(image_data, photo_data['date'])
             
             # Update photos.json
-            success = update_photos(photo_data, image_url)
+            success = update_photos(photo_data, image_urls)
             close_issue(issue_number, success)
 
         if __name__ == '__main__':
