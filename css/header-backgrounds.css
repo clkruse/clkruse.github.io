@@ -7,6 +7,15 @@
   height: 35vw
 }
 
+.wikiclip-header {
+  background-image: url("/10-projects/wikiclip/img/bkg.jpg");
+  -webkit-background-size: cover;
+  background-size: cover;
+  position: relative;
+  background-position: 0% 60%;
+  height: 35vw
+}
+
 .ng-header {
   background-image: url("/img/1Y2A2125 - Version 2.jpg");
   -webkit-background-size: cover;

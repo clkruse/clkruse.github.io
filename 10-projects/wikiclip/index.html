@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105607174-2"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'UA-105607174-2');
+    </script>
+
+    <title>Caleb Kruse - WikiCLIP</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport"
+        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <!-- Bootstrap -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- css. Last sheet takes priority -->
+    <link rel="stylesheet" href="/css/style-v2.css">
+    <link rel="stylesheet" href="/css/header-backgrounds.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-w76AqPfDkMBDXo30jS1Sgez6pr3x5MlQ1ZAGC+nuZB+EYdgRZgiwxhTBTkF7CXvN"
+        crossorigin="anonymous"></script>
+</head>
+
+<body>
+
+    <header class="wikiclip-header">
+        <div class="container-fluid menu">
+            <div class="d-flex justify-content-end">
+                <a href="/">
+                    <button class="button-white">home</button>
+                </a>
+            </div>
+        </div>
+    </header>
+
+
+
+    <div class="article">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <h3 class="article-heading-blue mt-5">wikiclip</h3>
+                    <h5 class="article-heading-black mt-0">a tool to find wikipedia articles based on an image</h5>
+
+                    <h5>background</h5>
+                    <p>
+                        I still remember my first Wikipedia search. After spending years reading physical encyclopedias
+                        and hours in Encarta, I stumbled upon Wikipedia. I was mesmerized, but didn't tell my parents out of 
+                        the fear that this "wiki" was somehow derived from Wicca (the religion). 
+                    </p>
+                    <p>
+                        I love the process of stumbling upon new articles. A few years ago, I made a site called <a href="https://calebkruse.com/wikitrip">Wikitrip</a>
+                        where you can find articles that are nearby. I love using it on a road trip or in a new city to find
+                        interesting places around me.
+                    </p>
+                    <p>
+                        But there are only so many articles with a location. Often, you want to know more about what you
+                        see around you. I wanted a tool that could look at an image, and return the most relevant articles on Wikipedia.
+                    </p>
+
+                    <h5>methods</h5>
+                    <p>
+                        The basic premise is to use <a href="https://openai.com/index/clip/">CLIP</a> to embed the text
+                        of a number of articles from Wikipedia. I'd then embed the query image and find the nearest matches.
+                        CLIP is naturally suited for this task, as it embeds both images and text into a shared space. 
+                    </p>
+                    <h6>data</h6>
+                    <p>
+                        The first challenge was scale. English Wikipedia has nearly seven billion articles. Pulling all those
+                        articles would be infeasible. Instead, I tried pulling articles alphabetically, but found only odd articles
+                        that were <a href="https://en.wikipedia.org/wiki/0%25Mercury">odd</a> <a href="https://en.wikipedia.org/wiki/0,10_Exhibition">and</a>
+                        <a href="https://en.wikipedia.org/wiki/Orders_of_magnitude_(numbers)#10%E2%88%9230">uninteresting</a>.
+                    </p>
+                    <p>
+                        Instead, I took a few different approaches to pull a better sample. Wikipedia editors are meticulous. They maintain a list of
+                        <a href="https://en.wikipedia.org/wiki/Wikipedia:Vital_articles">"Vital Articles"</a> at five different levels of importance.
+                        At level five, there are about 50,000 articles.
+                    </p>
+                    <p>
+                        Wikipedians also classify articles into quality categories. I pulled all articles classified as <a href="https://en.wikipedia.org/wiki/Wikipedia:Good_articles/all">Good Articles</a>,
+                        and all articles classified as <a href="https://en.wikipedia.org/wiki/Category:A-Class_articles">A-Class Articles</a>. I pulled about
+                        160,000 articles from these categories, though they were not all unique as they overlap with the vital articles.
+                    </p>
+                    <p>
+                        Finally, I retrieved the 1,000 most popular articles from each month from 2016 through the present. This didn't add too much more data,
+                        but it did provide a few more interesting articles.
+                    </p>
+                    <h6>embeddings and database</h6>
+                    <p>
+                        CLIP can only process 77 tokens of text at a time, so I extracted either the page "extract" (roughly the first paragraph of the article)
+                        or the article title if an extract wasn't available. I then used CLIP to embed the text and stored the embedding, article tile, page URL, and article
+                        numeric identifier in a SQLite database. In hindsight, I could have saved only the embedding and numeric identifier.
+                    </p>
+                    <p>
+                        In the end, I added 104,686 articles to my database, and the db file comes to 432 mb in size. The whole process was reasonably quick.
+                        Running on my Macbook, it took about 45 minutes to pull the text and embed the articles.
+                    </p>
+                    <h6>querying the database</h6>
+                    <p>
+                        Finding articles most similar to an image in the database is pretty simple. I use the the same CLIP model to embed an image, and then
+                        use a simple dot product on the normalized vectors to find the most similar articles. This takes a second or so per query.
+                    </p>
+
+                    <h5>results</h5>
+                    <p>
+                        I'm quite happy with how it all works! Given the limitations of CLIP and the limited number of articles, I find it to be quite delightful
+                        at surfacing articles that are similar, but not an exact match. Here are a few examples:
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="container-fluid">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-sm-12">
+                    <video class="img" autoplay playsinline loop muted>
+                        <source src="/10-projects/wikiclip/img/WikiCLIP Demo.mp4" type="video/mp4" />
+                    </video>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-sm-12">
+                    <h6>looking at objects in the real world</h6>
+                    <video class="img" style="max-height: 75vh" autoplay playsinline loop muted>
+                        <source src="/10-projects/wikiclip/img/WikiCLIP iPhone Demo.mp4" type="video/mp4" />
+                    </video>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-sm-12">
+                    <h6>querying with an illustration</h6>
+                    <img src="/10-projects/wikiclip/img/turbine-query.jpg"></img>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-sm-12">
+                    <h6>querying with a photo</h6>
+                    <img src="/10-projects/wikiclip/img/insect-query.jpg"></img>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-lg-8 col-md-10 col-xs-12">
+                    <h5>conclusion</h5>
+                    <p>
+                        Overall, I'm pretty happy with the results and being able to put it together in a weekend.
+                        My biggest regret is not hosting this on a server so it can be used by anyone. Given that I
+                        host this site on GitHub Pages, I need somewhere to host the server. I may take this on, but
+                        it's a heavier lift. Maybe soon!
+                    </p>
+                    <p>
+                        I also find this to be a really great way to probe how well CLIP embeds text. The results that come
+                        back give pretty good insight on what CLIP picks up on and what it misses.
+                    </p>
+
+                    <h5>what would i do next</h5>
+                    <ul>
+                        <li>
+                            Certainly hosting this on a server to let other people try would be the most obvious next step.
+                        </li>
+                        <li>
+                            I used the smallest CLIP model. I'm curious if the results would get better with a larger model.
+                        </li>
+                        <li>
+                            I became a bit of a data hoarder with the Wikipedia scraping. Maybe I'd scrape all of the "B-Class"
+                            articles to get a lot more data.
+                        </li>
+                        <li>
+                            I'll share the code soon. It might be useful for others to see, particularly the data scraping portions.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer id="footer" class="footer">
+        <div class="row align-items-center">
+            <div class="col-xs-12 col-6">
+                <div class="footer-socials text-left">
+                    <a href="https://twitter.com/clkruse" target="_blank">
+                        <i class="fa fa-twitter"></i>
+                    </a>
+                    <a href="https://www.instagram.com/clkruse" target="_blank">
+                        <i class="fa fa-instagram"></i>
+                    </a>
+                </div>
+            </div>
+            <div class="col-xs-12 col-6">
+                <p class="copyright">© Caleb Kruse</p>
+            </div>
+        </div>
+    </footer>
+</body>
+
+</html>
