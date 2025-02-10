@@ -7,11 +7,12 @@
     <!-- OpenGraph Meta Tags -->
     <meta property="og:title" content="WikiCLIP">
     <meta property="og:description" content="Find Wikipedia articles using image search powered by CLIP">
-    <meta property="og:image" content="calebkruse.com/wikiclip/img/bkg.jpg">
+    <meta property="og:image" content="./img/bkg.jpg">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <link href="https://fonts.googleapis.com/css?family=Crimson+Text:400,400i,600,600i,700,700i&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./style.css">
+    <link rel="icon" type="image/png" href="./favicon.ico/apple-icon-120x120.png">
 </head>
 <body>
     <div class="landing-container">
@@ -119,7 +120,6 @@
             results.innerHTML = '';
             
             try {
-                console.log('Sending request to Lambda...');
                 const response = await fetch('https://itk35nwrg74iwawyyviveovfiy0lntzk.lambda-url.us-east-1.on.aws/', {
                     method: 'POST',
                     headers: {
@@ -130,9 +130,7 @@
                     })
                 });
                 
-                console.log('Received response:', response);
                 const data = await response.json();
-                console.log('Parsed data:', data);
                 
                 if (!response.ok) {
                     throw new Error(data.detail || 'Failed to process image');
