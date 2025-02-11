@@ -17,11 +17,10 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport"
         content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
     
     <!-- OpenGraph Tags -->
     <meta property="og:title" content="Caleb Kruse - WikiCLIP">
-    <meta property="og:description" content="A tool to find Wikipedia articles based on an image using CLIP embeddings">
+    <meta property="og:description" content="A tool to find Wikipedia articles inspired by an image using CLIP embeddings">
     <meta property="og:image" content="https://calebkruse.com/10-projects/wikiclip/img/bkg.jpg">
     <meta property="og:url" content="https://calebkruse.com/10-projects/wikiclip/">
     <meta property="og:type" content="website">
@@ -58,9 +57,10 @@
             <div class="row justify-content-center">
                 <div class="col-lg-8 col-md-10 col-xs-12">
                     <h3 class="article-heading-blue mt-5">wikiclip</h3>
-                    <h5 class="article-heading-black mt-0">a tool to find wikipedia articles based on an image</h5>
-
+                    <h5 class="article-heading-black mt-0">a tool to find wikipedia articles inspired by an image</h5>
+                    
                     <h5>background</h5>
+                    <h6><a href="https://calebkruse.com/wikiclip/">give wikiclip a try before reading</a></h6>
                     <p>
                         I still remember my first Wikipedia search. After spending years reading physical encyclopedias
                         and hours in Encarta, I stumbled upon Wikipedia. I was mesmerized, but didn't tell my parents out of 
@@ -73,52 +73,72 @@
                     </p>
                     <p>
                         But there are only so many articles with a location. Often, you want to know more about what you
-                        see around you. I wanted a tool that could look at an image, and return the most relevant articles on Wikipedia.
+                        see around you. What if you had a tool that could look at an image and return similar articles on Wikipedia.
                     </p>
 
-                    <h5>methods</h5>
+                    <h5>method</h5>
                     <p>
-                        The basic premise is to use <a href="https://openai.com/index/clip/">CLIP</a> to embed the text
-                        of a number of articles from Wikipedia. I'd then embed the query image and find the nearest matches.
-                        CLIP is naturally suited for this task, as it embeds both images and text into a shared space. 
+                        The basic premise is to use <a href="https://openai.com/index/clip/">CLIP</a> to create an embedding database Wikipedia articles. 
+                        We'd then query this database using a CLIP embedding from an image. Because CLIP embeds images and text into a shared space, the 
+                        closest embeddings to the image will be the most relevant articles.
                     </p>
-                    <h6>data</h6>
+                    <h5>data</h5>
                     <p>
-                        The first challenge was scale. English Wikipedia has nearly seven billion articles. Pulling all those
-                        articles would be infeasible. Instead, I tried pulling articles alphabetically, but found only odd articles
-                        that were <a href="https://en.wikipedia.org/wiki/0%25Mercury">odd</a> <a href="https://en.wikipedia.org/wiki/0,10_Exhibition">and</a>
-                        <a href="https://en.wikipedia.org/wiki/Orders_of_magnitude_(numbers)#10%E2%88%9230">uninteresting</a>.
+                        The first challenge is scale. English Wikipedia has nearly seven billion articles. Pulling each of these
+                        articles would be infeasible. So I first tried pulling articles alphabetically, and came back with numerically-listed articles
+                        that were <u><a href="https://en.wikipedia.org/wiki/0%25Mercury">odd</a></u> <u><a href="https://en.wikipedia.org/wiki/0,10_Exhibition">and</a></u>
+                        <u><a href="https://en.wikipedia.org/wiki/Orders_of_magnitude_(numbers)#10%E2%88%9230">uninteresting</a></u>.
                     </p>
                     <p>
                         Instead, I took a few different approaches to pull a better sample. Wikipedia editors are meticulous. They maintain a list of
-                        <a href="https://en.wikipedia.org/wiki/Wikipedia:Vital_articles">"Vital Articles"</a> at five different levels of importance.
-                        At level five, there are about 50,000 articles.
+                        <a href="https://en.wikipedia.org/wiki/Wikipedia:Vital_articles">"Vital Articles"</a> at five different levels of importance ranging from the 10 most important topics in level 1
+                        down to 50,000 articles in level 5. This is a great starting point to index releavant content.
                     </p>
                     <p>
-                        Wikipedians also classify articles into quality categories. I pulled all articles classified as <a href="https://en.wikipedia.org/wiki/Wikipedia:Good_articles/all">Good Articles</a>,
-                        and all articles classified as <a href="https://en.wikipedia.org/wiki/Category:A-Class_articles">A-Class Articles</a>. I pulled about
-                        160,000 articles from these categories, though they were not all unique as they overlap with the vital articles.
+                        Wikipedians also classify articles into <a href="https://en.wikipedia.org/wiki/Wikipedia:Content_assessment#Grades">quality categories</a>. 
+                        I pulled all articles listed as <a href="https://en.wikipedia.org/wiki/Wikipedia:Good_articles/all">Good Articles</a>,
+                        and <a href="https://en.wikipedia.org/wiki/Category:A-Class_articles">A-Class Articles</a>. There are about
+                        160,000 articles in these categories, though they are not all unique as they overlap with the vital articles.
                     </p>
                     <p>
-                        Finally, I retrieved the 1,000 most popular articles from each month from 2016 through the present. This didn't add too much more data,
-                        but it did provide a few more interesting articles.
+                        To extend coverage further, I retrieved the 1,000 most popular articles from each month from 2016 through the present. This didn't add a great volume of data,
+                        but it did provide a few more interesting articles that wouldn't have been picked up otherwise.
                     </p>
-                    <h6>embeddings and database</h6>
+                    <h5>embeddings and database</h5>
                     <p>
-                        CLIP can only process 77 tokens of text at a time, so I extracted either the page "extract" (roughly the first paragraph of the article)
-                        or the article title if an extract wasn't available. I then used CLIP to embed the text and stored the embedding, article tile, page URL, and article
-                        numeric identifier in a SQLite database. In hindsight, I could have saved only the embedding and numeric identifier.
+                        CLIP can only process 77 tokens of text (55-60 words) at a time, so I pulled either the page "extract" (roughly the first paragraph of the article)
+                        or the article title if an extract wasn't available. I then used CLIP to embed the text and stored the embedding, article id, and an article hash to 
+                        check for duplicates.
                     </p>
                     <p>
-                        In the end, I added 104,686 articles to my database, and the db file comes to 432 mb in size. The whole process was reasonably quick.
-                        Running on my Macbook, it took about 45 minutes to pull the text and embed the articles.
+                        In total, I added 104,686 articles to the database. People talk a lot about the size of machine learning models and GPU acceleration, but they can often 
+                        forget that running them locally on the CPU is quite reasonable. Pulling the articles took much longer than computing the embeddings. In the end, the the 
+                        db file comes to ~500 mb in size. The full process took 30-45 minutes.
                     </p>
-                    <h6>querying the database</h6>
+                    
+                    <h5>querying the database</h5>
                     <p>
                         Finding articles most similar to an image in the database is pretty simple. I use the the same CLIP model to embed an image, and then
-                        use a simple dot product on the normalized vectors to find the most similar articles. This takes a second or so per query.
+                        compute a dot product on the normalized vectors (equivalent to cosine similarity) to score and find the most similar articles. Depending on the processor, 
+                        this takes less than a second per query.
                     </p>
-
+                    <h5>hosting stack</h5>
+                    <p>
+                        I ran everything locally to start, but enjoyed using it enough that I wanted to host it. This website is all static, hosted for free on GitHub Pages. This 
+                        project required a database, a backend function to compute the embeddings, and a frontend interface.
+                    </p>
+                    <p>
+                        I used Supabase to host a postgres database. I used pgvector to query the embeddings, and created
+                        an HNSW index on the embeddings to make queries fast.
+                    </p>
+                    <p>
+                        To compute CLIP embeddings for the input images, I created an AWS lambda function with a custom docker image. This made it possible to pre-load the CLIP model
+                        and make processing as fast as possible for little cost. The lambda instance is a simple ARM processor, again showing that a rack of GPUs is not always necessary
+                        to do cool things with neural networks.
+                    </p>
+                    <p>
+                        The frontend is a simple static page hosted on GitHub Pages that queries the lambda function. It's fairly straightforward with vanilla javascript, html, and css.
+                    </p>
                     <h5>results</h5>
                     <p>
                         I'm quite happy with how it all works! Given the limitations of CLIP and the limited number of articles, I find it to be quite delightful
@@ -159,23 +179,23 @@
         <div class="container">
             <div class="row justify-content-center">
                 <div class="col-lg-8 col-md-10 col-xs-12">
+                    <h5>code</h5>
+                    <p>
+                        The code isn't in a polished state, but can be found at <a href="https://github.com/clkruse/WikiCLIP">https://github.com/clkruse/WikiCLIP</a>.
+                    </p>
                     <h5>conclusion</h5>
                     <p>
-                        Overall, I'm pretty happy with the results and being able to put it together in a weekend.
-                        My biggest regret is not hosting this on a server so it can be used by anyone. Given that I
-                        host this site on GitHub Pages, I need somewhere to host the server. I may take this on, but
-                        it's a heavier lift. Maybe soon!
+                        Overall, I'm pretty happy with the results and being able to put it together quite quickly.
+                        Interestingly enough, creating the local demo was done within a weekend. The real challenge was figuring out
+                        how to host it. I don't think this is necessarily a challenge for everyone, but it's an area where I have the least experience.
                     </p>
                     <p>
-                        I also find this to be a really great way to probe how well CLIP embeds text. The results that come
-                        back give pretty good insight on what CLIP picks up on and what it misses.
+                        I love seeing the results. My favorite part is that this is not intended to be a Google Lens clone that returns exact matches. Instead,
+                        it surfaces articles that are similar, but at times totally unexpected. It also reveals the unexpectedly literal nature of CLIP. As I play
+                        with WikiCLIP, I realize it has a personality closer to Amelia Bedelia than Sherlock Holmes.
                     </p>
-
                     <h5>what would i do next</h5>
                     <ul>
-                        <li>
-                            Certainly hosting this on a server to let other people try would be the most obvious next step.
-                        </li>
                         <li>
                             I used the smallest CLIP model. I'm curious if the results would get better with a larger model.
                         </li>
@@ -184,7 +204,11 @@
                             articles to get a lot more data.
                         </li>
                         <li>
-                            I'll share the code soon. It might be useful for others to see, particularly the data scraping portions.
+                            It's funny to take a picture of a person and see what results are similar. I think this could be a first-class feature if I pulled articles
+                            from a list of <a href="https://www.nature.com/articles/s41597-022-01369-4">notable people</a>.
+                        </li>
+                        <li>
+                            Clean up the code to make it more clear about what I did and let other build on top of it.
                         </li>
                     </ul>
                 </div>

@@ -174,7 +174,7 @@ body {
 
     #video, #canvas, #captured-image {
         height: auto;
-        max-height: 70vh;
+        max-height: 60vh;
         width: 100%;
         max-width: 100%;
         object-fit: contain;
@@ -196,7 +196,7 @@ body {
 
     #captured-image {
         height: auto;
-        max-height: 70vh;
+        max-height: 60vh;
         width: 100%;
         max-width: 100%;
         padding: 0;
