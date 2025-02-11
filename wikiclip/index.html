@@ -119,6 +119,13 @@
             loader.style.display = 'block';
             results.innerHTML = '';
             
+            // Update button text to "Processing..."
+            const exploreButton = document.querySelector('.explore-button');
+            const inputElement = exploreButton.querySelector('input');
+            const originalText = 'Explore Another Image';
+            exploreButton.innerHTML = 'Processing...';
+            exploreButton.appendChild(inputElement);
+            
             try {
                 const response = await fetch('https://itk35nwrg74iwawyyviveovfiy0lntzk.lambda-url.us-east-1.on.aws/', {
                     method: 'POST',
@@ -159,6 +166,9 @@
                 </div>`;
             } finally {
                 loader.style.display = 'none';
+                // Restore the original button text
+                exploreButton.innerHTML = originalText;
+                exploreButton.appendChild(inputElement);
             }
         }
 
