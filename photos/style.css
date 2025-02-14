@@ -40,6 +40,12 @@ body {
     margin: 0 auto;
 }
 
+[data-month] {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    display: block;
+}
+
 .photo-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
