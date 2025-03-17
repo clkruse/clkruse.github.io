@@ -128,7 +128,11 @@ function openModal(date, photoInfo) {
 
 async function updateModalContent(date, photoInfo) {
     const modalContent = document.getElementById('modalContent');
-    const displayDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
+    
+    // Parse the date manually for consistent display
+    const [year, month, day] = date.split('-');
+    const dateObj = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    const displayDate = dateObj.toLocaleDateString('en-US', {
         month: 'long',
         day: 'numeric',
         year: 'numeric'
@@ -195,7 +199,11 @@ async function navigatePhotos(direction) {
 }
 
 function getMonthYear(date) {
-    return new Date(date + 'T00:00:00').toLocaleDateString('en-US', { 
+    // Parse the date string manually to ensure consistent behavior across browsers
+    const [year, month] = date.split('-');
+    // Create a date object with explicit year and month parameters
+    const dateObj = new Date(parseInt(year), parseInt(month) - 1, 1);
+    return dateObj.toLocaleDateString('en-US', { 
         month: 'long',
         year: 'numeric'
     });
@@ -222,13 +230,32 @@ function displayPhotos(isInitialLoad = false) {
 
     // Sort months in descending order (newest first)
     const sortedMonths = Object.keys(photosByMonth).sort((a, b) => {
-        return new Date(b) - new Date(a);
+        // Parse month names and years for reliable sorting
+        const [monthA, yearA] = a.split(' ');
+        const [monthB, yearB] = b.split(' ');
+        
+        // Compare years first
+        if (yearA !== yearB) {
+            return parseInt(yearB) - parseInt(yearA);
+        }
+        
+        // If years are the same, compare months
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                        'July', 'August', 'September', 'October', 'November', 'December'];
+        return months.indexOf(monthB) - months.indexOf(monthA);
     });
 
     // Sort photos within each month in ascending order (1 to 31)
     sortedMonths.forEach(month => {
         photosByMonth[month].sort((a, b) => {
-            return new Date(a.date) - new Date(b.date);
+            // Parse dates manually for consistent sorting
+            const [yearA, monthA, dayA] = a.date.split('-');
+            const [yearB, monthB, dayB] = b.date.split('-');
+            
+            // Compare by year, then month, then day
+            if (yearA !== yearB) return parseInt(yearA) - parseInt(yearB);
+            if (monthA !== monthB) return parseInt(monthA) - parseInt(monthB);
+            return parseInt(dayA) - parseInt(dayB);
         });
     });
 
@@ -265,7 +292,7 @@ function displayPhotos(isInitialLoad = false) {
         photosByMonth[monthYear].forEach(photoInfo => {
             const card = document.createElement('div');
             card.className = 'photo-card';
-            const dayOfMonth = new Date(photoInfo.date + 'T00:00:00').getDate();
+            const dayOfMonth = parseInt(photoInfo.date.split('-')[2]);
             
             card.innerHTML = `
                 <div class="thumbnail">
