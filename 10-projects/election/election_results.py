@@ -38,7 +38,7 @@ def parse_store_name(store_name):
     
     try:
         parsed_response = json.loads(response.choices[0].message.content)
-        name = parsed_response["osm_name"]
+        name = parsed_response["name"]
         logger.info(f"✅ Successfully parsed store name: '{store_name}' -> '{name}'")
         return name
     except Exception as e:
@@ -171,10 +171,15 @@ if store_name:
         # set colors for points. If the county voted for Biden, make it blue. If it voted for Trump, make it red.
         results_df['color'] = [[36, 73, 153] if winner == "Biden" else [210, 37, 50] for winner in results_df["Winner"]]
         # make a map
-        # Try to get Mapbox token from secrets, fallback to a free alternative if not available
+        # Check if Mapbox token is available in secrets
         try:
             mapbox_token = st.secrets["MAPBOX_KEY"]
             logger.info(f"🗝️ Found Mapbox token in secrets (length: {len(mapbox_token)})")
+            
+            # Set the mapbox token in Streamlit's configuration for PyDeck to use
+            import os
+            os.environ['MAPBOX_TOKEN'] = mapbox_token
+            
             map_style = "mapbox://styles/mapbox/light-v9"
             logger.info("✅ Using Mapbox style with token")
             
@@ -190,52 +195,30 @@ if store_name:
             map_style = "light"
             st.error(f"Error getting Mapbox token: {e}")
         
-        # Create the deck with proper token handling
-        if mapbox_token:
-            deck = pdk.Deck(
-                map_style=map_style,
-                initial_view_state=pdk.ViewState(
-                    latitude=38,
-                    longitude=-99,
-                    zoom=3,
-                    pitch=0,
+        # Create the deck - PyDeck will automatically use the token from environment variable
+        deck = pdk.Deck(
+            map_style=map_style,
+            initial_view_state=pdk.ViewState(
+                latitude=38,
+                longitude=-99,
+                zoom=3,
+                pitch=0,
+            ),
+            layers=[
+                pdk.Layer(
+                    "ScatterplotLayer",
+                    data=results_df,
+                    get_position=["lon", "lat"],
+                    get_radius=15000,
+                    get_fill_color="color",
                 ),
-                layers=[
-                    pdk.Layer(
-                        "ScatterplotLayer",
-                        data=results_df,
-                        get_position=["lon", "lat"],
-                        get_radius=15000,
-                        get_fill_color="color",
-                    ),
-                ],
-                mapbox_key=mapbox_token  # This is the correct way to set the token
-            )
-        else:
-            deck = pdk.Deck(
-                map_style=map_style,
-                initial_view_state=pdk.ViewState(
-                    latitude=38,
-                    longitude=-99,
-                    zoom=3,
-                    pitch=0,
-                ),
-                layers=[
-                    pdk.Layer(
-                        "ScatterplotLayer",
-                        data=results_df,
-                        get_position=["lon", "lat"],
-                        get_radius=15000,
-                        get_fill_color="color",
-                    ),
-                ],
-            )
+            ],
+        )
         
         logger.info(f"🗺️ Creating map with style: {map_style}")
         
         st.pydeck_chart(
             deck,
-            # set full width
             use_container_width=True,
         )
 
