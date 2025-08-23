@@ -135,25 +135,42 @@ if store_name:
         # set colors for points. If the county voted for Biden, make it blue. If it voted for Trump, make it red.
         results_df['color'] = [[36, 73, 153] if winner == "Biden" else [210, 37, 50] for winner in results_df["Winner"]]
         # make a map
-        st.pydeck_chart(
-            pdk.Deck(
-                map_style="mapbox://styles/mapbox/light-v9",
-                initial_view_state=pdk.ViewState(
-                    latitude=38,
-                    longitude=-99,
-                    zoom=3,
-                    pitch=0,
-                ),
-                layers=[
-                    pdk.Layer(
-                        "ScatterplotLayer",
-                        data=results_df,
-                        get_position=["lon", "lat"],
-                        get_radius=15000,
-                        get_fill_color="color",
-                    ),
-                ],
+        # Try to get Mapbox token from secrets, fallback to a free alternative if not available
+        try:
+            mapbox_token = st.secrets["MAPBOX_KEY"]
+            map_style = "mapbox://styles/mapbox/light-v9"
+        except KeyError:
+            # Fallback to a style that doesn't require a token
+            mapbox_token = None
+            map_style = "light"
+            st.warning("⚠️ Mapbox token not found in secrets. Using basic map style. Add MAPBOX_KEY to secrets for better styling.")
+        
+        deck = pdk.Deck(
+            map_style=map_style,
+            initial_view_state=pdk.ViewState(
+                latitude=38,
+                longitude=-99,
+                zoom=3,
+                pitch=0,
             ),
+            layers=[
+                pdk.Layer(
+                    "ScatterplotLayer",
+                    data=results_df,
+                    get_position=["lon", "lat"],
+                    get_radius=15000,
+                    get_fill_color="color",
+                ),
+            ],
+        )
+        
+        # Set the mapbox token if available
+        if mapbox_token:
+            deck.map_provider = "mapbox"
+            deck.api_keys = {"mapbox": mapbox_token}
+        
+        st.pydeck_chart(
+            deck,
             # set full width
             use_container_width=True,
         )
