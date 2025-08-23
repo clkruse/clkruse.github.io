@@ -39,7 +39,7 @@ def parse_store_name(store_name):
     
     try:
         parsed_response = json.loads(response.choices[0].message.content)
-        name = parsed_response["name"]
+        name = parsed_response["osm_name"]
         logger.info(f"✅ Successfully parsed store name: '{store_name}' -> '{name}'")
         return name
     except Exception as e:
