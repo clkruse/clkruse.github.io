@@ -174,36 +174,64 @@ if store_name:
         # Try to get Mapbox token from secrets, fallback to a free alternative if not available
         try:
             mapbox_token = st.secrets["MAPBOX_KEY"]
+            logger.info(f"🗝️ Found Mapbox token in secrets (length: {len(mapbox_token)})")
             map_style = "mapbox://styles/mapbox/light-v9"
+            logger.info("✅ Using Mapbox style with token")
+            
         except KeyError:
             # Fallback to a style that doesn't require a token
             mapbox_token = None
             map_style = "light"
+            logger.warning("⚠️ Mapbox token not found in secrets, using basic style")
             st.warning("⚠️ Mapbox token not found in secrets. Using basic map style. Add MAPBOX_KEY to secrets for better styling.")
+        except Exception as e:
+            logger.error(f"❌ Error getting Mapbox token: {e}")
+            mapbox_token = None
+            map_style = "light"
+            st.error(f"Error getting Mapbox token: {e}")
         
-        deck = pdk.Deck(
-            map_style=map_style,
-            initial_view_state=pdk.ViewState(
-                latitude=38,
-                longitude=-99,
-                zoom=3,
-                pitch=0,
-            ),
-            layers=[
-                pdk.Layer(
-                    "ScatterplotLayer",
-                    data=results_df,
-                    get_position=["lon", "lat"],
-                    get_radius=15000,
-                    get_fill_color="color",
-                ),
-            ],
-        )
-        
-        # Set the mapbox token if available
+        # Create the deck with proper token handling
         if mapbox_token:
-            deck.map_provider = "mapbox"
-            deck.api_keys = {"mapbox": mapbox_token}
+            deck = pdk.Deck(
+                map_style=map_style,
+                initial_view_state=pdk.ViewState(
+                    latitude=38,
+                    longitude=-99,
+                    zoom=3,
+                    pitch=0,
+                ),
+                layers=[
+                    pdk.Layer(
+                        "ScatterplotLayer",
+                        data=results_df,
+                        get_position=["lon", "lat"],
+                        get_radius=15000,
+                        get_fill_color="color",
+                    ),
+                ],
+                mapbox_key=mapbox_token  # This is the correct way to set the token
+            )
+        else:
+            deck = pdk.Deck(
+                map_style=map_style,
+                initial_view_state=pdk.ViewState(
+                    latitude=38,
+                    longitude=-99,
+                    zoom=3,
+                    pitch=0,
+                ),
+                layers=[
+                    pdk.Layer(
+                        "ScatterplotLayer",
+                        data=results_df,
+                        get_position=["lon", "lat"],
+                        get_radius=15000,
+                        get_fill_color="color",
+                    ),
+                ],
+            )
+        
+        logger.info(f"🗺️ Creating map with style: {map_style}")
         
         st.pydeck_chart(
             deck,
