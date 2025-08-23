@@ -13,9 +13,8 @@ def parse_store_name(store_name):
     # For example, "whole foods" -> "Whole Foods Market"
 
     client = OpenAI(api_key=st.secrets["OPENAI_KEY"])
-    #client = OpenAI(api_key="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")
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo-0125",
+        model="gpt-5-2025-08-07",
         response_format={"type": "json_object"},
         messages=[
             {
