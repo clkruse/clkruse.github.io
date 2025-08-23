@@ -23,13 +23,15 @@ def parse_store_name(store_name):
     response = client.chat.completions.create(
         model="gpt-5-2025-08-07",
         response_format={"type": "json_object"},
+        prefill = '{"osm_name": ',
         messages=[
             {
                 "role": "system",
-                "content": "You convert unstructured names of stores to their name on OpenStreetMap in JSON format.",
+                "content": "You convert unstructured names of stores to their name on OpenStreetMap in JSON format. The output format should be {'osm_name': 'name on OpenStreetMap'}",
             },
-            {"role": "user", "content": "The OSM name for " + store_name + " is "},
+            {"role": "user", "content": f"The store is {store_name}. The OpenStreetMap formatted output is:"},
         ],
+
     )
     
     # Log the full response
