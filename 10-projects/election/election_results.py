@@ -22,7 +22,6 @@ def parse_store_name(store_name):
     client = OpenAI(api_key=st.secrets["OPENAI_KEY"])
     response = client.chat.completions.create(
         model="gpt-5-2025-08-07",
-        temperature=0,
         response_format={"type": "json_object"},
         messages=[
             {
