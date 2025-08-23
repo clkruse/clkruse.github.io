@@ -1,4 +1,5 @@
 import json
+import logging
 import numpy as np
 import overpy
 import pandas as pd
@@ -7,11 +8,17 @@ import streamlit as st
 from openai import OpenAI
 import pydeck as pdk
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 
 def parse_store_name(store_name):
     # Use OpenAI to convert the store name to the OSM name
     # For example, "whole foods" -> "Whole Foods Market"
 
+    logger.info(f"🤖 Calling OpenAI API to parse store name: '{store_name}'")
+    
     client = OpenAI(api_key=st.secrets["OPENAI_KEY"])
     response = client.chat.completions.create(
         model="gpt-5-2025-08-07",
@@ -24,16 +31,26 @@ def parse_store_name(store_name):
             {"role": "user", "content": "The OSM name for " + store_name + " is "},
         ],
     )
+    
+    # Log the full response
+    logger.info(f"📝 OpenAI API Response: {response.choices[0].message.content}")
+    logger.info(f"💰 OpenAI API Usage: {response.usage}")
+    
     try:
-        name = json.loads(response.choices[0].message.content)["osm_name"]
+        parsed_response = json.loads(response.choices[0].message.content)
+        name = parsed_response["osm_name"]
+        logger.info(f"✅ Successfully parsed store name: '{store_name}' -> '{name}'")
         return name
-    except:
-        print(response.choices[0].message.content)
+    except Exception as e:
+        logger.error(f"❌ Failed to parse OpenAI response: {e}")
+        logger.error(f"Raw response content: {response.choices[0].message.content}")
         return store_name
 
 
 def get_locations(store_name):
 
+    logger.info(f"🗺️ Calling Overpass API to find locations for: '{store_name}'")
+    
     # Define the Overpass query
     query = """
     [out:json];
@@ -41,17 +58,36 @@ def get_locations(store_name):
     node["name"="{store_name}"](area.boundaryarea);
     out;
     """.format(store_name=store_name)
+    
+    logger.info(f"📋 Overpass query: {query.strip()}")
+    
     # Create Overpass API object
     api = overpy.Overpass()
 
-    # Send the query to Overpass API
-    result = api.query(query)
-
-    # Extract the locations
-    locations = []
-    for node in result.nodes:
-        locations.append([float(node.lon), float(node.lat)])
-    return locations
+    try:
+        # Send the query to Overpass API
+        result = api.query(query)
+        
+        logger.info(f"📊 Overpass API returned {len(result.nodes)} nodes")
+        
+        # Extract the locations
+        locations = []
+        for i, node in enumerate(result.nodes):
+            lat, lon = float(node.lat), float(node.lon)
+            locations.append([lon, lat])
+            if i < 5:  # Log first 5 locations for debugging
+                logger.info(f"📍 Location {i+1}: lat={lat}, lon={lon}")
+        
+        if len(result.nodes) > 5:
+            logger.info(f"... and {len(result.nodes) - 5} more locations")
+            
+        logger.info(f"✅ Successfully found {len(locations)} locations for '{store_name}'")
+        return locations
+        
+    except Exception as e:
+        logger.error(f"❌ Overpass API error: {e}")
+        logger.error(f"Query that failed: {query}")
+        return []
 
 
 def get_fips(lon, lat):
