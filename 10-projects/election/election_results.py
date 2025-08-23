@@ -23,7 +23,6 @@ def parse_store_name(store_name):
     response = client.chat.completions.create(
         model="gpt-5-2025-08-07",
         response_format={"type": "json_object"},
-        prefill = '{"osm_name": ',
         messages=[
             {
                 "role": "system",
