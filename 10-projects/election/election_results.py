@@ -172,33 +172,11 @@ if store_name:
         # set colors for points. If the county voted for Biden, make it blue. If it voted for Trump, make it red.
         results_df['color'] = [[36, 73, 153] if winner == "Biden" else [210, 37, 50] for winner in results_df["Winner"]]
         # make a map
-        # Check if Mapbox token is available in secrets
-        try:
-            mapbox_token = st.secrets["MAPBOX_KEY"]
-            logger.info(f"🗝️ Found Mapbox token in secrets (length: {len(mapbox_token)})")
-            
-            # Set the mapbox token in Streamlit's configuration for PyDeck to use
-            import os
-            os.environ['MAPBOX_TOKEN'] = mapbox_token
-            
-            map_style = "mapbox://styles/mapbox/light-v9"
-            logger.info("✅ Using Mapbox style with token")
-            
-        except KeyError:
-            # Fallback to a style that doesn't require a token
-            mapbox_token = None
-            map_style = "light"
-            logger.warning("⚠️ Mapbox token not found in secrets, using basic style")
-            st.warning("⚠️ Mapbox token not found in secrets. Using basic map style. Add MAPBOX_KEY to secrets for better styling.")
-        except Exception as e:
-            logger.error(f"❌ Error getting Mapbox token: {e}")
-            mapbox_token = None
-            map_style = "light"
-            st.error(f"Error getting Mapbox token: {e}")
         
         # Create the deck - PyDeck will automatically use the token from environment variable
         deck = pdk.Deck(
-            map_style=map_style,
+            api_keys={"mapbox": st.secrets["MAPBOX_KEY"]},
+            map_style="mapbox://styles/mapbox/light-v9",
             initial_view_state=pdk.ViewState(
                 latitude=38,
                 longitude=-99,
@@ -215,8 +193,6 @@ if store_name:
                 ),
             ],
         )
-        
-        logger.info(f"🗺️ Creating map with style: {map_style}")
         
         st.pydeck_chart(
             deck,
