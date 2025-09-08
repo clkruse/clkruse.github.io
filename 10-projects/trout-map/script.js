@@ -15,6 +15,12 @@ if (isTouchDevice && map && map.doubleClickZoom) {
   map.doubleClickZoom.disable();
 }
 
+// On mobile: disable map rotation gestures
+if (isTouchDevice) {
+  try { if (map && map.dragRotate && map.dragRotate.disable) map.dragRotate.disable(); } catch (_) {}
+  try { if (map && map.touchZoomRotate && map.touchZoomRotate.disableRotation) map.touchZoomRotate.disableRotation(); } catch (_) {}
+}
+
 // Mark body with device class for CSS targeting
 try {
   const cls = isTouchDevice ? 'is-touch' : 'is-not-touch';
@@ -27,6 +33,7 @@ try {
 let groupMode = "generic"; // "generic" (grouped) or "full" (full species)
 const enabledStates = new Set(); // empty => all states enabled
 let currentGeoJSON = null; // keep reference to re-render legend on control changes
+let legendCollapsed = false; // collapse legend body on mobile
 
 function hashCode(str) {
   let hash = 0;
@@ -196,24 +203,32 @@ function renderLegend(geojson) {
       return `<div class="row${disabledClass}" data-name="${name.replace(/"/g, '&quot;')}"><span class="swatch" style="background:${color}"></span><span>${name} (${count})</span></div>`;
     })
     .join("");
+  const header = isTouchDevice ? `
+    <div class="legend-header">
+      <div style="font-weight:600;">Legend</div>
+      <button class="legend-toggle" type="button" aria-label="Toggle legend">${legendCollapsed ? 'Show' : 'Hide'}</button>
+    </div>
+  ` : '';
   const modeControls = `
-    <div style=\"display:flex; flex-direction:column; gap:6px; margin-bottom:6px;\">
-      <div style=\"display:flex; align-items:center; gap:8px;\">
-        <div style=\"font-weight:600;\">Select:</div>
-        <span data-action=\"all\" style=\"text-decoration:${allShown ? 'underline' : 'none'}; cursor:pointer; margin-right:4px;\">All</span>
-        <span data-action=\"none\" style=\"text-decoration:${allHidden ? 'underline' : 'none'}; cursor:pointer;\">None</span>
+    <div style="display:flex; flex-direction:column; gap:6px; margin-bottom:6px;">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div style="font-weight:600;">Select:</div>
+        <span data-action="all" style="text-decoration:${allShown ? 'underline' : 'none'}; cursor:pointer; margin-right:4px;">All</span>
+        <span data-action="none" style="text-decoration:${allHidden ? 'underline' : 'none'}; cursor:pointer;">None</span>
       </div>
-      <div style=\"display:flex; align-items:center; gap:8px;\">
-        <div style=\"font-weight:600;\">Show:</div>
-        <span data-mode=\"generic\" style=\"text-decoration:${groupMode === 'generic' ? 'underline' : 'none'}; cursor:pointer; margin-right:4px;\">Groups</span>
-        <span data-mode=\"full\" style=\"text-decoration:${groupMode === 'full' ? 'underline' : 'none'}; cursor:pointer;\">All</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div style="font-weight:600;">Show:</div>
+        <span data-mode="generic" style="text-decoration:${groupMode === 'generic' ? 'underline' : 'none'}; cursor:pointer; margin-right:4px;">Groups</span>
+        <span data-mode="full" style="text-decoration:${groupMode === 'full' ? 'underline' : 'none'}; cursor:pointer;">All</span>
       </div>
-      <div style=\"display:flex; align-items:center; gap:8px; flex-wrap:wrap;\">
-        <div style=\"font-weight:600;\">States:</div>
+      <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+        <div style="font-weight:600;">States:</div>
         ${stateRows || '<span style="opacity:0.7">(none)</span>'}
       </div>
     </div>`;
-  container.innerHTML = modeControls + rows;
+  const body = `<div class="legend-body">${modeControls}${rows}</div>`;
+  container.innerHTML = header + body;
+  if (legendCollapsed) container.classList.add('collapsed'); else container.classList.remove('collapsed');
 
   // Wire click handlers for toggling
   const rowEls = container.querySelectorAll('.row');
@@ -307,6 +322,16 @@ function renderLegend(geojson) {
       renderLegend(currentGeoJSON || geojson);
     });
   });
+  // Legend collapse toggle (mobile)
+  const toggleBtn = container.querySelector('.legend-toggle');
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      legendCollapsed = !legendCollapsed;
+      container.classList.toggle('collapsed', legendCollapsed);
+      toggleBtn.textContent = legendCollapsed ? 'Show' : 'Hide';
+    });
+  }
   // no Max items component
 }
 
@@ -562,7 +587,9 @@ function addSourcesAndLayers(geojson) {
         // Limit popup image height to sheet max
         const maxH = Math.floor(Math.max(120, (window.innerHeight || canvas.clientHeight) * 0.4) - 48);
         content.innerHTML = buildHoverHTML(props, maxW, maxH);
+        // Prep animation: unhide, force reflow, then add open class
         sheet.hidden = false;
+        void sheet.offsetHeight; // force reflow
         document.body.classList.add('sheet-open');
         if (closeBtn) {
           closeBtn.onclick = () => {
