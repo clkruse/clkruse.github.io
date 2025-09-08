@@ -25,6 +25,7 @@ try {
 
 // UI/Legend state
 let groupMode = "generic"; // "generic" (grouped) or "full" (full species)
+const enabledStates = new Set(); // empty => all states enabled
 let currentGeoJSON = null; // keep reference to re-render legend on control changes
 
 function hashCode(str) {
@@ -112,12 +113,16 @@ function applyPointsFilter() {
   const sourceLayerId = "points";
   if (!map.getLayer(sourceLayerId)) return;
   const propertyKey = groupMode === "generic" ? "given_name" : "full_name";
-  if (hiddenGenericNames.size === 0) {
-    map.setFilter(sourceLayerId, null);
-  } else {
-    const hidden = Array.from(hiddenGenericNames);
-    map.setFilter(sourceLayerId, ["!", ["in", ["get", propertyKey], ["literal", hidden]]]);
-  }
+
+  const speciesFilter = hiddenGenericNames.size === 0
+    ? ["boolean", true]
+    : ["!", ["in", ["get", propertyKey], ["literal", Array.from(hiddenGenericNames)]]];
+
+  const stateFilter = enabledStates.size === 0
+    ? ["boolean", true]
+    : ["in", ["get", "state_code"], ["literal", Array.from(enabledStates)]];
+
+  map.setFilter(sourceLayerId, ["all", speciesFilter, stateFilter]);
 }
 
 function buildHoverHTML(props, maxImageWidthPx, maxImageHeightPx) {
@@ -150,8 +155,16 @@ function renderLegend(geojson) {
   // Build counts and a color mapping depending on grouping mode
   const counts = new Map();
   const fullToGeneric = new Map();
+  const stateCounts = new Map();
+  const isStateIncluded = (st) => {
+    const s = (st || "").toLowerCase();
+    return enabledStates.size === 0 || enabledStates.has(s);
+  };
   for (const f of geojson.features) {
     const props = f.properties || {};
+    const st = (props.state_code || "").toLowerCase();
+    if (st) stateCounts.set(st, (stateCounts.get(st) || 0) + 1);
+    if (!isStateIncluded(st)) continue;
     if (groupMode === "generic") {
       const name = props.given_name || props.generic_name || props.common_name || props.species_guess || props.scientific_name || "Unknown";
       counts.set(name, (counts.get(name) || 0) + 1);
@@ -169,6 +182,13 @@ function renderLegend(geojson) {
   const displayedNames = items.map((entry) => entry[0]);
   const allShown = displayedNames.length > 0 && displayedNames.every((n) => !hiddenGenericNames.has(n));
   const allHidden = displayedNames.length > 0 && displayedNames.every((n) => hiddenGenericNames.has(n));
+  const knownStates = ["ca","co","nv","ut","wy"]; // order
+  const stateRows = knownStates
+    .filter((s) => stateCounts.has(s))
+    .map((s) => {
+      const active = enabledStates.size === 0 || enabledStates.has(s);
+      return `<span class="state-chip${active ? '' : ' disabled'}" data-state="${s}">${s.toUpperCase()}</span>`;
+    }).join(" ");
   const rows = items
     .map(([name, count]) => {
       const color = groupMode === "generic" ? colorForGenericName(name) : colorForGenericName(fullToGeneric.get(name) || name);
@@ -187,6 +207,10 @@ function renderLegend(geojson) {
         <div style=\"font-weight:600;\">Show:</div>
         <span data-mode=\"generic\" style=\"text-decoration:${groupMode === 'generic' ? 'underline' : 'none'}; cursor:pointer; margin-right:4px;\">Groups</span>
         <span data-mode=\"full\" style=\"text-decoration:${groupMode === 'full' ? 'underline' : 'none'}; cursor:pointer;\">All</span>
+      </div>
+      <div style=\"display:flex; align-items:center; gap:8px; flex-wrap:wrap;\">
+        <div style=\"font-weight:600;\">States:</div>
+        ${stateRows || '<span style="opacity:0.7">(none)</span>'}
       </div>
     </div>`;
   container.innerHTML = modeControls + rows;
@@ -260,6 +284,29 @@ function renderLegend(geojson) {
       applyPointsFilter();
     });
   });
+  // State toggles (multi-select). Empty set means all enabled
+  const stateChips = container.querySelectorAll('.state-chip');
+  stateChips.forEach((chip) => {
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const code = chip.getAttribute('data-state');
+      if (!code) return;
+      if (enabledStates.has(code)) {
+        enabledStates.delete(code);
+        chip.classList.add('disabled');
+      } else {
+        enabledStates.add(code);
+        chip.classList.remove('disabled');
+      }
+      // Normalize: if all known states selected, treat as all (empty set)
+      const allKnown = ["ca","co","nv","ut","wy"].filter((s) => stateCounts.has(s));
+      if (allKnown.length > 0 && allKnown.every((s) => enabledStates.has(s))) {
+        enabledStates.clear();
+      }
+      applyPointsFilter();
+      renderLegend(currentGeoJSON || geojson);
+    });
+  });
   // no Max items component
 }
 
@@ -294,6 +341,7 @@ function csvToGeoJSON(rows) {
         generic_name: genericName,
         given_name: givenName,
         color: pointColor,
+        state_code: row.state_code || row.state || row.us_state || "",
       },
     });
   }
@@ -506,14 +554,22 @@ function addSourcesAndLayers(geojson) {
       clearSelection();
       const sheet = document.getElementById('sheet');
       const content = document.getElementById('sheet-content');
+      const closeBtn = document.getElementById('sheet-close');
       if (sheet && content) {
         const canvas = map.getCanvas();
         const padding = 16;
         const maxW = Math.max(260, Math.min(640, canvas.clientWidth - 2 * padding));
-        const maxH = Math.max(200, Math.min(480, canvas.clientHeight - 2 * padding));
+        // Limit popup image height to sheet max
+        const maxH = Math.floor(Math.max(120, (window.innerHeight || canvas.clientHeight) * 0.4) - 48);
         content.innerHTML = buildHoverHTML(props, maxW, maxH);
         sheet.hidden = false;
         document.body.classList.add('sheet-open');
+        if (closeBtn) {
+          closeBtn.onclick = () => {
+            document.body.classList.remove('sheet-open');
+            sheet.hidden = true;
+          };
+        }
       }
     } else {
       if (url) {
@@ -561,8 +617,18 @@ function parseCsv(path) {
   });
 }
 
+function computeStateFromPath(path) {
+  // expects filenames like observations-ca-09-07-25-clean.csv
+  try {
+    const base = String(path).split("/").pop() || "";
+    const parts = base.split("-");
+    if (parts.length >= 3) return parts[1].toLowerCase();
+  } catch (_) {}
+  return "";
+}
+
 function loadCsvAndRender() {
-  const paths = [
+  const allPaths = [
     "data/observations-co-09-07-25-clean.csv",
     "data/observations-ca-09-07-25-clean.csv",
     "data/observations-nv-09-07-25-clean.csv",
@@ -570,16 +636,30 @@ function loadCsvAndRender() {
     "data/observations-wy-09-07-25-clean.csv"
   ];
 
+  const paths = allPaths; // always load all; filter via enabledStates
+
   Promise.allSettled(paths.map(parseCsv))
     .then((results) => {
       const allRows = [];
-      for (const r of results) {
+      for (let i = 0; i < results.length; i++) {
+        const r = results[i];
         if (r.status === "fulfilled" && Array.isArray(r.value) && r.value.length > 0) {
-          allRows.push(...r.value);
+          const state = computeStateFromPath(paths[i]);
+          for (const row of r.value) {
+            if (!row.state_code) row.state_code = state;
+            allRows.push(row);
+          }
         }
       }
       if (allRows.length === 0) {
         console.error("No rows loaded from clean CSVs", paths);
+        // Clear map if no data
+        if (map.getSource("observations")) {
+          const empty = { type: "FeatureCollection", features: [] };
+          map.getSource("observations").setData(empty);
+          currentGeoJSON = empty;
+          renderLegend(empty);
+        }
         return;
       }
       // Dedupe by a stable key
@@ -594,8 +674,13 @@ function loadCsvAndRender() {
       }
       const geojson = csvToGeoJSON(deduped);
       currentGeoJSON = geojson;
-      addSourcesAndLayers(geojson);
+      if (map.getSource("observations")) {
+        map.getSource("observations").setData(geojson);
+      } else {
+        addSourcesAndLayers(geojson);
+      }
       renderLegend(geojson);
+      applyPointsFilter();
       if (geojson.features.length > 0) {
         const bounds = new mapboxgl.LngLatBounds();
         for (const f of geojson.features) {
@@ -609,6 +694,29 @@ function loadCsvAndRender() {
     });
 }
 
-map.on("load", loadCsvAndRender);
+function populateStateSelector() {
+  const select = document.getElementById("state-select");
+  if (!select) return;
+  // Hardcode from known dataset list, derived from filenames
+  const options = [
+    { value: "all", label: "All states" },
+    { value: "ca", label: "California" },
+    { value: "co", label: "Colorado" },
+    { value: "nv", label: "Nevada" },
+    { value: "ut", label: "Utah" },
+    { value: "wy", label: "Wyoming" },
+  ];
+  select.innerHTML = options.map((o) => `<option value="${o.value}">${o.label}</option>`).join("");
+  select.value = selectedState;
+  select.addEventListener("change", () => {
+    selectedState = select.value || "all";
+    hiddenGenericNames.clear();
+    loadCsvAndRender();
+  });
+}
+
+map.on("load", () => {
+  loadCsvAndRender();
+});
 
 
