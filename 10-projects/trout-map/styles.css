@@ -63,4 +63,55 @@ html, body {
   outline: none;
 }
 
+/* Prevent popup from stealing hover/mouse events on desktop to avoid jitter */
+body.is-not-touch .mapboxgl-popup,
+body.is-not-touch .mapboxgl-popup-content,
+body.is-not-touch .mapboxgl-popup-tip {
+  pointer-events: none;
+}
+
+/* On touch, keep popup within viewport and scale down content */
+body.is-touch .mapboxgl-popup {
+  max-width: 92vw !important;
+}
+body.is-touch .mapboxgl-popup-content {
+  max-width: 92vw !important;
+  max-height: 80vh !important;
+  overflow: auto;
+}
+body.is-touch .mapboxgl-popup-content .popup-card {
+  width: 100%;
+}
+body.is-touch .mapboxgl-popup-content img {
+  max-width: 100% !important;
+  height: auto !important;
+}
+
+/* Mobile bottom sheet */
+#sheet[hidden] { display: none; }
+#sheet {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255,255,255,0.97);
+  box-shadow: 0 -2px 12px rgba(0,0,0,0.18);
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+  padding: 8px 12px 12px;
+  transform: translateY(100%);
+  transition: transform 160ms ease-out;
+  max-height: 70vh;
+  overflow: auto;
+}
+body.sheet-open #sheet { transform: translateY(0); }
+#sheet-handle {
+  width: 44px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0,0,0,0.25);
+  margin: 4px auto 8px;
+}
+#sheet-content img { max-width: 100%; height: auto; border-radius: 6px; }
+
 

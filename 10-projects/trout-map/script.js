@@ -15,6 +15,18 @@ if (isTouchDevice && map && map.doubleClickZoom) {
   map.doubleClickZoom.disable();
 }
 
+// Mark body with device class for CSS targeting
+try {
+  const cls = isTouchDevice ? 'is-touch' : 'is-not-touch';
+  if (document && document.body && !document.body.classList.contains(cls)) {
+    document.body.classList.add(cls);
+  }
+} catch (_) {}
+
+// UI/Legend state
+let groupMode = "generic"; // "generic" (grouped) or "full" (full species)
+let currentGeoJSON = null; // keep reference to re-render legend on control changes
+
 function hashCode(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -35,7 +47,7 @@ const EXACT_NAME_COLORS = {
   "rainbow trout": "#e53e3e",
   "redband trout": "#e53e3e",
   "brook trout": "#2e7d32",
-  "general salmonid": "#9ca3af",
+  "unspecified": "#9ca3af",
   "brown trout": "#8b4513",
   "golden trout": "#ffce00",
   "cutthroat trout": "#177cff",
@@ -78,7 +90,7 @@ const FIXED_COLORS_LOOKUP = {
   tiger: EXACT_NAME_COLORS["tiger trout"],
   lake: EXACT_NAME_COLORS["lake trout"],
   salmon: EXACT_NAME_COLORS["salmon"],
-  salmonid: EXACT_NAME_COLORS["general salmonid"],
+  salmonid: EXACT_NAME_COLORS["Unspecified"],
 };
 
 function colorForGenericName(genericName) {
@@ -93,17 +105,18 @@ function colorForGenericName(genericName) {
   return colorForName(n);
 }
 
-// Track which given_name groups are hidden via legend toggles
+// Track which legend entries are hidden via legend toggles (per current mode)
 const hiddenGenericNames = new Set();
 
 function applyPointsFilter() {
   const sourceLayerId = "points";
   if (!map.getLayer(sourceLayerId)) return;
+  const propertyKey = groupMode === "generic" ? "given_name" : "full_name";
   if (hiddenGenericNames.size === 0) {
     map.setFilter(sourceLayerId, null);
   } else {
     const hidden = Array.from(hiddenGenericNames);
-    map.setFilter(sourceLayerId, ["!", ["in", ["get", "given_name"], ["literal", hidden]]]);
+    map.setFilter(sourceLayerId, ["!", ["in", ["get", propertyKey], ["literal", hidden]]]);
   }
 }
 
@@ -134,30 +147,49 @@ function buildHoverHTML(props, maxImageWidthPx, maxImageHeightPx) {
 function renderLegend(geojson) {
   const container = document.getElementById("legend");
   if (!container) return;
+  // Build counts and a color mapping depending on grouping mode
   const counts = new Map();
+  const fullToGeneric = new Map();
   for (const f of geojson.features) {
     const props = f.properties || {};
-    const name = props.given_name || props.generic_name || props.common_name || props.species_guess || props.scientific_name || "Unknown";
-    counts.set(name, (counts.get(name) || 0) + 1);
+    if (groupMode === "generic") {
+      const name = props.given_name || props.generic_name || props.common_name || props.species_guess || props.scientific_name || "Unknown";
+      counts.set(name, (counts.get(name) || 0) + 1);
+    } else {
+      const full = props.common_name || props.species_guess || props.scientific_name || "Unknown";
+      const generic = props.generic_name || props.given_name || full;
+      counts.set(full, (counts.get(full) || 0) + 1);
+      if (!fullToGeneric.has(full)) fullToGeneric.set(full, generic);
+    }
   }
-  const items = Array.from(counts.entries())
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 15);
+  let items = Array.from(counts.entries()).sort((a, b) => b[1] - a[1]);
+  if (groupMode === 'generic') {
+    items = items.slice(0, 15);
+  } // in full mode, show all
+  const displayedNames = items.map((entry) => entry[0]);
+  const allShown = displayedNames.length > 0 && displayedNames.every((n) => !hiddenGenericNames.has(n));
+  const allHidden = displayedNames.length > 0 && displayedNames.every((n) => hiddenGenericNames.has(n));
   const rows = items
     .map(([name, count]) => {
-      const color = colorForGenericName(name);
+      const color = groupMode === "generic" ? colorForGenericName(name) : colorForGenericName(fullToGeneric.get(name) || name);
       const disabledClass = hiddenGenericNames.has(name) ? " disabled" : "";
       return `<div class="row${disabledClass}" data-name="${name.replace(/"/g, '&quot;')}"><span class="swatch" style="background:${color}"></span><span>${name} (${count})</span></div>`;
     })
     .join("");
-  container.innerHTML = `
-    <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-      <div style="font-weight:600;">Select:</div>
-      <span data-action="all" style="text-decoration:underline; cursor:pointer; margin-right:4px;">All</span>
-      <span data-action="none" style="text-decoration:underline; cursor:pointer;">None</span>
-    </div>
-    ${rows}
-  `;
+  const modeControls = `
+    <div style=\"display:flex; flex-direction:column; gap:6px; margin-bottom:6px;\">
+      <div style=\"display:flex; align-items:center; gap:8px;\">
+        <div style=\"font-weight:600;\">Select:</div>
+        <span data-action=\"all\" style=\"text-decoration:${allShown ? 'underline' : 'none'}; cursor:pointer; margin-right:4px;\">All</span>
+        <span data-action=\"none\" style=\"text-decoration:${allHidden ? 'underline' : 'none'}; cursor:pointer;\">None</span>
+      </div>
+      <div style=\"display:flex; align-items:center; gap:8px;\">
+        <div style=\"font-weight:600;\">Show:</div>
+        <span data-mode=\"generic\" style=\"text-decoration:${groupMode === 'generic' ? 'underline' : 'none'}; cursor:pointer; margin-right:4px;\">Groups</span>
+        <span data-mode=\"full\" style=\"text-decoration:${groupMode === 'full' ? 'underline' : 'none'}; cursor:pointer;\">All</span>
+      </div>
+    </div>`;
+  container.innerHTML = modeControls + rows;
 
   // Wire click handlers for toggling
   const rowEls = container.querySelectorAll('.row');
@@ -173,6 +205,7 @@ function renderLegend(geojson) {
         el.classList.add('disabled');
       }
       applyPointsFilter();
+      renderLegend(currentGeoJSON || geojson);
     });
   });
 
@@ -185,24 +218,49 @@ function renderLegend(geojson) {
       hiddenGenericNames.clear();
       container.querySelectorAll('.row').forEach((el) => el.classList.remove('disabled'));
       applyPointsFilter();
+      renderLegend(currentGeoJSON || geojson);
     });
   }
   if (noneBtn) {
     noneBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       hiddenGenericNames.clear();
-      const names = [];
-      container.querySelectorAll('.row').forEach((el) => {
-        const n = el.getAttribute('data-name');
-        if (n) {
-          names.push(n);
-          el.classList.add('disabled');
+      // Hide ALL categories in the current mode, not just visible rows
+      const namesToHide = new Set();
+      if (groupMode === 'generic') {
+        // hide each unique given_name
+        for (const f of (currentGeoJSON || geojson).features) {
+          const props = f.properties || {};
+          const n = props.given_name || props.generic_name || props.common_name || props.species_guess || props.scientific_name || 'Unknown';
+          namesToHide.add(n);
         }
-      });
-      names.forEach((n) => hiddenGenericNames.add(n));
+      } else {
+        // hide each unique full_name
+        for (const f of (currentGeoJSON || geojson).features) {
+          const props = f.properties || {};
+          const n = props.full_name || props.common_name || props.species_guess || props.scientific_name || 'Unknown';
+          namesToHide.add(n);
+        }
+      }
+      namesToHide.forEach((n) => hiddenGenericNames.add(n));
       applyPointsFilter();
+      renderLegend(currentGeoJSON || geojson);
     });
   }
+
+  // Mode change handlers (Show: Groups | All)
+  const modeLinks = container.querySelectorAll('[data-mode]');
+  modeLinks.forEach((el) => {
+    el.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const val = el.getAttribute('data-mode');
+      groupMode = val === 'full' ? 'full' : 'generic';
+      hiddenGenericNames.clear();
+      renderLegend(currentGeoJSON || geojson);
+      applyPointsFilter();
+    });
+  });
+  // no Max items component
 }
 
 // Utility: convert CSV rows to GeoJSON FeatureCollection
@@ -215,6 +273,7 @@ function csvToGeoJSON(rows) {
 
     const genericName = row.generic_name || row.common_name || row.species_guess || row.scientific_name || "Unknown";
     const givenName = row.given_name || genericName;
+    const fullName = row.common_name || row.species_guess || row.scientific_name || "Unknown";
     const pointColor = colorForGenericName(genericName);
 
     features.push({
@@ -231,6 +290,7 @@ function csvToGeoJSON(rows) {
         species_guess: row.species_guess,
         scientific_name: row.scientific_name,
         common_name: row.common_name,
+        full_name: fullName,
         generic_name: genericName,
         given_name: givenName,
         color: pointColor,
@@ -304,6 +364,7 @@ function addSourcesAndLayers(geojson) {
   }
 
   function showHoverPopup(coordinates, html, maxW, maxH) {
+    if (isTouchDevice) return; // never show mapbox popup on touch
     const seq = ++pendingPopupSeq;
 
     // Build DOM but do not display until media is ready
@@ -313,9 +374,19 @@ function addSourcesAndLayers(geojson) {
     const configureImages = () => {
       const imgs = contentEl.querySelectorAll('img');
       imgs.forEach((img) => {
-        img.style.maxWidth = `${maxW}px`;
-        img.style.maxHeight = `${maxH}px`;
-        img.style.width = 'auto';
+        // Constrain images; on touch, use container width
+        const viewportW = Math.max(0, Math.min(window.innerWidth || 0, document.documentElement ? document.documentElement.clientWidth : 0));
+        const viewportH = Math.max(0, Math.min(window.innerHeight || 0, document.documentElement ? document.documentElement.clientHeight : 0));
+        const canvas = map.getCanvas();
+        const effectiveMaxW = isTouchDevice
+          ? Math.max(220, Math.min(maxW, (viewportW || canvas.clientWidth) - 24))
+          : maxW;
+        const effectiveMaxH = isTouchDevice
+          ? Math.max(160, Math.min(maxH, (viewportH || canvas.clientHeight) - 24))
+          : maxH;
+        img.style.maxWidth = `${effectiveMaxW}px`;
+        img.style.maxHeight = `${effectiveMaxH}px`;
+        img.style.width = isTouchDevice ? '100%' : 'auto';
         img.style.height = 'auto';
         img.style.display = 'block';
         img.style.borderRadius = '4px';
@@ -325,17 +396,34 @@ function addSourcesAndLayers(geojson) {
 
     const showNow = () => {
       if (seq !== pendingPopupSeq) return; // stale
+      // Compute viewport-constrained dimensions
+      const canvas = map.getCanvas();
+      const vw = Math.max(0, Math.min(window.innerWidth || 0, document.documentElement ? document.documentElement.clientWidth : 0)) || canvas.clientWidth;
+      const vh = Math.max(0, Math.min(window.innerHeight || 0, document.documentElement ? document.documentElement.clientHeight : 0)) || canvas.clientHeight;
+      const padding = isTouchDevice ? 16 : 20;
+      const effectiveMaxW = Math.floor(Math.min(maxW + 20, vw - padding));
+      const effectiveMaxH = Math.floor(Math.min(maxH + 20, vh - padding));
       configureImages();
+      const anchor = resolvePopupAnchor(coordinates, effectiveMaxW, effectiveMaxH);
+
+      if (hoverPopup && isTouchDevice) {
+        // Recreate popup on touch to refresh anchor and sizing to avoid overflow
+        try { hoverPopup.remove(); } catch (_) {}
+        hoverPopup = null;
+      }
+
       if (!hoverPopup) {
         hoverPopup = new mapboxgl.Popup({
           closeButton: isTouchDevice,
           closeOnClick: false,
           offset: 12,
-          maxWidth: `${maxW + 20}px`,
+          maxWidth: `${effectiveMaxW}px`,
+          anchor: anchor,
+          className: 'obs-popup'
         });
         hoverPopup.setLngLat(coordinates).setDOMContent(contentEl).addTo(map);
       } else {
-        if (hoverPopup.setMaxWidth) hoverPopup.setMaxWidth(`${maxW + 20}px`);
+        if (hoverPopup.setMaxWidth) hoverPopup.setMaxWidth(`${effectiveMaxW}px`);
         hoverPopup.setDOMContent(contentEl);
         hoverPopup.setLngLat(coordinates);
       }
@@ -370,6 +458,7 @@ function addSourcesAndLayers(geojson) {
   }
 
   map.on("mouseenter", "points", (e) => {
+    if (isTouchDevice) return;
     map.getCanvas().style.cursor = "pointer";
     const feature = e.features && e.features[0];
     if (!feature) return;
@@ -384,6 +473,7 @@ function addSourcesAndLayers(geojson) {
   });
 
   map.on("mousemove", "points", (e) => {
+    if (isTouchDevice) return;
     const feature = e.features && e.features[0];
     if (!feature) return;
     const props = feature.properties || {};
@@ -397,6 +487,7 @@ function addSourcesAndLayers(geojson) {
   });
 
   map.on("mouseleave", "points", () => {
+    if (isTouchDevice) return;
     map.getCanvas().style.cursor = "";
     pendingPopupSeq++; // cancel any pending show
     if (hoverPopup) hoverPopup.remove();
@@ -411,23 +502,18 @@ function addSourcesAndLayers(geojson) {
     const url = props && props.url;
 
     if (isTouchDevice) {
-      const key = getFeatureKey(feature);
-      if (lastTappedFeatureKey && key === lastTappedFeatureKey) {
-        if (url) {
-          const win = window.open(url, "_blank", "noopener");
-          if (win) {
-            try { win.opener = null; } catch (_) {}
-          }
-        }
-      } else {
-        const coordinates = feature.geometry.coordinates.slice();
+      // Route to bottom sheet instead of popup
+      clearSelection();
+      const sheet = document.getElementById('sheet');
+      const content = document.getElementById('sheet-content');
+      if (sheet && content) {
         const canvas = map.getCanvas();
-        const padding = 32;
+        const padding = 16;
         const maxW = Math.max(260, Math.min(640, canvas.clientWidth - 2 * padding));
         const maxH = Math.max(200, Math.min(480, canvas.clientHeight - 2 * padding));
-        const html = buildHoverHTML(props, maxW, maxH);
-        showHoverPopup(coordinates, html, maxW, maxH);
-        lastTappedFeatureKey = key;
+        content.innerHTML = buildHoverHTML(props, maxW, maxH);
+        sheet.hidden = false;
+        document.body.classList.add('sheet-open');
       }
     } else {
       if (url) {
@@ -445,6 +531,11 @@ function addSourcesAndLayers(geojson) {
     const features = map.queryRenderedFeatures(e.point, { layers: ["points"] });
     if (!features || features.length === 0) {
       clearSelection();
+      const sheet = document.getElementById('sheet');
+      if (sheet) {
+        document.body.classList.remove('sheet-open');
+        sheet.hidden = true;
+      }
     }
   });
 }
@@ -502,6 +593,7 @@ function loadCsvAndRender() {
         }
       }
       const geojson = csvToGeoJSON(deduped);
+      currentGeoJSON = geojson;
       addSourcesAndLayers(geojson);
       renderLegend(geojson);
       if (geojson.features.length > 0) {
