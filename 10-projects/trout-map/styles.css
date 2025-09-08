@@ -44,4 +44,23 @@ html, body {
   text-decoration: line-through;
 }
 
+/* Popup styles: prevent blue focus/tap outlines on card and images */
+.mapboxgl-popup-content a {
+  display: block;
+  text-decoration: none;
+  color: inherit;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.mapboxgl-popup-content a:focus,
+.mapboxgl-popup-content a:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.mapboxgl-popup-content img {
+  border: 0;
+  outline: none;
+}
+
 

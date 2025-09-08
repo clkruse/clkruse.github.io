@@ -9,6 +9,12 @@ const map = new mapboxgl.Map({
 
 map.addControl(new mapboxgl.NavigationControl(), "top-right");
 
+// Detect touch devices and adjust interactions
+const isTouchDevice = ("ontouchstart" in window) || (navigator.maxTouchPoints > 0) || (window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+if (isTouchDevice && map && map.doubleClickZoom) {
+  map.doubleClickZoom.disable();
+}
+
 function hashCode(str) {
   let hash = 0;
   for (let i = 0; i < str.length; i++) {
@@ -105,15 +111,24 @@ function buildHoverHTML(props, maxImageWidthPx, maxImageHeightPx) {
   const common = props.common_name || props.species_guess || props.scientific_name || "Unknown";
   const date = props.observed_on ? new Date(props.observed_on).toLocaleDateString() : "";
   const img = props.image_url
-    ? `<img src="${props.image_url}" alt="${common.replace(/\"/g, "'")}" style="max-width:${maxImageWidthPx}px; max-height:${maxImageHeightPx}px; width:auto; height:auto; display:block; border-radius:4px; margin-top:6px;"/>`
+    ? `<img class="popup-img" src="${props.image_url}" alt="${common.replace(/\"/g, "'")}" style="max-width:${maxImageWidthPx}px; max-height:${maxImageHeightPx}px; width:auto; height:auto; display:block; border-radius:4px; margin-top:6px;"/>`
     : "";
-  return `
-    <div style="font-size:13px; line-height:1.3">
-      <div style="font-weight:600">${common}</div>
-      ${date ? `<div>${date}</div>` : ""}
+  const inner = `
+    <div class="popup-card" style="font-size:13px; line-height:1.3">
+      <div class="popup-meta" style="font-weight:600">${common}</div>
+      ${date ? `<div class="popup-date">${date}</div>` : ""}
       ${img}
     </div>
   `;
+  const url = props && props.url ? String(props.url) : "";
+  if (url) {
+    return `
+      <a href="${url}" target="_blank" rel="noopener noreferrer" style="text-decoration:none; color:inherit; display:block;">
+        ${inner}
+      </a>
+    `;
+  }
+  return inner;
 }
 
 function renderLegend(geojson) {
@@ -262,6 +277,8 @@ function addSourcesAndLayers(geojson) {
 
   let hoverPopup = null;
   let currentPopupAnchor = null;
+  let lastTappedFeatureKey = null;
+  let pendingPopupSeq = 0;
 
   function resolvePopupAnchor(coordinates, approxWidth, approxHeight) {
     const canvas = map.getCanvas();
@@ -287,21 +304,68 @@ function addSourcesAndLayers(geojson) {
   }
 
   function showHoverPopup(coordinates, html, maxW, maxH) {
-    const anchor = resolvePopupAnchor(coordinates, maxW, maxH);
-    if (!hoverPopup || currentPopupAnchor !== anchor) {
-      if (hoverPopup) hoverPopup.remove();
-      hoverPopup = new mapboxgl.Popup({
-        closeButton: false,
-        closeOnClick: false,
-        anchor,
-        offset: 12,
-        maxWidth: `${maxW + 20}px`,
+    const seq = ++pendingPopupSeq;
+
+    // Build DOM but do not display until media is ready
+    const contentEl = document.createElement('div');
+    contentEl.innerHTML = html;
+
+    const configureImages = () => {
+      const imgs = contentEl.querySelectorAll('img');
+      imgs.forEach((img) => {
+        img.style.maxWidth = `${maxW}px`;
+        img.style.maxHeight = `${maxH}px`;
+        img.style.width = 'auto';
+        img.style.height = 'auto';
+        img.style.display = 'block';
+        img.style.borderRadius = '4px';
+        img.style.marginTop = '6px';
       });
-      currentPopupAnchor = anchor;
-      hoverPopup.setLngLat(coordinates).setHTML(html).addTo(map);
+    };
+
+    const showNow = () => {
+      if (seq !== pendingPopupSeq) return; // stale
+      configureImages();
+      if (!hoverPopup) {
+        hoverPopup = new mapboxgl.Popup({
+          closeButton: isTouchDevice,
+          closeOnClick: false,
+          offset: 12,
+          maxWidth: `${maxW + 20}px`,
+        });
+        hoverPopup.setLngLat(coordinates).setDOMContent(contentEl).addTo(map);
+      } else {
+        if (hoverPopup.setMaxWidth) hoverPopup.setMaxWidth(`${maxW + 20}px`);
+        hoverPopup.setDOMContent(contentEl);
+        hoverPopup.setLngLat(coordinates);
+      }
+    };
+
+    const firstImg = contentEl.querySelector('img');
+    if (firstImg && !firstImg.complete) {
+      firstImg.addEventListener('load', showNow, { once: true });
+      firstImg.addEventListener('error', showNow, { once: true });
     } else {
-      if (hoverPopup.setMaxWidth) hoverPopup.setMaxWidth(`${maxW + 20}px`);
-      hoverPopup.setLngLat(coordinates).setHTML(html);
+      showNow();
+    }
+  }
+
+  function getFeatureKey(feature) {
+    const props = feature && feature.properties ? feature.properties : {};
+    if (props && props.id) return String(props.id);
+    if (props && props.url) return String(props.url);
+    const coords = feature && feature.geometry && feature.geometry.coordinates;
+    const observed = props && props.observed_on ? String(props.observed_on) : "";
+    return coords ? `${coords[0]},${coords[1]},${observed}` : observed;
+  }
+
+  function clearSelection() {
+    lastTappedFeatureKey = null;
+    pendingPopupSeq++; // cancel any pending show
+    if (hoverPopup) {
+      hoverPopup.remove();
+      hoverPopup = null;
+      currentPopupAnchor = null;
     }
   }
 
@@ -334,6 +398,7 @@ function addSourcesAndLayers(geojson) {
 
   map.on("mouseleave", "points", () => {
     map.getCanvas().style.cursor = "";
+    pendingPopupSeq++; // cancel any pending show
     if (hoverPopup) hoverPopup.remove();
     hoverPopup = null;
     currentPopupAnchor = null;
@@ -342,12 +407,44 @@ function addSourcesAndLayers(geojson) {
   map.on("click", "points", (e) => {
     const feature = e.features && e.features[0];
     if (!feature) return;
-    const url = feature.properties && feature.properties.url;
-    if (url) {
-      const win = window.open(url, "_blank", "noopener");
-      if (win) {
-        try { win.opener = null; } catch (_) {}
+    const props = feature.properties || {};
+    const url = props && props.url;
+
+    if (isTouchDevice) {
+      const key = getFeatureKey(feature);
+      if (lastTappedFeatureKey && key === lastTappedFeatureKey) {
+        if (url) {
+          const win = window.open(url, "_blank", "noopener");
+          if (win) {
+            try { win.opener = null; } catch (_) {}
+          }
+        }
+      } else {
+        const coordinates = feature.geometry.coordinates.slice();
+        const canvas = map.getCanvas();
+        const padding = 32;
+        const maxW = Math.max(260, Math.min(640, canvas.clientWidth - 2 * padding));
+        const maxH = Math.max(200, Math.min(480, canvas.clientHeight - 2 * padding));
+        const html = buildHoverHTML(props, maxW, maxH);
+        showHoverPopup(coordinates, html, maxW, maxH);
+        lastTappedFeatureKey = key;
       }
+    } else {
+      if (url) {
+        const win = window.open(url, "_blank", "noopener");
+        if (win) {
+          try { win.opener = null; } catch (_) {}
+        }
+      }
+    }
+  });
+
+  // Clear selection on background tap on touch devices
+  map.on("click", (e) => {
+    if (!isTouchDevice) return;
+    const features = map.queryRenderedFeatures(e.point, { layers: ["points"] });
+    if (!features || features.length === 0) {
+      clearSelection();
     }
   });
 }
