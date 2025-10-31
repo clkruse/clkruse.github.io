@@ -109,7 +109,7 @@ body {
   /* Add bottom spacer so the last section can scroll higher to trip the figure change */
   .left-scroll::after { content: ""; display: block; height: 50vh; }
   .left-scroll::-webkit-scrollbar { display: none; } /* WebKit */
-  .pixel-header { position: sticky; top: 0; z-index: 10; background: var(--bg); }
+  .pixel-header { position: sticky; top: 0; z-index: 10 }
   .right-panel { grid-column: 2; position: sticky; top: 16px; align-self: start; width: 100%; box-sizing: border-box; }
   .right-panel .content-section { padding: 0; }
   .main-grid .content-section { margin: 0; }
@@ -199,7 +199,7 @@ body {
   flex-direction: column;
   gap: 10px;
   background: var(--paper);
-  box-shadow: 0 1px 0 rgba(2,6,23,0.04), 0 10px 30px rgba(2,6,23,0.05);
+  box-shadow: 0 1px 0 rgba(2,6,23,0.04), 0 3px 5px rgba(2,6,23,0.05)
   width: 100%;
   box-sizing: border-box;
   min-width: 0; /* allow shrinking in 2-col mobile grid */
@@ -269,7 +269,7 @@ body {
 
 /* Very narrow mobile screens: shrink even more aggressively */
 @media (max-width: 480px) {
-  body { padding: 4px; }
+  body { padding: 24px; }
   .main-grid { gap: 8px; }
   .pixel-header { margin: 4px auto 8px auto; padding: 0; }
   .pixel-title { font-size: clamp(24px, 8vw, 48px); letter-spacing: 1px; }
@@ -277,22 +277,122 @@ body {
   .content-section { padding: 0; margin: 8px auto; }
   .content-section p { font-size: 16px; }
   .section-title { font-size: clamp(20px, 5vw, 28px); }
-  .viewer-slim { padding: 6px; }
-  .metrics-row { gap: 2px; flex-wrap: nowrap; }
-  .selector-group { gap: 2px; }
+  .viewer-slim { padding: 4px 6px; }
+  .metrics-row { gap: 6px; flex-wrap: nowrap; }
+  .selector-group { gap: 2px; padding: 0; }
+  .viewer-slim .selector-group {
+    min-width: 0;
+    flex-shrink: 0;
+  }
+  .selector-group label { 
+    font-size: 9px;
+    white-space: nowrap;
+  }
   .metrics-badge { font-size: 0.7rem; }
-  select { max-width: 70px; font-size: 10px; padding: 3px 4px; }
-  .metric { font-size: 1.1rem !important; }
-  .metric-group .metric { font-size: 1.1rem !important; margin-left: 1px; }
+  select { 
+    max-width: 110px; 
+    font-size: 10px; 
+    padding: 3px 4px;
+    line-height: 1.2;
+  }
+  #datasetSelect-compare,
+  #modelSelect-3d,
+  #modelSelect-rot,
+  #modelSelect-color,
+  #modelSelect-subj {
+    max-width: 90px;
+    font-size: 10px;
+    padding: 2px 4px;
+  }
+  .image-dropdown {
+    font-size: 9px;
+    padding: 3px 4px;
+  }
+  .metric { font-size: 0.95rem !important; }
+  .metric-group .metric { font-size: 0.95rem !important; margin-left: 0px; }
   .small-label { 
-    font-size: 0.7rem !important; 
+    font-size: 0.65rem !important; 
     letter-spacing: 0px;
-    max-width: 30px;
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+    white-space: nowrap;
   }
   .spacer { width: 4px; }
   .viewers { gap: 6px; }
-  .viewer { padding: 8px; }
-  .legend { width: 12px; }
+  .viewer { 
+    padding: 6px; 
+    gap: 4px;
+    overflow-x: visible !important;
+  }
+  .viewer .selector-group { 
+    padding: 2px 4px !important;
+    margin-top: 0;
+  }
+  .slider-row {
+    padding: 2px 2px;
+    gap: 8px;
+    overflow: visible;
+  }
+  .angle-label {
+    font-size: 10px;
+    min-width: 30px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+  input[type="range"] {
+    height: 3px;
+    flex: 1;
+    min-width: 0;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    width: 12px;
+    height: 12px;
+  }
+  input[type="range"]::-moz-range-thumb {
+    width: 12px;
+    height: 12px;
+  }
+  .legend { width: 10px; height: 2px; }
+  .image-frame { border-radius: 6px; margin-bottom: 0; }
+  .plot-card { 
+    padding-top: 6px; 
+    margin-top: 4px; 
+  }
+  .plot-card .metrics-row {
+    gap: 4px;
+  }
+  .plot-card .small-label {
+    font-size: 0.55rem !important;
+  }
+  .plot-card .selector-group {
+    padding: 0;
+  }
+  .plot {
+    padding: 4px;
+  }
+  .plot svg {
+    overflow: visible;
+  }
+  .plot-label {
+    font-size: 8px !important;
+  }
+  .plot-axis-title {
+    font-size: 9px !important;
+  }
+  .plot-marker-label {
+    font-size: 9px !important;
+  }
+  
+  /* Make Dewey chart text more compact */
+  #chart-dewey .children text,
+  #chart-dewey .textdiv {
+    font-size: 9px !important;
+    line-height: 1.2;
+  }
+  #chart-dewey .grandparent text {
+    font-size: 10px !important;
+  }
 }
 .metric {
   font-size: 2.2rem;

@@ -149,13 +149,15 @@ function renderLineChart(containerId, xValues, series, options = {}) {
   }
   const h = options.height || 200;
   // compute margins to fit tick labels and axis titles (tighter spacing)
-  let bottom = 16;
-  if (options.showXLabels) bottom += 12;
-  if (options.axisTitleX) bottom += 14;
-  let left = 36;
-  if (options.showYLabels) left += 24;
-  if (options.axisTitleY) left += 22;
-  const margin = { top: 20, right: 16, bottom, left };
+  // use smaller margins on mobile
+  const isMobile = window.innerWidth <= 480;
+  let bottom = isMobile ? 12 : 16;
+  if (options.showXLabels) bottom += (isMobile ? 8 : 12);
+  if (options.axisTitleX) bottom += (isMobile ? 10 : 14);
+  let left = isMobile ? 22 : 36;
+  if (options.showYLabels) left += (isMobile ? 14 : 24);
+  if (options.axisTitleY) left += (isMobile ? 14 : 22);
+  const margin = { top: (isMobile ? 14 : 20), right: (isMobile ? 8 : 16), bottom, left };
   const xMin = options.xDomain ? options.xDomain[0] : (xValues[0] ?? 0);
   const xMax = options.xDomain ? options.xDomain[1] : (xValues[xValues.length - 1] ?? 1);
   let minY, maxY;
