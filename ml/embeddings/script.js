@@ -829,6 +829,10 @@ function renderDewey() {
         formatNumber = d3.format(",d"),
         transitioning;
 
+    const labelFontSize = 13;
+    const labelLineHeight = 1.4;
+    const labelLineHeightPx = labelFontSize * labelLineHeight;
+
     var x = d3.scale.linear()
         .domain([0, width])
         .range([0, width]);
@@ -880,14 +884,14 @@ function renderDewey() {
         .attr("width", width)
         .attr("height", margin.top);
 
-    grandparent.append("text")
+    const grandparentText = grandparent.append("text")
         .attr("x", width / 2)
         .attr("y", 6 - margin.top)
         .attr("dy", ".75em")
         .attr('text-anchor', "middle")
         .attr("font-style", "italic")
         .style("font-size","13")
-        .text("Click a category to zoom in; click header bar to zoom out");
+        .text("Click a category to zoom");
 
     initialize(root);
     accumulate(root);
@@ -963,6 +967,12 @@ function renderDewey() {
       grandparent
           .datum(d.parent)
           .on("click", transition);
+
+      if (d.parent) {
+        grandparentText.text("Click to zoom out");
+      } else {
+        grandparentText.text("Click a category to zoom");
+      }
       
       // Update the header label
       var headerLabel = document.getElementById('dewey-header-label');
@@ -1013,14 +1023,26 @@ function renderDewey() {
         .append("xhtml:div") 
             .attr("dy", ".75em")
             .html(getLabelText)
-            .style("font-size","13px")
+          .style("font-size", labelFontSize + "px")
             .style("font-family","Departure Mono, ui-monospace, monospace")
             .style("font-weight","500")
             .style("letter-spacing","0.3px")
-            .style("line-height","1.4")
+          .style("line-height", labelLineHeight)
+          .style("display","-webkit-box")
+          .style("-webkit-box-orient","vertical")
             .style("overflow","hidden")
-            .style("text-overflow","ellipsis")
-            .style("white-space","nowrap")
+          .style("text-overflow","clip")
+          .style("white-space","normal")
+          .style("word-break","break-word")
+          .style("max-height", function(d) {
+              const available = Math.max(y(d.y + d.dy) - y(d.y) - 8, 0);
+              return available + "px";
+          })
+          .style("-webkit-line-clamp", function(d) {
+              const available = Math.max(y(d.y + d.dy) - y(d.y) - 8, 0);
+              const maxLines = Math.max(1, Math.floor(available / labelLineHeightPx));
+              return String(maxLines);
+          })
             .style("opacity", function(d) {
                 return shouldShowLabel(d) ? 1 : 0;
             })
@@ -1089,7 +1111,9 @@ function renderDewey() {
           .attr("width", function(d) { 
               return Math.max(x(d.x + d.dx) - x(d.x) - 10,0);
           })
-          .attr("height", function(d) { return y(d.y + d.dy) - y(d.y); });
+          .attr("height", function(d) { 
+              return Math.max(y(d.y + d.dy) - y(d.y) - 8, 0);
+          });
     }
 
     function name(d) {

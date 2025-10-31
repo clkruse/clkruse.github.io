@@ -111,7 +111,7 @@
                 Now let's try a few more experiments. Let's compare <button class="config-button" onclick="window.setCompareImages('Animals', 'Beagle', 'Vizsla')">two floppy-eared breeds of dogs</button>. The CLIP model thinks that they are even more similar than the two gray parrots, but the DINO model thinks that they are quite far apart. This is interesting! It means that the CLIP model groups them together as dogs, but the DINO model thinks that they are significantly different.
             </p>
             <p>
-                Make some comparisons of your own. You might try comparing a <button class="config-button" onclick="window.setCompareImages('Animals', 'Leopard', 'Lynx')">Leopard to a Lynx</button>, a <button class="config-button" onclick="window.setCompareImages('Animals', 'Raccoon', 'Chihuahua')">racoon to a chihuahua</button>, or a <button class="config-button" onclick="window.setCompareImages('Animals', 'Red Squirrel', 'Beaver')">squirrel to a beaver</button>.
+                Make some comparisons of your own. You might try comparing a <button class="config-button" onclick="window.setCompareImages('Animals', 'Leopard', 'Lynx')">leopard to a lynx</button>, a <button class="config-button" onclick="window.setCompareImages('Animals', 'Raccoon', 'Chihuahua')">racoon to a chihuahua</button>, or a <button class="config-button" onclick="window.setCompareImages('Animals', 'Red Squirrel', 'Beaver')">squirrel to a beaver</button>.
             </p>
             <p>
                 In doing these tests, we can start to build up intuition for how the models perceive the images. It seems like the DINO model is more sensitive to differences in images, while the CLIP model might group at a more conceptual level. CLIP might be saying something like "these are all animals to me", whereas DINO is saying "this dog looks nothing like that other dog!" Both are equally correct, but it gives a clue toward how these models represent the world.
@@ -226,7 +226,7 @@
             <div class="image-frame">
               <img id="img-compare-1" alt="Compare Image 1" loading="lazy" />
             </div>
-            <div class="selector-group" style="padding: 0.5rem;">
+            <div class="selector-group">
               <select id="imageSelect-compare-1" aria-label="Image 1 selector" class="image-dropdown"></select>
             </div>
           </div>
@@ -235,7 +235,7 @@
             <div class="image-frame">
               <img id="img-compare-2" alt="Compare Image 2" loading="lazy" />
             </div>
-            <div class="selector-group" style="padding: 0.5rem;">
+            <div class="selector-group">
               <select id="imageSelect-compare-2" aria-label="Image 2 selector" class="image-dropdown"></select>
             </div>
           </div>

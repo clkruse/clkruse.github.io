@@ -79,7 +79,7 @@ body {
 }
 .content-section p { 
   margin: 8px 0; 
-  font-size: 20px;
+  font-size: 18px;
   max-width: 100%;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -142,7 +142,7 @@ body {
 .pixel-char { font-family: "Departure Mono", ui-monospace, monospace; font-size: 11px; fill: currentColor; }
 .pixel-title {
   margin: 6px 0 2px 0;
-  font-size: clamp(32px, 7vw, 72px);
+  font-size: clamp(64px, calc(32px + 2vw), 72px);
   line-height: 1;
   text-transform: uppercase;
   letter-spacing: 2px;
@@ -156,6 +156,8 @@ body {
   max-width: 100%;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  font-size: 22px;
+  line-height: 1.1;
 }
 .pixel-rule {
   height: 12px;
@@ -194,12 +196,12 @@ body {
 .viewer {
   border: 1px solid var(--border);
   border-radius: 12px;
-  padding: 14px;
+  padding: 6px;
   display: flex;
   flex-direction: column;
   gap: 10px;
   background: var(--paper);
-  box-shadow: 0 1px 0 rgba(2,6,23,0.04), 0 3px 5px rgba(2,6,23,0.05)
+  box-shadow: 0 1px 0 rgba(2,6,23,0.04), 0 3px 5px rgba(2,6,23,0.05);
   width: 100%;
   box-sizing: border-box;
   min-width: 0; /* allow shrinking in 2-col mobile grid */
@@ -240,7 +242,7 @@ body {
   letter-spacing: 1px;
   font-family: "Departure Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   text-transform: uppercase;
-  font-size: 1.65rem;
+  font-size: clamp(0.9rem, calc(0.85rem + 0.5vw), 1.2rem);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -264,7 +266,7 @@ body {
   select { max-width: 90px; font-size: 13px; padding: 5px 6px; }
   .metric { font-size: 1.55rem; }
   .metric-group { gap: 4px; }
-  .small-label { font-size: 1.25rem; letter-spacing: 0.5px; }
+  .small-label { font-size: clamp(0.8rem, calc(0.85rem + 0.4vw), 1.05rem); letter-spacing: 0.5px; }
 }
 
 /* Very narrow mobile screens: shrink even more aggressively */
@@ -662,8 +664,10 @@ input[type="range"]::-moz-range-thumb {
   font-weight: 500;
   line-height: 1.4;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
 }
 
 #chart-dewey foreignObject {
