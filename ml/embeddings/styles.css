@@ -1,0 +1,518 @@
+:root {
+  color-scheme: light;
+  --bg: #f6f7fb;               /* soft paper */
+  --paper: #ffffff;            /* card backgrounds */
+  --muted: #6b7280;            /* slate-500 */
+  --text: #0f172a;             /* slate-900 */
+  --text-dim: #475569;         /* slate-600 */
+  --accent: #1a56ff;           /* blueprint blue */
+  --accent-weak: rgba(26,86,255,0.14);
+  --border: #e5e7eb;           /* subtle borders */
+  --grid-dot: rgba(2,6,23,0.06); /* tiny dot grid */
+}
+@font-face {
+  font-family: "Departure Mono";
+  src: url("fonts/DepartureMono-Regular.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+body {
+  margin: 0;
+  font-family: "Departure Mono", ui-monospace, SFMono-Regular, Menlo, Monaco,
+    Consolas, "Liberation Mono", "Courier New", monospace;
+  line-height: 1.6;
+  padding: 16px;
+  background-color: var(--bg);
+  background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
+  background-size: 10px 10px;
+  background-position: -1px -1px;
+  color: var(--text);
+}
+.container {
+  max-width: 1600px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.main-grid {
+  max-width: 1600px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+  align-items: start;
+}
+/* left-scroll holds the scrollable text stack on wide screens */
+.content-section {
+  max-width: 1600px;
+  margin: 18px auto;
+  padding: 0 6px;
+  color: var(--text-dim);
+  font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+}
+.content-section p { margin: 8px 0; font-size: 20px; }
+.section-title {
+  margin: 0 0 6px 0;
+  font-size: clamp(24px, 3.8vw, 36px);
+  color: var(--text);
+  font-family: "Departure Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+@media (min-width: 1100px) {
+  html, body { 
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+  .main-grid { grid-template-columns: 1fr 1.2fr; }
+  .left-scroll {
+    grid-column: 1;
+    height: calc(100vh - 160px);
+    overflow-y: auto;
+    padding-right: 10px;
+    -ms-overflow-style: none; /* IE/Edge */
+    scrollbar-width: none;    /* Firefox */
+  }
+  /* Add bottom spacer so the last section can scroll higher to trip the figure change */
+  .left-scroll::after { content: ""; display: block; height: 50vh; }
+  .left-scroll::-webkit-scrollbar { display: none; } /* WebKit */
+  .pixel-header { position: sticky; top: 0; z-index: 10; background: var(--bg); }
+  .right-panel { grid-column: 2; position: sticky; top: 16px; align-self: start; width: 100%; box-sizing: border-box; }
+  .right-panel .content-section { padding: 0; }
+  .main-grid .content-section { margin: 0; }
+  .main-grid .container { max-width: 100%; margin: 0; }
+  .main-grid .viewers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Inline figures: visible only on small screens beneath each text section */
+.inline-figure { display: none; }
+@media (max-width: 1099px) {
+  #right-panel { display: none; }
+  .inline-figure { display: block; }
+  .left-scroll { position: static; height: auto; overflow: visible; }
+}
+.image-dropdown {
+  width: 100%;
+  max-width: 100%;
+}
+/* Pixelated header */
+.pixel-header {
+  max-width: 1600px;
+  margin: 12px auto 18px auto;
+  padding: 8px 6px 0 6px;
+}
+.pixel-divider { color: rgba(2,6,23,0.28); display: block; }
+.pixel-char { font-family: "Departure Mono", ui-monospace, monospace; font-size: 11px; fill: currentColor; }
+.pixel-title {
+  margin: 6px 0 2px 0;
+  font-size: clamp(32px, 7vw, 72px);
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #0a51e9;
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+}
+.pixel-tagline {
+  color: var(--text-dim);
+  margin-bottom: 8px;
+}
+.pixel-rule {
+  height: 12px;
+  margin: 10px 0;
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgba(2,6,23,0.18) 0 6px,
+      rgba(2,6,23,0.0) 6px 20px
+    );
+  border: 0;
+  background-color: transparent;
+}
+.controls {
+  display: none;
+}
+.viewers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 16px;
+  align-items: start;
+  margin-top: 6px;   /* add breathing room below selector card */
+  margin-bottom: 6px;/* add space above the plot card */
+}
+/* Force two side-by-side viewers across mobile/tablet widths */
+@media (max-width: 1099px) {
+  .viewers { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .metrics-row { flex-wrap: wrap; row-gap: 6px; }
+}
+/* Make similarity card span full width across the viewers grid */
+#viewer3 { grid-column: 1 / -1; }
+@media (min-width: 720px) and (max-width: 1099px) {
+  .viewers { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #viewer3 { grid-column: 1 / -1; }
+}
+.viewer {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--paper);
+  box-shadow: 0 1px 0 rgba(2,6,23,0.04), 0 10px 30px rgba(2,6,23,0.05);
+  width: 100%;
+  box-sizing: border-box;
+  min-width: 0; /* allow shrinking in 2-col mobile grid */
+}
+.viewer-slim { padding: 10px 14px; }
+.plot-card { padding-top: 8px; margin-top: 6px; grid-column: 1 / -1; }
+.metrics-header { display: flex; margin-bottom: 4px; }
+.metrics-badge {
+  display: inline-block;
+  font-size: 1.05rem;
+  color: var(--text-dim);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: "Departure Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+.metrics-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.metric-group { display: flex; align-items: center; gap: 8px; }
+.metric-group.align-right { justify-content: end; }
+.metric-group .metric { font-size: 1.65rem; margin-left: 4px; }
+.small-legend { gap: 10px; }
+.legend { width: 16px; height: 3px; display: inline-block; border-radius: 2px; align-self: center; }
+.legend-clip { background: #1a56ff; }
+.legend-dino { background: #10b981; }
+.small-label {
+  letter-spacing: 1px;
+  font-family: "Departure Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  text-transform: uppercase;
+  font-size: 1.65rem;
+}
+.selector-group { display: flex; align-items: center; gap: 8px; }
+.spacer { width: 16px; height: 1px; }
+
+/* Narrow screens: shrink everything to keep on one line */
+@media (max-width: 800px) {
+  .viewer-slim { padding: 8px; }
+  .metrics-row { flex-wrap: nowrap !important; gap: 6px; }
+  .selector-group { gap: 4px; }
+  .metrics-badge { font-size: 0.85rem; letter-spacing: 0.5px; }
+  select { max-width: 90px; font-size: 13px; padding: 5px 6px; }
+  .metric { font-size: 1.55rem; }
+  .metric-group { gap: 4px; }
+  .small-label { font-size: 1.25rem; letter-spacing: 0.5px; }
+}
+.metric {
+  font-size: 2.2rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.2px;
+  color: var(--accent);
+  font-family: "Departure Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+.metric-clip {
+  color: #1a56ff;
+}
+.metric-dino {
+  color: #10b981;
+}
+.muted {
+  color: var(--muted);
+}
+.image-frame {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background: var(--paper);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 1px solid var(--border);
+}
+.image-frame img {
+  width: 100%;
+  height: auto;
+  object-fit: contain;
+  display: block;
+}
+.image-frame img[src=""], .image-frame img:not([src]) {
+  display: none;
+}
+.slider-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+.angle-label {
+  min-width: 3ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-dim);
+  font-size: 15px;
+  font-family: "Departure Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+select {
+  color: var(--text);
+  background: var(--paper);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  max-width: 150px;
+  font-size: 15px;
+  font-family: "Departure Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+select:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent-weak), rgba(26,86,255,0.0)), var(--border);
+  border-radius: 999px;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 4px var(--accent-weak);
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid #ffffff;
+  box-shadow: 0 0 0 4px var(--accent-weak);
+}
+
+/* Plot styles */
+.plot { width: 100%; }
+.plot-svg { display: block; width: 100%; height: auto; }
+.plot-axis { stroke: var(--border); stroke-width: 1; }
+.plot-tick { stroke: var(--border); stroke-width: 1; }
+.plot-label { font-size: 15px; fill: var(--muted); font-family: "Departure Mono", ui-monospace, monospace; }
+.plot-card .small-label { font-size: 18px; }
+.plot-line { fill: none; stroke-width: 2; }
+.plot-line.line-clip { stroke: #1a56ff; }
+.plot-line.line-dino { stroke: #10b981; }
+.plot-marker { stroke: rgba(2,6,23,0.28); stroke-dasharray: 4 3; }
+.plot-marker-label { font-size: 13px; fill: var(--accent); font-family: "Departure Mono", ui-monospace, monospace; font-weight: 600; }
+.plot-axis-title { font-size: 17px; fill: var(--muted); font-family: "Departure Mono", ui-monospace, monospace; }
+
+/* Cosine Similarity Interactive Plot */
+.cosine-metric {
+  color: var(--accent);
+}
+.vector-plot-container {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: 0 auto;
+  position: relative;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+}
+.vector-plot-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: default;
+}
+.vector-line {
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+.vector-line-1 { stroke: #1a56ff; }
+.vector-line-2 { stroke: #10b981; }
+.vector-point {
+  cursor: grab;
+  transition: r 0.1s;
+}
+.vector-point:hover {
+  r: 10;
+}
+.vector-point:active {
+  cursor: grabbing;
+}
+.vector-point-1 { fill: #1a56ff; stroke: #ffffff; stroke-width: 2; }
+.vector-point-2 { fill: #10b981; stroke: #ffffff; stroke-width: 2; }
+.angle-arc {
+  fill: none;
+  stroke: rgba(2,6,23,0.3);
+  stroke-width: 1.5;
+  stroke-dasharray: 3 2;
+}
+.angle-label-bg {
+  fill: var(--bg);
+  stroke: var(--border);
+  stroke-width: 1.5;
+  opacity: 0.95;
+}
+.angle-label-text {
+  font-size: 17px;
+  fill: var(--text);
+  font-family: "Departure Mono", ui-monospace, monospace;
+  font-weight: 600;
+}
+.grid-line {
+  stroke: var(--border);
+  stroke-width: 0.5;
+  opacity: 0.5;
+}
+.axis-line {
+  stroke: var(--text-dim);
+  stroke-width: 1.5;
+}
+.axis-arrow {
+  fill: var(--text-dim);
+}
+
+/* Interactive config buttons within text */
+.config-button {
+  display: inline;
+  background: rgba(26,86,255,0.08);
+  color: var(--accent);
+  border: 1px solid rgba(26,86,255,0.2);
+  border-radius: 3px;
+  padding: 0px 4px;
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+.config-button:hover {
+  background: rgba(26,86,255,0.14);
+  border-color: rgba(26,86,255,0.35);
+  box-shadow: 0 1px 2px rgba(26,86,255,0.1);
+}
+.config-button:active {
+  background: rgba(26,86,255,0.18);
+  transform: translateY(0.5px);
+}
+.config-button:focus {
+  outline: 2px solid rgba(26,86,255,0.5);
+  outline-offset: 2px;
+}
+
+/* Sidebar note / footnote styling */
+.sidebar-note {
+  font-size: 15px;
+  line-height: 1.5;
+  padding: 0.75rem 1rem;
+  margin: 1.0rem 0;
+  background: var(--hover-bg);
+  border-left: 3px solid var(--border);
+  color: var(--text-dim);
+  font-style: italic;
+}
+.sidebar-note::before {
+  content: "Note: ";
+  font-weight: 600;
+  font-style: normal;
+  color: var(--text);
+}
+
+/* Dewey Decimal Treemap */
+.dewey-chart {
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 8px;
+  margin: 0 auto;
+}
+
+.dewey-chart svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Treemap text styles */
+#chart-dewey text {
+  pointer-events: none;
+  font-family: "Departure Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  fill: var(--text);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+#chart-dewey .grandparent text {
+  font-size: 13px;
+  font-weight: 600;
+  fill: #4a5568;
+}
+
+#chart-dewey .children text,
+#chart-dewey .textdiv {
+  font-size: 13px;
+  font-family: "Departure Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-weight: 500;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+#chart-dewey foreignObject {
+  overflow: hidden;
+}
+
+/* Treemap rect styles */
+#chart-dewey rect {
+  fill: none;
+  stroke: var(--paper);
+  stroke-width: 2px;
+}
+
+#chart-dewey rect.parent,
+#chart-dewey .grandparent rect {
+  stroke-width: 2px;
+}
+
+#chart-dewey .grandparent rect {
+  fill: #e3e3e3;
+  transition: fill 0.15s ease;
+}
+
+#chart-dewey .grandparent:hover rect {
+  fill: #b0ccf0;
+}
+
+#chart-dewey .children rect.parent,
+#chart-dewey .grandparent rect {
+  cursor: pointer;
+}
+
+#chart-dewey .children rect.parent {
+  fill: rgba(0, 0, 0, 0.05);
+  fill-opacity: 1;
+  transition: fill 0.15s ease;
+}
+
+#chart-dewey .children:hover rect.parent {
+  fill: rgba(0, 0, 0, 0.1);
+}
+
+#chart-dewey .children:hover rect.child {
+  opacity: 0.85;
+}
+
+
