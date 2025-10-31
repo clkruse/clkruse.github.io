@@ -1,3 +1,7 @@
+* {
+  box-sizing: border-box;
+}
+
 :root {
   color-scheme: light;
   --bg: #f6f7fb;               /* soft paper */
@@ -9,6 +13,16 @@
   --accent-weak: rgba(26,86,255,0.14);
   --border: #e5e7eb;           /* subtle borders */
   --grid-dot: rgba(2,6,23,0.06); /* tiny dot grid */
+}
+
+html {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+img, svg, canvas, video {
+  max-width: 100%;
+  height: auto;
 }
 @font-face {
   font-family: "Departure Mono";
@@ -28,6 +42,8 @@ body {
   background-size: 10px 10px;
   background-position: -1px -1px;
   color: var(--text);
+  overflow-x: hidden;
+  width: 100%;
 }
 .container {
   max-width: 1600px;
@@ -35,6 +51,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  overflow-x: hidden;
+  min-width: 0;
 }
 .main-grid {
   max-width: 1600px;
@@ -43,16 +61,29 @@ body {
   grid-template-columns: 1fr;
   gap: 24px;
   align-items: start;
+  overflow-x: hidden;
 }
 /* left-scroll holds the scrollable text stack on wide screens */
+.left-scroll {
+  min-width: 0;
+  overflow-x: hidden;
+}
 .content-section {
   max-width: 1600px;
   margin: 18px auto;
   padding: 0 6px;
   color: var(--text-dim);
   font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+  overflow-x: hidden;
+  min-width: 0;
 }
-.content-section p { margin: 8px 0; font-size: 20px; }
+.content-section p { 
+  margin: 8px 0; 
+  font-size: 20px;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
 .section-title {
   margin: 0 0 6px 0;
   font-size: clamp(24px, 3.8vw, 36px);
@@ -87,7 +118,11 @@ body {
 }
 
 /* Inline figures: visible only on small screens beneath each text section */
-.inline-figure { display: none; }
+.inline-figure { 
+  display: none;
+  max-width: 100%;
+  overflow: hidden;
+}
 @media (max-width: 1099px) {
   #right-panel { display: none; }
   .inline-figure { display: block; }
@@ -118,6 +153,9 @@ body {
 .pixel-tagline {
   color: var(--text-dim);
   margin-bottom: 8px;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 .pixel-rule {
   height: 12px;
@@ -136,7 +174,7 @@ body {
 }
 .viewers {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(320px, 100%), 1fr));
   gap: 16px;
   align-items: start;
   margin-top: 6px;   /* add breathing room below selector card */
@@ -165,6 +203,7 @@ body {
   width: 100%;
   box-sizing: border-box;
   min-width: 0; /* allow shrinking in 2-col mobile grid */
+  overflow-x: hidden;
 }
 .viewer-slim { padding: 10px 14px; }
 .plot-card { padding-top: 8px; margin-top: 6px; grid-column: 1 / -1; }
@@ -182,8 +221,15 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
+  min-width: 0;
 }
-.metric-group { display: flex; align-items: center; gap: 8px; }
+.metric-group { 
+  display: flex; 
+  align-items: center; 
+  gap: 8px;
+  min-width: 0;
+  flex-shrink: 1;
+}
 .metric-group.align-right { justify-content: end; }
 .metric-group .metric { font-size: 1.65rem; margin-left: 4px; }
 .small-legend { gap: 10px; }
@@ -195,8 +241,18 @@ body {
   font-family: "Departure Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   text-transform: uppercase;
   font-size: 1.65rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
-.selector-group { display: flex; align-items: center; gap: 8px; }
+.selector-group { 
+  display: flex; 
+  align-items: center; 
+  gap: 8px;
+  min-width: 0;
+  flex-shrink: 1;
+}
 .spacer { width: 16px; height: 1px; }
 
 /* Narrow screens: shrink everything to keep on one line */
@@ -209,6 +265,34 @@ body {
   .metric { font-size: 1.55rem; }
   .metric-group { gap: 4px; }
   .small-label { font-size: 1.25rem; letter-spacing: 0.5px; }
+}
+
+/* Very narrow mobile screens: shrink even more aggressively */
+@media (max-width: 480px) {
+  body { padding: 4px; }
+  .main-grid { gap: 8px; }
+  .pixel-header { margin: 4px auto 8px auto; padding: 0; }
+  .pixel-title { font-size: clamp(24px, 8vw, 48px); letter-spacing: 1px; }
+  .pixel-tagline { font-size: 14px; }
+  .content-section { padding: 0; margin: 8px auto; }
+  .content-section p { font-size: 16px; }
+  .section-title { font-size: clamp(20px, 5vw, 28px); }
+  .viewer-slim { padding: 6px; }
+  .metrics-row { gap: 2px; flex-wrap: nowrap; }
+  .selector-group { gap: 2px; }
+  .metrics-badge { font-size: 0.7rem; }
+  select { max-width: 70px; font-size: 10px; padding: 3px 4px; }
+  .metric { font-size: 1.1rem !important; }
+  .metric-group .metric { font-size: 1.1rem !important; margin-left: 1px; }
+  .small-label { 
+    font-size: 0.7rem !important; 
+    letter-spacing: 0px;
+    max-width: 30px;
+  }
+  .spacer { width: 4px; }
+  .viewers { gap: 6px; }
+  .viewer { padding: 8px; }
+  .legend { width: 12px; }
 }
 .metric {
   font-size: 2.2rem;
@@ -267,6 +351,7 @@ select {
   border-radius: 10px;
   padding: 8px 12px;
   max-width: 150px;
+  min-width: 0;
   font-size: 15px;
   font-family: "Departure Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
 }
@@ -301,8 +386,12 @@ input[type="range"]::-moz-range-thumb {
 }
 
 /* Plot styles */
-.plot { width: 100%; }
-.plot-svg { display: block; width: 100%; height: auto; }
+.plot { 
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+}
+.plot-svg { display: block; width: 100%; height: auto; max-width: 100%; }
 .plot-axis { stroke: var(--border); stroke-width: 1; }
 .plot-tick { stroke: var(--border); stroke-width: 1; }
 .plot-label { font-size: 15px; fill: var(--muted); font-family: "Departure Mono", ui-monospace, monospace; }
@@ -320,12 +409,14 @@ input[type="range"]::-moz-range-thumb {
 }
 .vector-plot-container {
   width: 100%;
+  max-width: 100%;
   aspect-ratio: 16 / 9;
   margin: 0 auto;
   position: relative;
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
+  overflow: hidden;
 }
 .vector-plot-svg {
   display: block;
@@ -418,10 +509,13 @@ input[type="range"]::-moz-range-thumb {
   line-height: 1.5;
   padding: 0.75rem 1rem;
   margin: 1.0rem 0;
-  background: var(--hover-bg);
+  background: var(--paper);
   border-left: 3px solid var(--border);
   color: var(--text-dim);
   font-style: italic;
+  max-width: 100%;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 .sidebar-note::before {
   content: "Note: ";
@@ -433,6 +527,7 @@ input[type="range"]::-moz-range-thumb {
 /* Dewey Decimal Treemap */
 .dewey-chart {
   width: 100%;
+  max-width: 100%;
   aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: 8px;
