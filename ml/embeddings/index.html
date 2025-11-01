@@ -170,20 +170,26 @@
       </section>
       <section id="text-rot" class="content-section" aria-label="Rotation description">
         <h2 class="section-title">Rotation</h2>
-        <p>It’s interesting to see the similarity between different images, but what happens if we transform the same image? We’ll start by looking at rotation. </p>
+        <p>Now that we’ve looked at the similarity between different images, let’s see what happens if we transform the same image. We’ll start by looking at rotation. As a human, you’d likely say that a rotated image is similar to the original, but a little different. Do the models say the same?</p>
         <p>
-          CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
-          captures strong structural cues from self-supervised learning. When the object
-          looks nearly identical from two angles, both scores rise. When views expose
-          different geometry (front vs. side), similarity drops.
-        </p>
-        <p>
-          Values come from precomputed matrices loaded from the <code>output_data/</code>
-          directory. Images are served from <code>output_views/</code>. Try sweeping both
-          sliders together to find stable regions, or move them in opposite directions to
-          see how symmetry affects the embeddings.
+          We’ll start with a <button class="config-button" onclick="window.setRotationExample(180, 'butterfly')">butterfly rotated 180˚</button>. You can see that CLIP finds that the two images are highly similar (0.98), while DINO sees them further apart (0.91).
         </p>
         <div id="inline-fig-rot" class="inline-figure"></div>
+        <p>
+          The chart on the bottom shows how the similarity score changes as a function of angle. You can see that the DINO model thinks the images are most different when <button class="config-button" onclick="window.setRotationExample(235, 'butterfly')">one is rotated by 235˚</button>.
+        </p>
+        <p>
+          A butterfly is a concrete semantic target. With a minimum similarity score of 0.975, it seems that CLIP consistently puts it into the same “butterfly” region of embedding space. 
+        </p>
+        <p>
+          But let’s take a look at a different type of image. We’ll use a <button class="config-button" onclick="window.setRotationExample(180, 'island')">satellite image of an island</button>. This is a less-concrete target, and one without a notion of “proper” orientation.
+        </p>
+        <p>
+          Now the CLIP model starts behaving more like what we’ve seen from the DINO model. It becomes more sensitive to rotations and finds <button class="config-button" onclick="window.setRotationExample(240, 'island')">certain orientations</button> to be highly dissimilar.
+        </p>
+        <p>
+          It also seems that the models might have a bias toward typical orientations. If we look at an <button class="config-button" onclick="window.setRotationExample(180, 'elk')">image of an elk</button> with the ocean and sky behind it, the DINO model finds an upside-down image very dissimilar.
+        </p>
       </section>
       <section id="text-3d" class="content-section" aria-label="3D rotation description">
         <h2 class="section-title">3D rotation</h2>

@@ -546,6 +546,8 @@ function setupSection(cfg) {
   // Subject mode needs header-derived angles and index-bounded sliders
   let headerAngles = [];
   const isSubject = !!cfg.isSubject;
+  const startEmpty = !!cfg.startEmpty;
+  const defaultSecondSlider = cfg.defaultSecondSlider ?? "180";
 
   const setSliderBounds = (count) => {
     if (!isSubject) return;
@@ -638,8 +640,35 @@ function setupSection(cfg) {
   if (isSubject) {
     onModelChange();
   } else {
-    try { $(cfg.sliders[1]).value = "180"; } catch (_) { }
-    render();
+    const selectEl = $(cfg.selectId);
+    if (startEmpty) {
+      const initialBase = selectEl ? `${cfg.viewsBase}/${selectEl.value}` : null;
+      if (initialBase) scheduleAnglePreloadFor(initialBase);
+      cfg.sliders.forEach((id, idx) => {
+        const sliderEl = $(id);
+        if (sliderEl) sliderEl.value = idx === 0 ? "0" : "0";
+      });
+      cfg.imgs.forEach((id) => {
+        const img = $(id);
+        if (img) {
+          img.removeAttribute('src');
+          img.dataset.currentSrc = "";
+          img.dataset.pendingOriginalSrc = "";
+        }
+      });
+      cfg.labels.forEach((id) => {
+        const label = $(id);
+        if (label) label.textContent = "—";
+      });
+    } else {
+      try {
+        const sliderEl = $(cfg.sliders[1]);
+        if (sliderEl && defaultSecondSlider != null) {
+          sliderEl.value = String(defaultSecondSlider);
+        }
+      } catch (_) { }
+      render();
+    }
   }
 
   // Keep chart responsive to container width
@@ -924,6 +953,31 @@ function initVectorPlot() {
     renderPlot();
   };
 }
+
+window.setRotationExample = (angleDeg, modelName) => {
+  const selectEl = $('modelSelect-rot');
+  const desiredModel = modelName || 'butterfly';
+  const normalized = Math.max(0, Math.min(360, Number(angleDeg) || 0));
+  const snapped = toFilenameAngle(normalized).angle;
+
+  const applyValues = () => {
+    const slider1 = $('slider-rot-1');
+    const slider2 = $('slider-rot-2');
+    if (slider1) slider1.value = '0';
+    if (slider2) {
+      slider2.value = String(snapped);
+      slider2.dispatchEvent(new Event('input'));
+    }
+  };
+
+  if (selectEl && selectEl.value !== desiredModel && Array.from(selectEl.options).some(opt => opt.value === desiredModel)) {
+    selectEl.value = desiredModel;
+    selectEl.dispatchEvent(new Event('change'));
+    requestAnimationFrame(applyValues);
+  } else {
+    applyValues();
+  }
+};
 
 // Track if Dewey has been rendered to prevent duplicate renders
 let deweyRendered = false;
@@ -1496,6 +1550,7 @@ function init() {
     viewsBase: "output_views/Rotation",
     plotId: "plot-rot",
     isSubject: false,
+    startEmpty: true,
   });
   setupSection({
     cat: "color",
