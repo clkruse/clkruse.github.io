@@ -228,7 +228,7 @@ function renderLineChart(containerId, xValues, series, options = {}) {
     parts.push(`<text class="plot-axis-title" x="${cx}" y="${cy}" text-anchor="middle">${options.axisTitleX}</text>`);
   }
   if (options.axisTitleY) {
-    const tx = 12;
+    const tx = 24;
     const ty = margin.top + innerH / 2;
     parts.push(`<text class="plot-axis-title" transform="translate(${tx},${ty}) rotate(-90)" text-anchor="middle">${options.axisTitleY}</text>`);
   }

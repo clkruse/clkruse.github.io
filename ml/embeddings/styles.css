@@ -227,7 +227,7 @@ body {
 }
 
 .pixel-title {
-  margin: 6px 0 2px 0;
+  margin: 8px 0 8px 0;
   font-size: clamp(64px, calc(32px + 2vw), 72px);
   line-height: 1;
   text-transform: uppercase;
@@ -466,12 +466,12 @@ body {
   }
 
   .pixel-title {
-    font-size: clamp(24px, 8vw, 48px);
+    font-size: clamp(24px, 12vw, 48px);
     letter-spacing: 1px;
   }
 
   .pixel-tagline {
-    font-size: 14px;
+    font-size: 18px;
   }
 
   .content-section {
