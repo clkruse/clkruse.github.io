@@ -69,6 +69,108 @@ function toFilenameAngle(value) {
   return { angle: clamped, name };
 }
 
+// -------- Image preloading helpers --------
+const imagePreloadCache = new Map(); // url -> Promise<string>
+const imageResolvedUrlCache = new Map(); // url -> resolved src (object URL or original)
+const imageObjectUrlMap = new Map(); // url -> object URL
+const imagePreloadGroups = new Set();
+
+function preloadImage(url) {
+  if (!url) return Promise.resolve(url);
+  if (imagePreloadCache.has(url)) return imagePreloadCache.get(url);
+  const p = (async () => {
+    try {
+      const res = await fetch(url, { cache: "force-cache", credentials: "omit" });
+      if (!res.ok) throw new Error(`Failed to preload ${url}: ${res.status}`);
+      const blob = await res.blob();
+      let objectUrl = imageObjectUrlMap.get(url);
+      if (!objectUrl) {
+        objectUrl = URL.createObjectURL(blob);
+        imageObjectUrlMap.set(url, objectUrl);
+      }
+      imageResolvedUrlCache.set(url, objectUrl);
+      return objectUrl;
+    } catch (err) {
+      console.warn(err);
+      imageResolvedUrlCache.set(url, url);
+      return url;
+    }
+  })();
+  imagePreloadCache.set(url, p);
+  return p;
+}
+
+function preloadImageBatch(urls, batchSize = 6, delay = 60) {
+  if (!Array.isArray(urls) || !urls.length) return;
+  let index = 0;
+  const loadNextBatch = () => {
+    const slice = urls.slice(index, index + batchSize);
+    slice.forEach((url) => preloadImage(url));
+    index += batchSize;
+    if (index < urls.length) {
+      setTimeout(loadNextBatch, delay);
+    }
+  };
+  loadNextBatch();
+}
+
+function schedulePreloadGroup(groupKey, urls) {
+  if (!urls || !urls.length) return;
+  if (imagePreloadGroups.has(groupKey)) return;
+  const unique = urls.filter((url) => url && !imagePreloadCache.has(url));
+  imagePreloadGroups.add(groupKey);
+  if (!unique.length) return;
+  preloadImageBatch(unique);
+}
+
+const ANGLE_FRAME_FILENAMES = (() => {
+  const names = [];
+  for (let angle = 0; angle < 360; angle += 5) {
+    const { name } = toFilenameAngle(angle);
+    if (!names.includes(name)) names.push(name);
+  }
+  return names;
+})();
+
+function scheduleAnglePreloadFor(baseViews) {
+  if (!baseViews) return;
+  const urls = ANGLE_FRAME_FILENAMES.map((name) => `${baseViews}/${name}`);
+  schedulePreloadGroup(`angles:${baseViews}`, urls);
+}
+
+function scheduleSubjectPreloadFor(baseViews, count) {
+  const total = Math.max(0, Number(count) || 0);
+  if (!baseViews || !total) return;
+  const urls = [];
+  for (let i = 0; i < total; i++) {
+    const name = `${String(i).padStart(3, "0")}.00.png`;
+    urls.push(`${baseViews}/${name}`);
+  }
+  schedulePreloadGroup(`subject:${baseViews}:${total}`, urls);
+}
+
+function applyImageWithPreload(img, url) {
+  if (!img || !url) return;
+  const cachedSrc = imageResolvedUrlCache.get(url);
+  if (cachedSrc) {
+    if (img.dataset.currentSrc !== cachedSrc) {
+      img.src = cachedSrc;
+      img.dataset.currentSrc = cachedSrc;
+    }
+  } else if (img.dataset.currentSrc !== url) {
+    img.src = url;
+    img.dataset.currentSrc = url;
+  }
+  img.dataset.pendingOriginalSrc = url;
+  preloadImage(url).then((resolvedSrc) => {
+    const finalSrc = resolvedSrc || url;
+    if (img.dataset.pendingOriginalSrc === url && img.dataset.currentSrc !== finalSrc) {
+      img.src = finalSrc;
+      img.dataset.currentSrc = finalSrc;
+    }
+  });
+}
+
 function parseCsvToMatrix(text) {
   const lines = text.trim().split(/\r?\n/).filter(Boolean);
   if (lines.length === 0) return null;
@@ -422,7 +524,7 @@ function setImage(srcBase, imgId, labelId, angleRaw) {
   const { name } = toFilenameAngle(angleRaw);
   const img = $(imgId);
   const nextSrc = `${srcBase}/${name}`;
-  if (img.src !== nextSrc) img.src = nextSrc;
+  applyImageWithPreload(img, nextSrc);
   $(labelId).textContent = `${Math.round(Number(angleRaw) || 0)}°`;
 }
 
@@ -465,6 +567,7 @@ function setupSection(cfg) {
     const baseViews = `${cfg.viewsBase}/${model}`;
 
     if (isSubject) {
+      scheduleSubjectPreloadFor(baseViews, headerAngles.length);
       const i1 = $(cfg.sliders[0]).value;
       const i2 = $(cfg.sliders[1]).value;
       const a1 = indexToAngle(i1);
@@ -474,8 +577,8 @@ function setupSection(cfg) {
       const fn2 = `${String(Number(i2) || 0).padStart(3, "0")}.00.png`;
       const next1 = `${baseViews}/${fn1}`;
       const next2 = `${baseViews}/${fn2}`;
-      if ($(cfg.imgs[0]).src !== next1) $(cfg.imgs[0]).src = next1;
-      if ($(cfg.imgs[1]).src !== next2) $(cfg.imgs[1]).src = next2;
+      applyImageWithPreload($(cfg.imgs[0]), next1);
+      applyImageWithPreload($(cfg.imgs[1]), next2);
       $(cfg.labels[0]).textContent = String(i1);
       $(cfg.labels[1]).textContent = String(i2);
       // Use exact header-derived values for matrix lookups (no 5° rounding)
@@ -484,6 +587,7 @@ function setupSection(cfg) {
       const currentX = Number(i2) || 0;
       updateSimilarityPlot(cfg.cat, model, fixed, currentX, cfg.plotId, true, headerAngles);
     } else {
+      scheduleAnglePreloadFor(baseViews);
       const a1 = $(cfg.sliders[0]).value;
       const a2 = $(cfg.sliders[1]).value;
       setImage(baseViews, cfg.imgs[0], cfg.labels[0], a1);
@@ -508,9 +612,11 @@ function setupSection(cfg) {
       return;
     }
     const model = $(cfg.selectId).value;
+    const baseViews = `${cfg.viewsBase}/${model}`;
     loadClipFor(cfg.cat, model).then((data) => {
       headerAngles = data?.header ?? [];
       setSliderBounds(headerAngles.length);
+      scheduleSubjectPreloadFor(baseViews, headerAngles.length);
       try {
         const mid = Math.max(0, Math.floor((headerAngles.length - 1) / 2));
         $(cfg.sliders[1]).value = String(mid);
@@ -1591,6 +1697,17 @@ if ('scrollRestoration' in history) {
 }
 
 window.addEventListener("DOMContentLoaded", init);
+
+window.addEventListener("beforeunload", () => {
+  imageObjectUrlMap.forEach((objectUrl) => {
+    try {
+      URL.revokeObjectURL(objectUrl);
+    } catch (_) {
+      // ignore revoke errors
+    }
+  });
+  imageObjectUrlMap.clear();
+});
 
 
 
