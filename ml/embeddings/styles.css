@@ -591,16 +591,17 @@ body {
     height: 3px;
     flex: 1;
     min-width: 0;
+    touch-action: pan-y;
   }
 
   input[type="range"]::-webkit-slider-thumb {
-    width: 12px;
-    height: 12px;
+    width: 18px;
+    height: 18px;
   }
 
   input[type="range"]::-moz-range-thumb {
-    width: 12px;
-    height: 12px;
+    width: 18px;
+    height: 18px;
   }
 
   .legend {
@@ -745,26 +746,34 @@ input[type="range"] {
   height: 4px;
   background: linear-gradient(90deg, var(--accent-weak), rgba(26, 86, 255, 0.0)), var(--border);
   border-radius: 999px;
+  touch-action: pan-y;
 }
 
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 14px;
-  height: 14px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: var(--accent);
   border: 2px solid #ffffff;
   box-shadow: 0 0 0 4px var(--accent-weak);
+  transition: transform 0.1s ease;
 }
 
 input[type="range"]::-moz-range-thumb {
-  width: 14px;
-  height: 14px;
+  width: 24px;
+  height: 24px;
   border-radius: 50%;
   background: var(--accent);
   border: 2px solid #ffffff;
   box-shadow: 0 0 0 4px var(--accent-weak);
+  transition: transform 0.1s ease;
+}
+
+input[type="range"]:active::-webkit-slider-thumb,
+input[type="range"]:focus-visible::-webkit-slider-thumb {
+  transform: scale(1.08);
 }
 
 /* Plot styles */
@@ -792,7 +801,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .plot-label {
-  font-size: 15px;
+  font-size: 13px;
   fill: var(--muted);
   font-family: "Departure Mono", ui-monospace, monospace;
 }
@@ -827,7 +836,7 @@ input[type="range"]::-moz-range-thumb {
 }
 
 .plot-axis-title {
-  font-size: 17px;
+  font-size: 15px;
   fill: var(--muted);
   font-family: "Departure Mono", ui-monospace, monospace;
 }

@@ -168,6 +168,23 @@
           models represent the world.
         </p>
       </section>
+      <section id="text-rot" class="content-section" aria-label="Rotation description">
+        <h2 class="section-title">Rotation</h2>
+        <p>It’s interesting to see the similarity between different images, but what happens if we transform the same image? We’ll start by looking at rotation. </p>
+        <p>
+          CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
+          captures strong structural cues from self-supervised learning. When the object
+          looks nearly identical from two angles, both scores rise. When views expose
+          different geometry (front vs. side), similarity drops.
+        </p>
+        <p>
+          Values come from precomputed matrices loaded from the <code>output_data/</code>
+          directory. Images are served from <code>output_views/</code>. Try sweeping both
+          sliders together to find stable regions, or move them in opposite directions to
+          see how symmetry affects the embeddings.
+        </p>
+        <div id="inline-fig-rot" class="inline-figure"></div>
+      </section>
       <section id="text-3d" class="content-section" aria-label="3D rotation description">
         <h2 class="section-title">3D rotation</h2>
         <p>Compares two rendered views from 3D models in <code>output_views/3D</code> with data from
@@ -186,24 +203,7 @@
         </p>
         <div id="inline-fig-3d" class="inline-figure"></div>
       </section>
-      <section id="text-rot" class="content-section" aria-label="Rotation description">
-        <h2 class="section-title">Rotation</h2>
-        <p>Compares two rendered views from <code>output_views/Rotation</code> with data from
-          <code>output_data/Rotation</code>. Sliders span 0–360°.</p>
-        <p>
-          CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
-          captures strong structural cues from self-supervised learning. When the object
-          looks nearly identical from two angles, both scores rise. When views expose
-          different geometry (front vs. side), similarity drops.
-        </p>
-        <p>
-          Values come from precomputed matrices loaded from the <code>output_data/</code>
-          directory. Images are served from <code>output_views/</code>. Try sweeping both
-          sliders together to find stable regions, or move them in opposite directions to
-          see how symmetry affects the embeddings.
-        </p>
-        <div id="inline-fig-rot" class="inline-figure"></div>
-      </section>
+      
       <section id="text-color" class="content-section" aria-label="Color description">
         <h2 class="section-title">Color</h2>
         <p>Compares views across images in <code>output_views/Color</code> with data from
