@@ -685,70 +685,106 @@ function initVectorPlot() {
     parts.push('</svg>');
     container.innerHTML = parts.join('');
 
-    // Add event listeners to the points
-    const point1 = container.querySelector('[data-vector="1"]');
-    const point2 = container.querySelector('[data-vector="2"]');
-
-    [point1, point2].forEach(point => {
-      if (!point) return;
-
-      const startDrag = (e) => {
-        e.preventDefault();
-        dragging = point.getAttribute('data-vector');
-      };
-
-      point.addEventListener('mousedown', startDrag);
-      point.addEventListener('touchstart', startDrag, { passive: false });
-    });
   }
 
-  function handleMove(clientX, clientY) {
-    if (!dragging) return;
+  const DRAG_MARGIN_X = 20;
+  const DRAG_MARGIN_Y = 20;
+  let activePointerId = null;
 
+  function clientToSvg(clientX, clientY) {
     const rect = container.getBoundingClientRect();
     let svgX = ((clientX - rect.left) / rect.width) * svgWidth;
     let svgY = ((clientY - rect.top) / rect.height) * svgHeight;
+    svgX = Math.max(DRAG_MARGIN_X, Math.min(svgWidth - DRAG_MARGIN_X, svgX));
+    svgY = Math.max(DRAG_MARGIN_Y, Math.min(svgHeight - DRAG_MARGIN_Y, svgY));
+    return { svgX, svgY };
+  }
 
-    // Add margins to keep points within the grid area (away from labels/arrows)
-    const marginX = 15; // margin from left/right edges
-    const marginY = 15; // margin from top/bottom edges
-
-    // Clamp SVG coordinates to stay within the visible grid area
-    svgX = Math.max(marginX, Math.min(svgWidth - marginX, svgX));
-    svgY = Math.max(marginY, Math.min(svgHeight - marginY, svgY));
-
+  function updateVectorFromClient(clientX, clientY) {
+    if (!dragging) return;
+    const { svgX, svgY } = clientToSvg(clientX, clientY);
     const normalized = fromSVGCoords({ x: svgX, y: svgY });
-
     if (dragging === '1') {
       vector1 = normalized;
     } else if (dragging === '2') {
       vector2 = normalized;
     }
-
     renderPlot();
   }
 
-  function endDrag() {
-    dragging = null;
+  function distanceToVector(vector, svgX, svgY) {
+    const coords = toSVGCoords(vector);
+    return Math.hypot(coords.x - svgX, coords.y - svgY);
   }
 
-  // Global move and end handlers
-  document.addEventListener('mousemove', (e) => {
-    if (dragging) {
-      e.preventDefault();
-      handleMove(e.clientX, e.clientY);
+  function determineVectorUnderPointer(clientX, clientY) {
+    const { svgX, svgY } = clientToSvg(clientX, clientY);
+    const dist1 = distanceToVector(vector1, svgX, svgY);
+    const dist2 = distanceToVector(vector2, svgX, svgY);
+    const threshold = Math.max(32, Math.min(svgWidth, svgHeight) * 0.08);
+    if (dist1 <= dist2 && dist1 <= threshold) {
+      return { id: '1' };
     }
+    if (dist2 < dist1 && dist2 <= threshold) {
+      return { id: '2' };
+    }
+    return null;
+  }
+
+  const stopDragging = () => {
+    if (!dragging) return;
+    dragging = null;
+    if (activePointerId !== null) {
+      try {
+        container.releasePointerCapture(activePointerId);
+      } catch (_) {}
+      activePointerId = null;
+    }
+  };
+
+  container.addEventListener('pointerdown', (e) => {
+    if ((e.pointerType === 'mouse' && e.button !== 0) || dragging) {
+      return;
+    }
+
+    let vectorId = null;
+    const vectorTarget = e.target.closest('[data-vector]');
+    if (vectorTarget) {
+      vectorId = vectorTarget.getAttribute('data-vector');
+    } else {
+      const hit = determineVectorUnderPointer(e.clientX, e.clientY);
+      if (hit) vectorId = hit.id;
+    }
+
+    if (!vectorId) return;
+
+    dragging = vectorId;
+    activePointerId = e.pointerId;
+    e.preventDefault();
+    try {
+      container.setPointerCapture(activePointerId);
+    } catch (_) {}
+    updateVectorFromClient(e.clientX, e.clientY);
   });
 
-  document.addEventListener('touchmove', (e) => {
-    if (dragging && e.touches.length > 0) {
-      e.preventDefault();
-      handleMove(e.touches[0].clientX, e.touches[0].clientY);
-    }
-  }, { passive: false });
+  container.addEventListener('pointermove', (e) => {
+    if (!dragging || e.pointerId !== activePointerId) return;
+    e.preventDefault();
+    updateVectorFromClient(e.clientX, e.clientY);
+  });
 
-  document.addEventListener('mouseup', endDrag);
-  document.addEventListener('touchend', endDrag);
+  container.addEventListener('pointerup', (e) => {
+    if (e.pointerId !== activePointerId) return;
+    e.preventDefault();
+    stopDragging();
+  });
+
+  container.addEventListener('pointercancel', (e) => {
+    if (e.pointerId !== activePointerId) return;
+    stopDragging();
+  });
+
+  container.addEventListener('lostpointercapture', stopDragging);
 
   // Initial render
   renderPlot();

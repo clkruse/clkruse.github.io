@@ -4,7 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0" />
-  <title>What do Embedding Models See?</title>
+  <title>What Do Embedding Models See?</title>
   <meta name="description"
     content="Exploring how the CLIP and DINO models classify and organize the world through interactive experiments with embedding vectors and similarity scores." />
 
@@ -128,29 +128,22 @@
       <section id="text-compare" class="content-section">
         <h2 class="section-title">Image Similarity</h2>
         <p>
-          So how can we examine how these embedding models see the world? Let's start by comparing images and their
-          embeddings.
-          For each experiment, we're going to use two popular embedding models. One is called CLIP and the other is
-          called DINO.
+          How can we examine how these embedding models see the world? Given that the embeddings themselves are mostly inscrutable, we’ll look instead at the similarity of embeddings produced for two different images. Through this process, we’ll build an intuition for how a model sees.
         </p>
         <p>
-          Here's how these tests will go. The models compute embeddings for the images on the left and right, and then
-          measure the similarity of the representations. You can see the similarity scores for each of the models in the
-          scoreboard above the images.
+          For each experiment, we're going to use two popular embedding models. One is called CLIP and the other is called DINO. In each test, these models will compute embeddings for the images on the left and right, and then measure the similarity of these two embedding representations. The similarity scores for each of the models will be shown in the scoreboard above the images.
         </p>
         <p>
           We'll start by comparing <button class="config-button"
-            onclick="window.setCompareImages('Animals', 'Gray Parrot', 'Gray Parrot 2')">two images of an African Gray
-            Parrot</button>. As you'd expect, the similarity score is very high. The CLIP model gives it a score of
-          0.924
-          and the DINO model gives it a score of 0.951. This means that even though the images are different, the models
-          see the images as very similar.
+            onclick="window.setCompareImages('Animals', 'Gray Parrot', 'Gray Parrot 2')">two images of a gray
+            parrot</button>. As you'd expect, the similarity score is very high. The CLIP model gives it a score of
+          0.92 and the DINO model gives it a score of 0.95.  Even though the images are a little different, the models see them as similar.
         </p>
         <div id="inline-fig-compare" class="inline-figure"></div>
         <p>
           Now let's see what happens when we look at a <button class="config-button"
-            onclick="window.setCompareImages('Animals', 'Gray Parrot', 'Gray Parrot Full')">another Gray
-            Parrot</button>. Once again, the scores are still quite high, but a little lower than before. Everything is
+            onclick="window.setCompareImages('Animals', 'Gray Parrot', 'Gray Parrot Full')">another gray
+            parrot</button>. Once again, the scores are still quite high, but a little lower than before. Everything is
           behaving as we'd expect.
         </p>
         <p>
