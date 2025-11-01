@@ -52,7 +52,7 @@ body {
   padding: 16px;
   background-color: var(--bg);
   background-image: radial-gradient(var(--grid-dot) 1px, transparent 1px);
-  background-size: 10px 10px;
+  background-size: 8px 8px;
   background-position: -1px -1px;
   color: var(--text);
   overflow-x: hidden;
@@ -194,6 +194,31 @@ body {
 
   .inline-figure {
     display: block;
+    margin: 16px -22px;
+    padding: 0 10px;
+    width: auto;
+    max-width: none;
+  }
+
+  .inline-figure .content-section {
+    margin: 0;
+    padding: 0;
+  }
+
+  .inline-figure .viewers,
+  .inline-figure .viewer,
+  .inline-figure .plot-card {
+    width: 100%;
+  }
+
+  .content-section {
+    overflow: visible;
+  }
+
+  .main-grid,
+  .left-scroll,
+  .container {
+    overflow: visible;
   }
 
   .left-scroll {
