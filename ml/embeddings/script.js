@@ -283,10 +283,10 @@ async function updateSimilarityPlot(cat, model, fixedAngle, currentX, containerI
   // ticks
   const xTicks = useIndex
     ? (() => {
-        const n = header.length;
-        const vals = [0, Math.floor(n * 0.25), Math.floor(n * 0.5), Math.floor(n * 0.75), Math.max(0, n - 1)];
-        return Array.from(new Set(vals.filter(v => v >= 0 && v <= Math.max(0, n - 1))));
-      })()
+      const n = header.length;
+      const vals = [0, Math.floor(n * 0.25), Math.floor(n * 0.5), Math.floor(n * 0.75), Math.max(0, n - 1)];
+      return Array.from(new Set(vals.filter(v => v >= 0 && v <= Math.max(0, n - 1))));
+    })()
     : [0, 90, 180, 270, 360];
   // fixed Y domain: [globalMin, 1.0]
   const clipMin = clipData.globalMin;
@@ -514,12 +514,12 @@ function setupSection(cfg) {
       try {
         const mid = Math.max(0, Math.floor((headerAngles.length - 1) / 2));
         $(cfg.sliders[1]).value = String(mid);
-      } catch (_) {}
+      } catch (_) { }
       render();
     }).catch(() => {
       headerAngles = [];
       setSliderBounds(1);
-      try { $(cfg.sliders[1]).value = "0"; } catch (_) {}
+      try { $(cfg.sliders[1]).value = "0"; } catch (_) { }
       render();
     });
   };
@@ -532,7 +532,7 @@ function setupSection(cfg) {
   if (isSubject) {
     onModelChange();
   } else {
-    try { $(cfg.sliders[1]).value = "180"; } catch (_) {}
+    try { $(cfg.sliders[1]).value = "180"; } catch (_) { }
     render();
   }
 
@@ -614,7 +614,7 @@ function initVectorPlot() {
     // Build SVG
     const parts = [];
     parts.push(`<svg class="vector-plot-svg" viewBox="0 0 ${svgWidth} ${svgHeight}" xmlns="http://www.w3.org/2000/svg">`);
-    
+
     // Grid lines
     const gridSpacingX = svgWidth / 16;
     const gridSpacingY = svgHeight / 9;
@@ -631,12 +631,12 @@ function initVectorPlot() {
     parts.push(`<line class="axis-line" x1="0" y1="${centerY}" x2="${svgWidth}" y2="${centerY}"/>`);
     parts.push(`<line class="axis-line" x1="${centerX}" y1="${svgHeight}" x2="${centerX}" y2="0"/>`);
     // Arrow heads
-    parts.push(`<polygon class="axis-arrow" points="${svgWidth-5},${centerY-4} ${svgWidth},${centerY} ${svgWidth-5},${centerY+4}"/>`);
-    parts.push(`<polygon class="axis-arrow" points="${centerX-4},5 ${centerX},0 ${centerX+4},5"/>`);
+    parts.push(`<polygon class="axis-arrow" points="${svgWidth - 5},${centerY - 4} ${svgWidth},${centerY} ${svgWidth - 5},${centerY + 4}"/>`);
+    parts.push(`<polygon class="axis-arrow" points="${centerX - 4},5 ${centerX},0 ${centerX + 4},5"/>`);
 
     // Axis labels
-    parts.push(`<text class="plot-label" x="${svgWidth-10}" y="${centerY-8}" text-anchor="end">x</text>`);
-    parts.push(`<text class="plot-label" x="${centerX+8}" y="12" text-anchor="start">y</text>`);
+    parts.push(`<text class="plot-label" x="${svgWidth - 10}" y="${centerY - 8}" text-anchor="end">x</text>`);
+    parts.push(`<text class="plot-label" x="${centerX + 8}" y="12" text-anchor="start">y</text>`);
 
     // Vector lines
     parts.push(`<line class="vector-line vector-line-1" x1="${centerX}" y1="${centerY}" x2="${svg1.x}" y2="${svg1.y}"/>`);
@@ -647,34 +647,34 @@ function initVectorPlot() {
     const mag1 = Math.sqrt(vector1.x * vector1.x + vector1.y * vector1.y);
     const mag2 = Math.sqrt(vector2.x * vector2.x + vector2.y * vector2.y);
     const bothVectorsExist = mag1 > 0.01 && mag2 > 0.01;
-    
+
     if (bothVectorsExist && angle > 2) { // Only draw if both vectors exist and angle is meaningful
       const angle1 = Math.atan2(vector1.y, vector1.x);
       const angle2 = Math.atan2(vector2.y, vector2.x);
       const startAngle = Math.min(angle1, angle2);
       const endAngle = Math.max(angle1, angle2);
       const arcRadius = 40;
-      
+
       const arcStartX = centerX + arcRadius * Math.cos(startAngle);
       const arcStartY = centerY - arcRadius * Math.sin(startAngle);
       const arcEndX = centerX + arcRadius * Math.cos(endAngle);
       const arcEndY = centerY - arcRadius * Math.sin(endAngle);
-      
+
       const largeArc = (endAngle - startAngle) > Math.PI ? 1 : 0;
       parts.push(`<path class="angle-arc" d="M ${arcStartX} ${arcStartY} A ${arcRadius} ${arcRadius} 0 ${largeArc} 0 ${arcEndX} ${arcEndY}"/>`);
-      
+
       // Angle label with background
       const midAngle = (angle1 + angle2) / 2;
       const labelRadius = 55;
       const labelX = centerX + labelRadius * Math.cos(midAngle);
       const labelY = centerY - labelRadius * Math.sin(midAngle);
-      
+
       // Background rectangle for better visibility
       const labelText = angle.toFixed(1) + '°';
       const bgPadding = 6;
       const bgWidth = labelText.length * 10 + bgPadding * 2;
       const bgHeight = 24;
-      parts.push(`<rect class="angle-label-bg" x="${labelX - bgWidth/2}" y="${labelY - bgHeight/2}" width="${bgWidth}" height="${bgHeight}" rx="4"/>`);
+      parts.push(`<rect class="angle-label-bg" x="${labelX - bgWidth / 2}" y="${labelY - bgHeight / 2}" width="${bgWidth}" height="${bgHeight}" rx="4"/>`);
       parts.push(`<text class="angle-label-text" x="${labelX}" y="${labelY}" text-anchor="middle" dominant-baseline="middle">${labelText}</text>`);
     }
 
@@ -688,15 +688,15 @@ function initVectorPlot() {
     // Add event listeners to the points
     const point1 = container.querySelector('[data-vector="1"]');
     const point2 = container.querySelector('[data-vector="2"]');
-    
+
     [point1, point2].forEach(point => {
       if (!point) return;
-      
+
       const startDrag = (e) => {
         e.preventDefault();
         dragging = point.getAttribute('data-vector');
       };
-      
+
       point.addEventListener('mousedown', startDrag);
       point.addEventListener('touchstart', startDrag, { passive: false });
     });
@@ -704,27 +704,27 @@ function initVectorPlot() {
 
   function handleMove(clientX, clientY) {
     if (!dragging) return;
-    
+
     const rect = container.getBoundingClientRect();
     let svgX = ((clientX - rect.left) / rect.width) * svgWidth;
     let svgY = ((clientY - rect.top) / rect.height) * svgHeight;
-    
+
     // Add margins to keep points within the grid area (away from labels/arrows)
     const marginX = 15; // margin from left/right edges
     const marginY = 15; // margin from top/bottom edges
-    
+
     // Clamp SVG coordinates to stay within the visible grid area
     svgX = Math.max(marginX, Math.min(svgWidth - marginX, svgX));
     svgY = Math.max(marginY, Math.min(svgHeight - marginY, svgY));
-    
+
     const normalized = fromSVGCoords({ x: svgX, y: svgY });
-    
+
     if (dragging === '1') {
       vector1 = normalized;
     } else if (dragging === '2') {
       vector2 = normalized;
     }
-    
+
     renderPlot();
   }
 
@@ -739,14 +739,14 @@ function initVectorPlot() {
       handleMove(e.clientX, e.clientY);
     }
   });
-  
+
   document.addEventListener('touchmove', (e) => {
     if (dragging && e.touches.length > 0) {
       e.preventDefault();
       handleMove(e.touches[0].clientX, e.touches[0].clientY);
     }
   }, { passive: false });
-  
+
   document.addEventListener('mouseup', endDrag);
   document.addEventListener('touchend', endDrag);
 
@@ -771,7 +771,7 @@ function initVectorPlot() {
       values.push(Math.abs(x2), Math.abs(y2));
     }
     const maxVal = Math.max(...values, 1);
-    
+
     // Update vectors (only if values provided)
     if (x1 !== null && y1 !== null) {
       vector1 = { x: x1 / maxVal, y: y1 / maxVal };
@@ -790,28 +790,28 @@ let deweyCurrentState = null; // Track current zoom state
 function renderDewey() {
   const chart = d3.select("#chart-dewey");
   if (chart.empty()) return;
-  
+
   // Only render once
   if (deweyRendered) return;
   deweyRendered = true;
-  
+
   // Clear existing content
   chart.html("");
 
-  d3.json("dewey-data.json", function(error, data) {
+  d3.json("dewey-data.json", function (error, data) {
     if (error) {
       console.error("Failed to load dewey-data.json", error);
       deweyRendered = false; // Allow retry on error
       return;
     }
 
-    var dataMap = data.reduce(function(map, node) {
+    var dataMap = data.reduce(function (map, node) {
       map[node.name] = node;
       return map;
     }, {});
 
     var data2 = [];
-    data.forEach(function(node) {
+    data.forEach(function (node) {
       var father = dataMap[node.father];
       if (father) {
         (father.children || (father.children = []))
@@ -823,75 +823,75 @@ function renderDewey() {
 
     const root = data2[0];
 
-    var margin = {top: 24, right: 0, bottom: 0, left: 0},
-        width = chart.node().getBoundingClientRect().width - margin.left - margin.right,
-        height = chart.node().getBoundingClientRect().height - margin.top - margin.bottom,
-        formatNumber = d3.format(",d"),
-        transitioning;
+    var margin = { top: 24, right: 0, bottom: 0, left: 0 },
+      width = chart.node().getBoundingClientRect().width - margin.left - margin.right,
+      height = chart.node().getBoundingClientRect().height - margin.top - margin.bottom,
+      formatNumber = d3.format(",d"),
+      transitioning;
 
     const labelFontSize = 13;
     const labelLineHeight = 1.4;
     const labelLineHeightPx = labelFontSize * labelLineHeight;
 
     var x = d3.scale.linear()
-        .domain([0, width])
-        .range([0, width]);
+      .domain([0, width])
+      .range([0, width]);
 
     var y = d3.scale.linear()
-        .domain([0, height])
-        .range([0, height]);
+      .domain([0, height])
+      .range([0, height]);
 
     var hue = d3.scale.ordinal()
-        .range([
-          '#f4d4d4', // soft coral/pink - 000s General Works
-          '#ffd4b8', // soft peach - 100s Philosophy
-          '#fff4d4', // soft cream - 200s Religion
-          '#e8f4d4', // soft sage - 300s Social Sciences
-          '#d4f4e8', // soft mint - 400s Language
-          '#d4f0f4', // soft aqua - 500s Science
-          '#d4e4f4', // soft sky blue - 600s Technology
-          '#e4d4f4', // soft lavender - 700s Arts
-          '#f4d4e8', // soft mauve - 800s Literature
-          '#f4d4d8'  // soft blush - 900s History
-        ])
-        .domain(['0','1','2','3','4','5','6','7','8','9']);
+      .range([
+        '#f4d4d4', // soft coral/pink - 000s General Works
+        '#ffd4b8', // soft peach - 100s Philosophy
+        '#fff4d4', // soft cream - 200s Religion
+        '#e8f4d4', // soft sage - 300s Social Sciences
+        '#d4f4e8', // soft mint - 400s Language
+        '#d4f0f4', // soft aqua - 500s Science
+        '#d4e4f4', // soft sky blue - 600s Technology
+        '#e4d4f4', // soft lavender - 700s Arts
+        '#f4d4e8', // soft mauve - 800s Literature
+        '#f4d4d8'  // soft blush - 900s History
+      ])
+      .domain(['0', '1', '2', '3', '4', '5', '6', '7', '8', '9']);
 
     var luminance = d3.scale.sqrt()
-        .domain([1000, 300000])   
-        .clamp(true)
-        .range([92, 96]);
+      .domain([1000, 300000])
+      .clamp(true)
+      .range([92, 96]);
 
     var treemap = d3.layout.treemap()
-        .children(function(d, depth) { return depth ? null : d._children; })
-        .sort(function(a, b) { return a.value - b.value; })
-        .ratio(height / width * 0.5 * (1 + Math.sqrt(5)))
-        .round(false);
+      .children(function (d, depth) { return depth ? null : d._children; })
+      .sort(function (a, b) { return a.value - b.value; })
+      .ratio(height / width * 0.5 * (1 + Math.sqrt(5)))
+      .round(false);
 
     var svg = chart.append("svg")
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.bottom + margin.top)
-        .style("margin-left", -margin.left + "px")
-        .style("margin.right", -margin.right + "px")
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.bottom + margin.top)
+      .style("margin-left", -margin.left + "px")
+      .style("margin.right", -margin.right + "px")
       .append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
-        .style("shape-rendering", "crispEdges");
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+      .style("shape-rendering", "crispEdges");
 
     var grandparent = svg.append("g")
-        .attr("class", "grandparent");
+      .attr("class", "grandparent");
 
-    grandparent.append("rect")   
-        .attr("y", -margin.top)
-        .attr("width", width)
-        .attr("height", margin.top);
+    grandparent.append("rect")
+      .attr("y", -margin.top)
+      .attr("width", width)
+      .attr("height", margin.top);
 
     const grandparentText = grandparent.append("text")
-        .attr("x", width / 2)
-        .attr("y", 6 - margin.top)
-        .attr("dy", ".75em")
-        .attr('text-anchor', "middle")
-        .attr("font-style", "italic")
-        .style("font-size","13")
-        .text("Click a category to zoom");
+      .attr("x", width / 2)
+      .attr("y", 6 - margin.top)
+      .attr("dy", ".75em")
+      .attr('text-anchor', "middle")
+      .attr("font-style", "italic")
+      .style("font-size", "13")
+      .text("Click a category to zoom");
 
     initialize(root);
     accumulate(root);
@@ -908,15 +908,15 @@ function renderDewey() {
     function accumulate(d) {
       d._children = d.children;
       if (d._children) {
-        d.value = d._children.reduce(function(p, v) { return p + accumulate(v); }, 0);
+        d.value = d._children.reduce(function (p, v) { return p + accumulate(v); }, 0);
       }
       return d.value || 0;
     }
 
     function layout(d) {
       if (d._children) {
-        treemap.nodes({_children: d._children});
-        d._children.forEach(function(c) {
+        treemap.nodes({ _children: d._children });
+        d._children.forEach(function (c) {
           c.x = d.x + c.x * d.dx;
           c.y = d.y + c.y * d.dy;
           c.dx *= d.dx;
@@ -931,24 +931,24 @@ function renderDewey() {
     function getLabelText(d) {
       var namelen = d.name.length;
       var boxWidth = x(d.x + d.dx) - x(d.x);
-      
+
       // For small boxes, prioritize showing the number
       if (boxWidth < 120) {
         if (namelen == 1) {
-          return d.name + '00s'; 
+          return d.name + '00s';
         } else if (namelen == 2) {
-          return d.name + '0s'; 
+          return d.name + '0s';
         } else {
-          return d.name; 
+          return d.name;
         }
       } else {
         // For larger boxes, show title and number
         if (namelen == 1) {
-          return d.title + ' (' + d.name + '00s)'; 
+          return d.title + ' (' + d.name + '00s)';
         } else if (namelen == 2) {
-          return d.title + ' (' + d.name + '0s)'; 
+          return d.title + ' (' + d.name + '0s)';
         } else {
-          return d.title + ' (' + d.name + ')'; 
+          return d.title + ' (' + d.name + ')';
         }
       }
     }
@@ -965,15 +965,15 @@ function renderDewey() {
 
     function display(d) {
       grandparent
-          .datum(d.parent)
-          .on("click", transition);
+        .datum(d.parent)
+        .on("click", transition);
 
       if (d.parent) {
         grandparentText.text("Click to zoom out");
       } else {
         grandparentText.text("Click a category to zoom");
       }
-      
+
       // Update the header label
       var headerLabel = document.getElementById('dewey-header-label');
       if (headerLabel) {
@@ -990,93 +990,93 @@ function renderDewey() {
       }
 
       var g1 = svg.insert("g", ".grandparent")
-          .datum(d)
-          .attr("class", "depth");
+        .datum(d)
+        .attr("class", "depth");
 
       var g = g1.selectAll("g")
-          .data(d._children)
+        .data(d._children)
         .enter().append("g");
 
-      g.filter(function(d) { return d._children; })
-          .classed("children", true)
-          .on("click", transition);
+      g.filter(function (d) { return d._children; })
+        .classed("children", true)
+        .on("click", transition);
 
       g.selectAll(".child")
-          .data(function(d) { return d._children || [d]; })
+        .data(function (d) { return d._children || [d]; })
         .enter().append("rect")
-          .attr("class", "child")
-          .call(rect);
+        .attr("class", "child")
+        .call(rect);
 
       g.append("rect")
-          .attr("class", "parent")
-          .call(rect)
+        .attr("class", "parent")
+        .call(rect)
         .append("svg:title")
-          .text(function(d) { 
-            value_pct_1 = 100 * d.value / 4756297;
-            value_pct_2 = value_pct_1.toFixed(2) + '%';
-            return d.title + " (" + value_pct_2 + ")";
-          });
+        .text(function (d) {
+          value_pct_1 = 100 * d.value / 4756297;
+          value_pct_2 = value_pct_1.toFixed(2) + '%';
+          return d.title + " (" + value_pct_2 + ")";
+        });
 
       g.append("foreignObject")
         .call(foreignText)
-      .attr("class","foreignobj")
-        .append("xhtml:div") 
-            .attr("dy", ".75em")
-            .html(getLabelText)
-          .style("font-size", labelFontSize + "px")
-            .style("font-family","Departure Mono, ui-monospace, monospace")
-            .style("font-weight","500")
-            .style("letter-spacing","0.3px")
-          .style("line-height", labelLineHeight)
-          .style("display","-webkit-box")
-          .style("-webkit-box-orient","vertical")
-            .style("overflow","hidden")
-          .style("text-overflow","clip")
-          .style("white-space","normal")
-          .style("word-break","break-word")
-          .style("max-height", function(d) {
-              const available = Math.max(y(d.y + d.dy) - y(d.y) - 8, 0);
-              return available + "px";
-          })
-          .style("-webkit-line-clamp", function(d) {
-              const available = Math.max(y(d.y + d.dy) - y(d.y) - 8, 0);
-              const maxLines = Math.max(1, Math.floor(available / labelLineHeightPx));
-              return String(maxLines);
-          })
-            .style("opacity", function(d) {
-                return shouldShowLabel(d) ? 1 : 0;
-            })
-            .attr("class","textdiv");
+        .attr("class", "foreignobj")
+        .append("xhtml:div")
+        .attr("dy", ".75em")
+        .html(getLabelText)
+        .style("font-size", labelFontSize + "px")
+        .style("font-family", "Departure Mono, ui-monospace, monospace")
+        .style("font-weight", "500")
+        .style("letter-spacing", "0.3px")
+        .style("line-height", labelLineHeight)
+        .style("display", "-webkit-box")
+        .style("-webkit-box-orient", "vertical")
+        .style("overflow", "hidden")
+        .style("text-overflow", "clip")
+        .style("white-space", "normal")
+        .style("word-break", "break-word")
+        .style("max-height", function (d) {
+          const available = Math.max(y(d.y + d.dy) - y(d.y) - 8, 0);
+          return available + "px";
+        })
+        .style("-webkit-line-clamp", function (d) {
+          const available = Math.max(y(d.y + d.dy) - y(d.y) - 8, 0);
+          const maxLines = Math.max(1, Math.floor(available / labelLineHeightPx));
+          return String(maxLines);
+        })
+        .style("opacity", function (d) {
+          return shouldShowLabel(d) ? 1 : 0;
+        })
+        .attr("class", "textdiv");
 
       function transition(d) {
         if (transitioning || !d) return;
         transitioning = true;
 
         var g2 = display(d),
-            t1 = g1.transition().duration(750),
-            t2 = g2.transition().duration(750);
+          t1 = g1.transition().duration(750),
+          t2 = g2.transition().duration(750);
 
         x.domain([d.x, d.x + d.dx]);
         y.domain([d.y, d.y + d.dy]);
 
         svg.style("shape-rendering", null);
 
-        svg.selectAll(".depth").sort(function(a, b) { return a.depth - b.depth; });
+        svg.selectAll(".depth").sort(function (a, b) { return a.depth - b.depth; });
 
         // Update label content and visibility immediately after scale change
         svg.selectAll(".textdiv")
           .html(getLabelText)
-          .style("opacity", function(d) {
-              return shouldShowLabel(d) ? 1 : 0;
+          .style("opacity", function (d) {
+            return shouldShowLabel(d) ? 1 : 0;
           });
 
         t1.selectAll("rect").call(rect);
         t2.selectAll("rect").call(rect);
 
         t1.selectAll(".foreignobj").call(foreignText);
-        t2.selectAll(".foreignobj").call(foreignText); 
+        t2.selectAll(".foreignobj").call(foreignText);
 
-        t1.remove().each("end", function() {
+        t1.remove().each("end", function () {
           svg.style("shape-rendering", "crispEdges");
           transitioning = false;
         });
@@ -1086,45 +1086,45 @@ function renderDewey() {
     }
 
     function text(text) {
-      text.attr("x", function(d) { return x(d.x) + 6; })
-          .attr("y", function(d) { return y(d.y) + 6; });
+      text.attr("x", function (d) { return x(d.x) + 6; })
+        .attr("y", function (d) { return y(d.y) + 6; });
     }
 
     function rect(rect) {
-      rect.attr("x", function(d) { return x(d.x); })
-          .attr("y", function(d) { return y(d.y); })
-          .attr("width", function(d) { return x(d.x + d.dx) - x(d.x); })
-          .attr("height", function(d) { return y(d.y + d.dy) - y(d.y); })
-          .style('fill',function(d) {
-            var c = d3.lab(hue(d.name.charAt(0)));
-            // Only apply luminance variation to subcategories (name length > 1)
-            if (d.name.length > 1) {
-              c.l = luminance(d.value);
-            }
-            return c;
-          });
+      rect.attr("x", function (d) { return x(d.x); })
+        .attr("y", function (d) { return y(d.y); })
+        .attr("width", function (d) { return x(d.x + d.dx) - x(d.x); })
+        .attr("height", function (d) { return y(d.y + d.dy) - y(d.y); })
+        .style('fill', function (d) {
+          var c = d3.lab(hue(d.name.charAt(0)));
+          // Only apply luminance variation to subcategories (name length > 1)
+          if (d.name.length > 1) {
+            c.l = luminance(d.value);
+          }
+          return c;
+        });
     }
 
-    function foreignText(foreign){  
-        foreign.attr("x", function(d) { return x(d.x) + 6; })
-          .attr("y", function(d) { return y(d.y) + 6; })
-          .attr("width", function(d) { 
-              return Math.max(x(d.x + d.dx) - x(d.x) - 10,0);
-          })
-          .attr("height", function(d) { 
-              return Math.max(y(d.y + d.dy) - y(d.y) - 8, 0);
-          });
+    function foreignText(foreign) {
+      foreign.attr("x", function (d) { return x(d.x) + 6; })
+        .attr("y", function (d) { return y(d.y) + 6; })
+        .attr("width", function (d) {
+          return Math.max(x(d.x + d.dx) - x(d.x) - 10, 0);
+        })
+        .attr("height", function (d) {
+          return Math.max(y(d.y + d.dy) - y(d.y) - 8, 0);
+        });
     }
 
     function name(d) {
       return d.parent
-          ? name(d.parent) + ": " + d.title
-          : d.title;
+        ? name(d.parent) + ": " + d.title
+        : d.title;
     }
-    
+
     // Store the current zoom state
     deweyCurrentState = root;
-    
+
     // Set up window resize listener (not ResizeObserver to avoid panel visibility triggers)
     let resizeTimeout;
     const handleResize = () => {
@@ -1167,21 +1167,21 @@ function setupCompareFigure() {
       const csvUrl = `${base}/${dataset}/CLIP.csv`;
       const response = await fetch(csvUrl);
       if (!response.ok) throw new Error('Failed to load CSV');
-      
+
       const csvText = await response.text();
       displayNames = parseSubjectNamesFromCSV(csvText);
-      
+
       if (displayNames.length === 0) throw new Error('No headers found');
-      
+
       // Also load the parsed data for matrix lookups
       const data = await loadClipFor('subj', dataset);
       if (data && data.header) {
         imageNames = data.header;
-        
+
         // Clear and populate both dropdowns
         imageSelect1.innerHTML = '';
         imageSelect2.innerHTML = '';
-        
+
         // Add placeholder option
         const placeholder1 = document.createElement('option');
         placeholder1.value = '';
@@ -1189,28 +1189,28 @@ function setupCompareFigure() {
         placeholder1.disabled = true;
         placeholder1.selected = initialLoad;
         imageSelect1.appendChild(placeholder1);
-        
+
         const placeholder2 = document.createElement('option');
         placeholder2.value = '';
         placeholder2.textContent = 'Select an image...';
         placeholder2.disabled = true;
         placeholder2.selected = initialLoad;
         imageSelect2.appendChild(placeholder2);
-        
+
         imageNames.forEach((angle, idx) => {
           const displayName = displayNames[idx] || `Image ${idx}`;
-          
+
           const opt1 = document.createElement('option');
           opt1.value = idx;
           opt1.textContent = displayName;
           imageSelect1.appendChild(opt1);
-          
+
           const opt2 = document.createElement('option');
           opt2.value = idx;
           opt2.textContent = displayName;
           imageSelect2.appendChild(opt2);
         });
-        
+
         // Don't load images on initial page load
         if (!initialLoad) {
           updateComparison();
@@ -1225,7 +1225,7 @@ function setupCompareFigure() {
     const dataset = datasetSelect.value;
     const val1 = imageSelect1.value;
     const val2 = imageSelect2.value;
-    
+
     // Check if we have valid data
     if (!dataset || imageNames.length === 0 || displayNames.length === 0) {
       clipValue.textContent = '—';
@@ -1234,7 +1234,7 @@ function setupCompareFigure() {
       img2.src = '';
       return;
     }
-    
+
     // Update image 1 if selected
     if (val1) {
       const idx1 = parseInt(val1);
@@ -1245,7 +1245,7 @@ function setupCompareFigure() {
     } else {
       img1.src = '';
     }
-    
+
     // Update image 2 if selected
     if (val2) {
       const idx2 = parseInt(val2);
@@ -1256,7 +1256,7 @@ function setupCompareFigure() {
     } else {
       img2.src = '';
     }
-    
+
     // Update similarity scores only if both images are selected
     if (val1 && val2) {
       const idx1 = parseInt(val1);
@@ -1275,7 +1275,7 @@ function setupCompareFigure() {
     initialLoad = false;
     populateImageSelectors(datasetSelect.value);
   });
-  
+
   imageSelect1.addEventListener('change', () => {
     initialLoad = false;
     updateComparison();
@@ -1288,7 +1288,7 @@ function setupCompareFigure() {
   // Initial load - use first dataset
   const initialDataset = datasetSelect.value || MODELS_SUBJ[0];
   populateImageSelectors(initialDataset);
-  
+
   // Expose function globally for text buttons to use
   // Takes image names (e.g., 'Gray Parrot', 'Beagle') instead of indices
   window.setCompareImages = (dataset, name1, name2) => {
@@ -1322,10 +1322,10 @@ function init() {
   window.scrollTo(0, 0);
   document.documentElement.scrollTop = 0;
   document.body.scrollTop = 0;
-  
+
   // Initialize the vector plot
   initVectorPlot();
-  
+
   // Initialize the comparison figure
   setupCompareFigure();
 
@@ -1396,7 +1396,7 @@ function init() {
   const panels = targets.map(t => t.panel).filter(Boolean);
   const mq = window.matchMedia('(max-width: 1099px)');
   const triggerSectionRender = (panelId) => {
-    const fire = (id) => { try { document.getElementById(id)?.dispatchEvent(new Event('input')); } catch (_) {} };
+    const fire = (id) => { try { document.getElementById(id)?.dispatchEvent(new Event('input')); } catch (_) { } };
     if (panelId === 'sec-cosine') {
       // Re-render vector plot if needed
       const container = document.getElementById('vector-plot-container');
@@ -1460,7 +1460,7 @@ function init() {
     if (mq.matches) return; // no section switching on mobile
     const header = document.querySelector('.pixel-header');
     const offset = (header ? header.getBoundingClientRect().height : 0) + Math.round(window.innerHeight * ACTIVATION_RATIO);
-    
+
     // Iterate from bottom to top so late sections can still activate near end of scroll
     for (const { text, panel } of [...targets].reverse()) {
       if (!text || !panel) continue;
@@ -1470,7 +1470,7 @@ function init() {
         return;
       }
     }
-    
+
     // If no section is at the activation point, don't change anything
     // This prevents flashing when scrolling between adjacent sections
   };
@@ -1516,19 +1516,19 @@ function init() {
   // Defer one frame and also on window load to avoid zero-width containers
   requestAnimationFrame(() => {
     // Re-run only the chart renders by dispatching input events
-    try { document.getElementById('slider-3d-1')?.dispatchEvent(new Event('input')); } catch (_) {}
-    try { document.getElementById('slider-rot-1')?.dispatchEvent(new Event('input')); } catch (_) {}
-    try { document.getElementById('slider-color-1')?.dispatchEvent(new Event('input')); } catch (_) {}
-    try { document.getElementById('slider-subj-1')?.dispatchEvent(new Event('input')); } catch (_) {}
-    try { document.getElementById('slider-dewey-1')?.dispatchEvent(new Event('input')); } catch (_) {}
+    try { document.getElementById('slider-3d-1')?.dispatchEvent(new Event('input')); } catch (_) { }
+    try { document.getElementById('slider-rot-1')?.dispatchEvent(new Event('input')); } catch (_) { }
+    try { document.getElementById('slider-color-1')?.dispatchEvent(new Event('input')); } catch (_) { }
+    try { document.getElementById('slider-subj-1')?.dispatchEvent(new Event('input')); } catch (_) { }
+    try { document.getElementById('slider-dewey-1')?.dispatchEvent(new Event('input')); } catch (_) { }
   });
   window.addEventListener('load', () => {
-    try { document.getElementById('slider-3d-1')?.dispatchEvent(new Event('input')); } catch (_) {}
-    try { document.getElementById('slider-rot-1')?.dispatchEvent(new Event('input')); } catch (_) {}
-    try { document.getElementById('slider-color-1')?.dispatchEvent(new Event('input')); } catch (_) {}
-    try { document.getElementById('slider-subj-1')?.dispatchEvent(new Event('input')); } catch (_) {}
-    try { document.getElementById('slider-dewey-1')?.dispatchEvent(new Event('input')); } catch (_) {}
-    
+    try { document.getElementById('slider-3d-1')?.dispatchEvent(new Event('input')); } catch (_) { }
+    try { document.getElementById('slider-rot-1')?.dispatchEvent(new Event('input')); } catch (_) { }
+    try { document.getElementById('slider-color-1')?.dispatchEvent(new Event('input')); } catch (_) { }
+    try { document.getElementById('slider-subj-1')?.dispatchEvent(new Event('input')); } catch (_) { }
+    try { document.getElementById('slider-dewey-1')?.dispatchEvent(new Event('input')); } catch (_) { }
+
     // Restore scroll position for .left-scroll container
     const leftScroll = document.querySelector('.left-scroll');
     const savedPosition = sessionStorage.getItem(SCROLL_STORAGE_KEY);

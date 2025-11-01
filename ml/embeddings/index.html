@@ -1,498 +1,568 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0" />
-    <title>What do Embedding Models See?</title>
-    <meta name="description" content="Exploring how the CLIP and DINO models classify and organize the world through interactive experiments with embedding vectors and similarity scores." />
-    
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website" />
-    <meta property="og:url" content="https://calebkruse.com/ml/embeddings/" />
-    <meta property="og:title" content="What do Embedding Models See?" />
-    <meta property="og:description" content="Exploring how the CLIP and DINO models classify and organize the world through interactive experiments with embedding vectors and similarity scores." />
-    <meta property="og:image" content="https://calebkruse.com/ml/embeddings/preview.png" />
-    
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
-    <meta property="twitter:url" content="https://calebkruse.com/ml/embeddings/" />
-    <meta property="twitter:title" content="What do Embedding Models See?" />
-    <meta property="twitter:description" content="Exploring how the CLIP and DINO models classify and organize the world through interactive experiments with embedding vectors and similarity scores." />
-    <meta property="twitter:image" content="https://calebkruse.com/ml/embeddings/preview.png" />
-    
-    <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
-    <header class="pixel-header">
-      <h1 class="pixel-title">What do Embedding Models See?</h1>
-      <div class="pixel-tagline">Exploring how the CLIP and DINO classify and organize the world</div>
-    </header>
-    <div class="main-grid">
-      <div class="left-scroll">
-        <section class="content-section">
-          <p>
-            We’re going to explore a bit about how AIs see, organize, and make sense of the visual world by doing a few interactive experiments.
-          </p>
-        </section>
-        <section class="content-section" id="text-dewey">
-          <h2 class="section-title">Organizing the World</h2>
-          <p>
-            To be able to understand the world, vision models need to convert an image into a language that they understand. For an AI model, that means a list of numbers. These numbers work a bit like the Dewey Decimal System at the library. Books are assigned a number based on their topic, and similar topics have shared numerical values. This means that all cookbooks start with numbers in the 640s, and astronomy books are listed in the 520s. 
-          </p>
-          <p>
-            It’s very important that these numbers are well structured. Suppose that every book in the library were assigned a random number and laid out on the shelves in numerical order. Instead of finding a group of books of a similar topic on one shelf, you’d have to hunt through the entire library searching for books on one topic of interest.
-          </p>
-          <p>
-            AI models need to act as librarians. They take in images and organize them by transforming each one into a list of numbers. As with the library, images containing similar content should have numbers that are closer in value to each other. This list of numbers is called an “embedding vector”, or an “embedding” for short.
-          </p>
-          <div id="inline-fig-dewey" class="inline-figure"></div>
-        </section>
-        <section id="text-embedding" class="content-section">
-            <h2 class="section-title">Embedding Models</h2>
-            <p>
-                AI models create these powerful embeddings to organize the world, but they don't reveal how they are structured or what they can see. We're going to explore this!
-            </p>
-            <p>
-                Of course we should be curious about how an AI sees the world, but it also is very important to determine the model's capabilities. We'd like to know where these models are sensitive, and where they are blind. What things do AI models see as similar, and what do they consider to be very far apart?
-            </p>
-            <p>
-                We're going to evaluate this through a set of explorations. Each exploration gives an AI model two inputs and asks "how similar do you think these are?"
-            </p>
-            <div id="inline-fig-embedding" class="inline-figure"></div>
-        </section>
-        <section id="text-cosine" class="content-section">
-            <h2 class="section-title">Measuring Similarity</h2>
-            <p>
-                Given that embedding vectors have many hundreds of values, how can we measure how similar one is to another? We have a nice technique called cosine similarity. Here’s how it works.
-            </p>
-            <p>
-                We’ll first treat the list of numbers in an embedding vector as coordinates of a point in a space. Each number describes a position along a different axis. To make it simple, we’ll start with an embedding that has only two dimensions.
-            </p>
-            <p>
-                In our example, we’ll give the first embedding vector the values 3 and 1, and the second 1 and 2. We’ll label these positions on the graph by setting the blue point to <button class="config-button" onclick="window.setVectorPositions(3, 1, null, null)">position [3, 1]</button>, and the green point to <button class="config-button" onclick="window.setVectorPositions(null, null, 1, 2)">position [1, 2]</button>.
-            </p>
-            <div id="inline-fig-cosine" class="inline-figure"></div>
-            <p>
-                You’ll notice that we can draw the angle between the lines that extend from the origin of the graph to the points. In this case, that angle is 45˚. This angle indicates how similar the points are to one another. A smaller angle indicates that the two points are similar, whereas a larger angle indicates that they’re further apart. This is our similarity score.
 
-            </p>
-            <p>
-                To make this number nicer to work with, we’ll take the cosine of this angle. We do this to convert the angle to a scale between -1 and 1. This is the cosine similarity score between two embeddings. You can see this score in blue above the plot. 
-            </p>
-            <p>
-                Drag the points around to see how the score changes. A cosine similarity value close to 1 indicates that the points are nearly the same, 0 means they’re perpendicular, and -1 means that they’re pointing in exactly opposite directions.
-            </p>
-            <p>
-                This technique that works simply in two dimensions translates very well to higher dimensionalities, and is what we’ll use to compare embeddings created by AI models.
-            </p>
-            <div class="sidebar-note">
-                You might say "well, an angle isn't a very good measurement because even if two points can be on the same line, one might extend further than the other." You are right, but this problem disappears as you go to higher dimensions. You'll have to trust me on this one.
-            </div>
-            
-        </section>
-        <section id="text-compare" class="content-section">
-            <h2 class="section-title">Image Similarity</h2>
-            <p>
-                So how do these embedding models see the world? Let's start by comparing images and their embeddings.
-                For each experiment, we're going to use two popular embedding models. One is called CLIP and the other is called DINO.
-            </p>
-            <p>
-                Here's how these tests will go. The models compute embeddings for the images on the left and right, and then measure the similarity of the representations. You can see the similarity scores for each of the models in the scoreboard above the images.
-            </p>
-            <p>
-                We'll start by comparing <button class="config-button" onclick="window.setCompareImages('Animals', 'Gray Parrot', 'Gray Parrot 2')">two images of an African Gray Parrot</button>. As you'd expect, the similarity score is very high. The CLIP model gives it a score of 0.924
-                and the DINO model gives it a score of 0.951. This means that even though the images are different, the models see the images as very similar. 
-            </p>
-            <div id="inline-fig-compare" class="inline-figure"></div>
-            <p>
-                Now let's see what happens when we look at a <button class="config-button" onclick="window.setCompareImages('Animals', 'Gray Parrot', 'Gray Parrot Full')">another Gray Parrot</button>. Once again, the scores are still quite high, but a little lower than before. Everything is behaving as we'd expect.
-            </p>
-            <p>
-                Now let's try a few more experiments. Let's compare <button class="config-button" onclick="window.setCompareImages('Animals', 'Beagle', 'Vizsla')">two floppy-eared breeds of dogs</button>. The CLIP model thinks that they are even more similar than the two gray parrots, but the DINO model thinks that they are quite far apart. This is interesting! It means that the CLIP model groups them together as dogs, but the DINO model thinks that they are significantly different.
-            </p>
-            <p>
-                Make some comparisons of your own. You might try comparing a <button class="config-button" onclick="window.setCompareImages('Animals', 'Leopard', 'Lynx')">leopard to a lynx</button>, a <button class="config-button" onclick="window.setCompareImages('Animals', 'Raccoon', 'Chihuahua')">racoon to a chihuahua</button>, or a <button class="config-button" onclick="window.setCompareImages('Animals', 'Red Squirrel', 'Beaver')">squirrel to a beaver</button>.
-            </p>
-            <p>
-                In doing these tests, we can start to build up intuition for how the models perceive the images. It seems like the DINO model is more sensitive to differences in images, while the CLIP model might group at a more conceptual level. CLIP might be saying something like "these are all animals to me", whereas DINO is saying "this dog looks nothing like that other dog!" Both are equally correct, but it gives a clue toward how these models represent the world.
-            </p>
-        </section>
-        <section id="text-3d" class="content-section" aria-label="3D rotation description">
-          <h2 class="section-title">3D rotation</h2>
-          <p>Compares two rendered views from 3D models in <code>output_views/3D</code> with data from <code>output_data/3D</code>. Sliders span 0–360°.</p>
-          <p>
-            CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
-            captures strong structural cues from self-supervised learning. When the object
-            looks nearly identical from two angles, both scores rise. When views expose
-            different geometry (front vs. side), similarity drops.
-          </p>
-          <p>
-            Values come from precomputed matrices loaded from the <code>output_data/</code>
-            directory. Images are served from <code>output_views/</code>. Try sweeping both
-            sliders together to find stable regions, or move them in opposite directions to
-            see how symmetry affects the embeddings.
-          </p>
-          <div id="inline-fig-3d" class="inline-figure"></div>
-        </section>
-        <section id="text-rot" class="content-section" aria-label="Rotation description">
-          <h2 class="section-title">Rotation</h2>
-          <p>Compares two rendered views from <code>output_views/Rotation</code> with data from <code>output_data/Rotation</code>. Sliders span 0–360°.</p>
-          <p>
-            CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
-            captures strong structural cues from self-supervised learning. When the object
-            looks nearly identical from two angles, both scores rise. When views expose
-            different geometry (front vs. side), similarity drops.
-          </p>
-          <p>
-            Values come from precomputed matrices loaded from the <code>output_data/</code>
-            directory. Images are served from <code>output_views/</code>. Try sweeping both
-            sliders together to find stable regions, or move them in opposite directions to
-            see how symmetry affects the embeddings.
-          </p>
-          <div id="inline-fig-rot" class="inline-figure"></div>
-        </section>
-        <section id="text-color" class="content-section" aria-label="Color description">
-          <h2 class="section-title">Color</h2>
-          <p>Compares views across images in <code>output_views/Color</code> with data from <code>output_data/Color</code>. Sliders index through available images.</p>
-          <p>
-            CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
-            captures strong structural cues from self-supervised learning. When the object
-            looks nearly identical from two angles, both scores rise. When views expose
-            different geometry (front vs. side), similarity drops.
-          </p>
-          <p>
-            Values come from precomputed matrices loaded from the <code>output_data/</code>
-            directory. Images are served from <code>output_views/</code>. Try sweeping both
-            sliders together to find stable regions, or move them in opposite directions to
-            see how symmetry affects the embeddings.
-          </p>
-          <div id="inline-fig-color" class="inline-figure"></div>
-        </section>
-        <section id="text-subj" class="content-section" aria-label="Subject Similarity description">
-          <h2 class="section-title">Subject Similarity</h2>
-          <p>Compares views across images in <code>output_views/Same-Subject</code> with data from <code>output_data/Same-Subject</code>. Sliders index through available images.</p>
-          <p>
-            CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
-            captures strong structural cues from self-supervised learning. When the object
-            looks nearly identical from two angles, both scores rise. When views expose
-            different geometry (front vs. side), similarity drops.
-          </p>
-          <p>
-            Values come from precomputed matrices loaded from the <code>output_data/</code>
-            directory. Images are served from <code>output_views/</code>. Try sweeping both
-            sliders together to find stable regions, or move them in opposite directions to
-            see how symmetry affects the embeddings.
-          </p>
-          <div id="inline-fig-subj" class="inline-figure"></div>
-        </section>
-        <section class="content-section">
-          <h2 class="section-title">What the numbers mean</h2>
-          <p>
-            CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
-            captures strong structural cues from self-supervised learning. When the object
-            looks nearly identical from two angles, both scores rise. When views expose
-            different geometry (front vs. side), similarity drops.
-          </p>
-          <p>
-            Values come from precomputed matrices loaded from the <code>output_data/</code>
-            directory. Images are served from <code>output_views/</code>. Try sweeping both
-            sliders together to find stable regions, or move them in opposite directions to
-            see how symmetry affects the embeddings.
-          </p>
-        </section>
-      </div>
-      <div class="container">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, minimum-scale=1.0" />
+  <title>What do Embedding Models See?</title>
+  <meta name="description"
+    content="Exploring how the CLIP and DINO models classify and organize the world through interactive experiments with embedding vectors and similarity scores." />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://calebkruse.com/ml/embeddings/" />
+  <meta property="og:title" content="What do Embedding Models See?" />
+  <meta property="og:description"
+    content="Exploring how the CLIP and DINO models classify and organize the world through interactive experiments with embedding vectors and similarity scores." />
+  <meta property="og:image" content="https://calebkruse.com/ml/embeddings/preview.png" />
+
+  <!-- Twitter -->
+  <meta property="twitter:card" content="summary_large_image" />
+  <meta property="twitter:url" content="https://calebkruse.com/ml/embeddings/" />
+  <meta property="twitter:title" content="What do Embedding Models See?" />
+  <meta property="twitter:description"
+    content="Exploring how the CLIP and DINO models classify and organize the world through interactive experiments with embedding vectors and similarity scores." />
+  <meta property="twitter:image" content="https://calebkruse.com/ml/embeddings/preview.png" />
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <header class="pixel-header">
+    <h1 class="pixel-title">What do Embedding Models See?</h1>
+    <div class="pixel-tagline">Exploring how the CLIP and DINO classify and organize the world</div>
+  </header>
+  <div class="main-grid">
+    <div class="left-scroll">
+      <section class="content-section">
+        <p>
+          We’re going to explore a bit about how AIs see, organize, and make sense of the visual world by doing a few
+          interactive experiments.
+        </p>
+      </section>
+      <section class="content-section" id="text-dewey">
+        <h2 class="section-title">Organizing the World</h2>
+        <p>
+          To be able to understand the world, vision models need to convert an image into a language that they
+          understand. For an AI model, that means a list of numbers. These numbers work a bit like the Dewey Decimal
+          System at the library. Books are assigned a number based on their topic, and similar topics have shared
+          numerical values. This means that all cookbooks start with numbers in the 640s, and astronomy books are listed
+          in the 520s.
+        </p>
+        <p>
+          It’s very important that these numbers are well structured. Suppose that every book in the library were
+          assigned a random number and laid out on the shelves in numerical order. Instead of finding a group of books
+          of a similar topic on one shelf, you’d have to hunt through the entire library searching for books on one
+          topic of interest.
+        </p>
+        <p>
+          AI models need to act as librarians. They take in images and organize them by transforming each one into a
+          list of numbers. As with the library, images containing similar content should have numbers that are closer in
+          value to each other. This list of numbers is called an “embedding vector”, or an “embedding” for short.
+        </p>
+        <div id="inline-fig-dewey" class="inline-figure"></div>
+      </section>
+      <section id="text-embedding" class="content-section">
+        <h2 class="section-title">Embedding Models</h2>
+        <p>
+          AI models create these powerful embeddings to organize the world, but they don't reveal how they are
+          structured or what they can see. We're going to explore this!
+        </p>
+        <p>
+          Of course we should be curious about how an AI sees the world, but it also is very important to determine the
+          model's capabilities. We'd like to know where these models are sensitive, and where they are blind. What
+          things do AI models see as similar, and what do they consider to be very far apart?
+        </p>
+        <p>
+          We're going to evaluate this through a set of explorations. Each exploration gives an AI model two inputs and
+          asks "how similar do you think these are?"
+        </p>
+        <div id="inline-fig-embedding" class="inline-figure"></div>
+      </section>
+      <section id="text-cosine" class="content-section">
+        <h2 class="section-title">Measuring Similarity</h2>
+        <p>
+          Given that embedding vectors have many hundreds of values, how can we measure how similar one is to another?
+          We have a nice technique called cosine similarity. Here’s how it works.
+        </p>
+        <p>
+          We’ll first treat the list of numbers in an embedding vector as coordinates of a point in a space. Each number
+          describes a position along a different axis. To make it simple, we’ll start with an embedding that has only
+          two dimensions.
+        </p>
+        <p>
+          In our example, we’ll give the first embedding vector the values 3 and 1, and the second 1 and 2. We’ll label
+          these positions on the graph by setting the blue point to <button class="config-button"
+            onclick="window.setVectorPositions(3, 1, null, null)">position [3, 1]</button>, and the green point to
+          <button class="config-button" onclick="window.setVectorPositions(null, null, 1, 2)">position [1, 2]</button>.
+        </p>
+        <div id="inline-fig-cosine" class="inline-figure"></div>
+        <p>
+          You’ll notice that we can draw the angle between the lines that extend from the origin of the graph to the
+          points. In this case, that angle is 45˚. This angle indicates how similar the points are to one another. A
+          smaller angle indicates that the two points are similar, whereas a larger angle indicates that they’re further
+          apart. This is our similarity score.
+
+        </p>
+        <p>
+          To make this number nicer to work with, we’ll take the cosine of this angle. We do this to convert the angle
+          to a scale between -1 and 1. This is the cosine similarity score between two embeddings. You can see this
+          score in blue above the plot.
+        </p>
+        <p>
+          Drag the points around to see how the score changes. A cosine similarity value close to 1 indicates that the
+          points are nearly the same, 0 means they’re perpendicular, and -1 means that they’re pointing in exactly
+          opposite directions.
+        </p>
+        <p>
+          This technique that works simply in two dimensions translates very well to higher dimensionalities, and is
+          what we’ll use to compare embeddings created by AI models.
+        </p>
+        <div class="sidebar-note">
+          You might say "well, an angle isn't a very good measurement because even if two points can be on the same
+          line, one might extend further than the other." You are right, but this problem disappears as you go to higher
+          dimensions. You'll have to trust me on this one.
+        </div>
+
+      </section>
+      <section id="text-compare" class="content-section">
+        <h2 class="section-title">Image Similarity</h2>
+        <p>
+          So how can we examine how these embedding models see the world? Let's start by comparing images and their
+          embeddings.
+          For each experiment, we're going to use two popular embedding models. One is called CLIP and the other is
+          called DINO.
+        </p>
+        <p>
+          Here's how these tests will go. The models compute embeddings for the images on the left and right, and then
+          measure the similarity of the representations. You can see the similarity scores for each of the models in the
+          scoreboard above the images.
+        </p>
+        <p>
+          We'll start by comparing <button class="config-button"
+            onclick="window.setCompareImages('Animals', 'Gray Parrot', 'Gray Parrot 2')">two images of an African Gray
+            Parrot</button>. As you'd expect, the similarity score is very high. The CLIP model gives it a score of
+          0.924
+          and the DINO model gives it a score of 0.951. This means that even though the images are different, the models
+          see the images as very similar.
+        </p>
+        <div id="inline-fig-compare" class="inline-figure"></div>
+        <p>
+          Now let's see what happens when we look at a <button class="config-button"
+            onclick="window.setCompareImages('Animals', 'Gray Parrot', 'Gray Parrot Full')">another Gray
+            Parrot</button>. Once again, the scores are still quite high, but a little lower than before. Everything is
+          behaving as we'd expect.
+        </p>
+        <p>
+          Now let's try a few more experiments. Let's compare <button class="config-button"
+            onclick="window.setCompareImages('Animals', 'Beagle', 'Vizsla')">two floppy-eared breeds of dogs</button>.
+          The CLIP model thinks that they are even more similar than the two gray parrots, but the DINO model thinks
+          that they are quite far apart. This is interesting! It means that the CLIP model groups them together as dogs,
+          but the DINO model thinks that they are significantly different.
+        </p>
+        <p>
+          Make some comparisons of your own. You might try comparing a <button class="config-button"
+            onclick="window.setCompareImages('Animals', 'Leopard', 'Lynx')">leopard to a lynx</button>, a <button
+            class="config-button" onclick="window.setCompareImages('Animals', 'Raccoon', 'Chihuahua')">racoon to a
+            chihuahua</button>, or a <button class="config-button"
+            onclick="window.setCompareImages('Animals', 'Red Squirrel', 'Beaver')">squirrel to a beaver</button>.
+        </p>
+        <p>
+          In doing these tests, we can start to build up intuition for how the models perceive the images. It seems like
+          the DINO model is more sensitive to differences in images, while the CLIP model might group at a more
+          conceptual level. CLIP might be saying something like "these are all animals to me", whereas DINO is saying
+          "this dog looks nothing like that other dog!" Both are equally correct, but it gives a clue toward how these
+          models represent the world.
+        </p>
+      </section>
+      <section id="text-3d" class="content-section" aria-label="3D rotation description">
+        <h2 class="section-title">3D rotation</h2>
+        <p>Compares two rendered views from 3D models in <code>output_views/3D</code> with data from
+          <code>output_data/3D</code>. Sliders span 0–360°.</p>
+        <p>
+          CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
+          captures strong structural cues from self-supervised learning. When the object
+          looks nearly identical from two angles, both scores rise. When views expose
+          different geometry (front vs. side), similarity drops.
+        </p>
+        <p>
+          Values come from precomputed matrices loaded from the <code>output_data/</code>
+          directory. Images are served from <code>output_views/</code>. Try sweeping both
+          sliders together to find stable regions, or move them in opposite directions to
+          see how symmetry affects the embeddings.
+        </p>
+        <div id="inline-fig-3d" class="inline-figure"></div>
+      </section>
+      <section id="text-rot" class="content-section" aria-label="Rotation description">
+        <h2 class="section-title">Rotation</h2>
+        <p>Compares two rendered views from <code>output_views/Rotation</code> with data from
+          <code>output_data/Rotation</code>. Sliders span 0–360°.</p>
+        <p>
+          CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
+          captures strong structural cues from self-supervised learning. When the object
+          looks nearly identical from two angles, both scores rise. When views expose
+          different geometry (front vs. side), similarity drops.
+        </p>
+        <p>
+          Values come from precomputed matrices loaded from the <code>output_data/</code>
+          directory. Images are served from <code>output_views/</code>. Try sweeping both
+          sliders together to find stable regions, or move them in opposite directions to
+          see how symmetry affects the embeddings.
+        </p>
+        <div id="inline-fig-rot" class="inline-figure"></div>
+      </section>
+      <section id="text-color" class="content-section" aria-label="Color description">
+        <h2 class="section-title">Color</h2>
+        <p>Compares views across images in <code>output_views/Color</code> with data from
+          <code>output_data/Color</code>. Sliders index through available images.</p>
+        <p>
+          CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
+          captures strong structural cues from self-supervised learning. When the object
+          looks nearly identical from two angles, both scores rise. When views expose
+          different geometry (front vs. side), similarity drops.
+        </p>
+        <p>
+          Values come from precomputed matrices loaded from the <code>output_data/</code>
+          directory. Images are served from <code>output_views/</code>. Try sweeping both
+          sliders together to find stable regions, or move them in opposite directions to
+          see how symmetry affects the embeddings.
+        </p>
+        <div id="inline-fig-color" class="inline-figure"></div>
+      </section>
+      <section id="text-subj" class="content-section" aria-label="Subject Similarity description">
+        <h2 class="section-title">Subject Similarity</h2>
+        <p>Compares views across images in <code>output_views/Same-Subject</code> with data from
+          <code>output_data/Same-Subject</code>. Sliders index through available images.</p>
+        <p>
+          CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
+          captures strong structural cues from self-supervised learning. When the object
+          looks nearly identical from two angles, both scores rise. When views expose
+          different geometry (front vs. side), similarity drops.
+        </p>
+        <p>
+          Values come from precomputed matrices loaded from the <code>output_data/</code>
+          directory. Images are served from <code>output_views/</code>. Try sweeping both
+          sliders together to find stable regions, or move them in opposite directions to
+          see how symmetry affects the embeddings.
+        </p>
+        <div id="inline-fig-subj" class="inline-figure"></div>
+      </section>
+      <section class="content-section">
+        <h2 class="section-title">What the numbers mean</h2>
+        <p>
+          CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
+          captures strong structural cues from self-supervised learning. When the object
+          looks nearly identical from two angles, both scores rise. When views expose
+          different geometry (front vs. side), similarity drops.
+        </p>
+        <p>
+          Values come from precomputed matrices loaded from the <code>output_data/</code>
+          directory. Images are served from <code>output_views/</code>. Try sweeping both
+          sliders together to find stable regions, or move them in opposite directions to
+          see how symmetry affects the embeddings.
+        </p>
+      </section>
+    </div>
+    <div class="container">
 
       <div id="right-panel" class="right-panel">
-      <section id="sec-compare" class="content-section">
-        <div class="viewer viewer-slim">
-          <div class="metrics-row">
-            <div class="selector-group">
-              <label for="datasetSelect-compare" class="muted small-label">Dataset</label>
-              <select id="datasetSelect-compare" aria-label="Dataset selector"></select>
-            </div>
-            <div class="metric-group align-right">
-              <span class="muted small-label">CLIP</span>
-              <span id="clipValue-compare" class="metric metric-clip">—</span>
-              <span class="spacer"></span>
-              <span class="muted small-label">DINO</span>
-              <span id="dinoValue-compare" class="metric metric-dino">—</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="viewers" style="overflow: hidden;">
-          <div class="viewer">
-            <div class="image-frame">
-              <img id="img-compare-1" alt="Compare Image 1" loading="lazy" />
-            </div>
-            <div class="selector-group">
-              <select id="imageSelect-compare-1" aria-label="Image 1 selector" class="image-dropdown"></select>
+        <section id="sec-compare" class="content-section">
+          <div class="viewer viewer-slim">
+            <div class="metrics-row">
+              <div class="selector-group">
+                <label for="datasetSelect-compare" class="muted small-label">Dataset</label>
+                <select id="datasetSelect-compare" aria-label="Dataset selector"></select>
+              </div>
+              <div class="metric-group align-right">
+                <span class="muted small-label">CLIP</span>
+                <span id="clipValue-compare" class="metric metric-clip">—</span>
+                <span class="spacer"></span>
+                <span class="muted small-label">DINO</span>
+                <span id="dinoValue-compare" class="metric metric-dino">—</span>
+              </div>
             </div>
           </div>
 
-          <div class="viewer">
-            <div class="image-frame">
-              <img id="img-compare-2" alt="Compare Image 2" loading="lazy" />
+          <div class="viewers" style="overflow: hidden;">
+            <div class="viewer">
+              <div class="image-frame">
+                <img id="img-compare-1" alt="Compare Image 1" loading="lazy" />
+              </div>
+              <div class="selector-group">
+                <select id="imageSelect-compare-1" aria-label="Image 1 selector" class="image-dropdown"></select>
+              </div>
             </div>
-            <div class="selector-group">
-              <select id="imageSelect-compare-2" aria-label="Image 2 selector" class="image-dropdown"></select>
-            </div>
-          </div>
-        </div>
-      </section>
-      <section id="sec-cosine" class="content-section">
-        <div class="viewer viewer-slim">
-          <div class="metrics-row">
-            <div class="selector-group">
-              <span class="muted small-label">Cosine Similarity</span>
-            </div>
-            <div class="metric-group align-right">
-              <span id="cosine-similarity-value" class="metric cosine-metric">1.000</span>
-            </div>
-          </div>
-        </div>
 
-        <div class="viewer plot-card">
-          <div id="vector-plot-container" class="vector-plot-container"></div>
-        </div>
-      </section>
-      <section id="sec-3d" class="content-section">
-        <div class="viewer viewer-slim">
-          <div class="metrics-row">
-            <div class="selector-group">
-              <label for="modelSelect-3d" class="muted small-label">Model</label>
-              <select id="modelSelect-3d" aria-label="3D model selector"></select>
-            </div>
-            <div class="metric-group align-right">
-              <span class="muted small-label">CLIP</span>
-              <span id="clipValue-3d" class="metric metric-clip">—</span>
-              <span class="spacer"></span>
-              <span class="muted small-label">DINO</span>
-              <span id="dinoValue-3d" class="metric metric-dino">—</span>
+            <div class="viewer">
+              <div class="image-frame">
+                <img id="img-compare-2" alt="Compare Image 2" loading="lazy" />
+              </div>
+              <div class="selector-group">
+                <select id="imageSelect-compare-2" aria-label="Image 2 selector" class="image-dropdown"></select>
+              </div>
             </div>
           </div>
-        </div>
-
-        <div class="viewers" style="overflow: hidden;">
-          <div class="viewer">
-            <div class="image-frame">
-              <img id="img-3d-1" alt="3D View 1" loading="lazy" />
-            </div>
-            <div class="slider-row">
-              <input id="slider-3d-1" type="range" min="0" max="360" step="5" value="0" aria-label="3D angle slider 1" />
-              <div class="angle-label" id="angle-3d-1">0°</div>
+        </section>
+        <section id="sec-cosine" class="content-section">
+          <div class="viewer viewer-slim">
+            <div class="metrics-row">
+              <div class="selector-group">
+                <span class="muted small-label">Cosine Similarity</span>
+              </div>
+              <div class="metric-group align-right">
+                <span id="cosine-similarity-value" class="metric cosine-metric">1.000</span>
+              </div>
             </div>
           </div>
 
-          <div class="viewer">
-            <div class="image-frame">
-              <img id="img-3d-2" alt="3D View 2" loading="lazy" />
-            </div>
-            <div class="slider-row">
-              <input id="slider-3d-2" type="range" min="0" max="360" step="5" value="0" aria-label="3D angle slider 2" />
-              <div class="angle-label" id="angle-3d-2">0°</div>
-            </div>
+          <div class="viewer plot-card">
+            <div id="vector-plot-container" class="vector-plot-container"></div>
           </div>
-        </div>
-        <div class="viewer plot-card">
-          <div class="metrics-row">
-            <div class="selector-group">
-              <span class="small-label muted">Similarity vs angle</span>
-            </div>
-            <div class="metric-group align-right small-legend">
-              <span class="legend legend-clip"></span>
-              <span class="small-label">CLIP</span>
-              <span class="spacer"></span>
-              <span class="legend legend-dino"></span>
-              <span class="small-label">DINO</span>
-            </div>
-          </div>
-          <div id="plot-3d" class="plot"></div>
-        </div>
-      </section>
-
-      <section id="sec-rot" class="content-section">
-        <div class="viewer viewer-slim">
-          <div class="metrics-row">
-            <div class="selector-group">
-              <label for="modelSelect-rot" class="muted small-label">Model</label>
-              <select id="modelSelect-rot" aria-label="Rotation model selector"></select>
-            </div>
-            <div class="metric-group align-right">
-              <span class="muted small-label">CLIP</span>
-              <span id="clipValue-rot" class="metric metric-clip">—</span>
-              <span class="spacer"></span>
-              <span class="muted small-label">DINO</span>
-              <span id="dinoValue-rot" class="metric metric-dino">—</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="viewers" style="overflow: hidden;">
-          <div class="viewer">
-            <div class="image-frame">
-              <img id="img-rot-1" alt="Rotation View 1" loading="lazy" />
-            </div>
-            <div class="slider-row">
-              <input id="slider-rot-1" type="range" min="0" max="360" step="5" value="0" aria-label="Rotation angle slider 1" />
-              <div class="angle-label" id="angle-rot-1">0°</div>
+        </section>
+        <section id="sec-3d" class="content-section">
+          <div class="viewer viewer-slim">
+            <div class="metrics-row">
+              <div class="selector-group">
+                <label for="modelSelect-3d" class="muted small-label">Model</label>
+                <select id="modelSelect-3d" aria-label="3D model selector"></select>
+              </div>
+              <div class="metric-group align-right">
+                <span class="muted small-label">CLIP</span>
+                <span id="clipValue-3d" class="metric metric-clip">—</span>
+                <span class="spacer"></span>
+                <span class="muted small-label">DINO</span>
+                <span id="dinoValue-3d" class="metric metric-dino">—</span>
+              </div>
             </div>
           </div>
 
-          <div class="viewer">
-            <div class="image-frame">
-              <img id="img-rot-2" alt="Rotation View 2" loading="lazy" />
+          <div class="viewers" style="overflow: hidden;">
+            <div class="viewer">
+              <div class="image-frame">
+                <img id="img-3d-1" alt="3D View 1" loading="lazy" />
+              </div>
+              <div class="slider-row">
+                <input id="slider-3d-1" type="range" min="0" max="360" step="5" value="0"
+                  aria-label="3D angle slider 1" />
+                <div class="angle-label" id="angle-3d-1">0°</div>
+              </div>
             </div>
-            <div class="slider-row">
-              <input id="slider-rot-2" type="range" min="0" max="360" step="5" value="0" aria-label="Rotation angle slider 2" />
-              <div class="angle-label" id="angle-rot-2">0°</div>
-            </div>
-          </div>
-        </div>
-        <div class="viewer plot-card">
-          <div class="metrics-row">
-            <div class="selector-group">
-              <span class="small-label muted">Similarity vs angle</span>
-            </div>
-            <div class="metric-group align-right small-legend">
-              <span class="legend legend-clip"></span>
-              <span class="small-label">CLIP</span>
-              <span class="spacer"></span>
-              <span class="legend legend-dino"></span>
-              <span class="small-label">DINO</span>
-            </div>
-          </div>
-          <div id="plot-rot" class="plot"></div>
-        </div>
-      </section>
 
-      <section id="sec-color" class="content-section">
-        <div class="viewer viewer-slim">
-          <div class="metrics-row">
-            <div class="selector-group">
-              <label for="modelSelect-color" class="muted small-label">Color</label>
-              <select id="modelSelect-color" aria-label="Color selector"></select>
-            </div>
-            <div class="metric-group align-right">
-              <span class="muted small-label">CLIP</span>
-              <span id="clipValue-color" class="metric metric-clip">—</span>
-              <span class="spacer"></span>
-              <span class="muted small-label">DINO</span>
-              <span id="dinoValue-color" class="metric metric-dino">—</span>
+            <div class="viewer">
+              <div class="image-frame">
+                <img id="img-3d-2" alt="3D View 2" loading="lazy" />
+              </div>
+              <div class="slider-row">
+                <input id="slider-3d-2" type="range" min="0" max="360" step="5" value="0"
+                  aria-label="3D angle slider 2" />
+                <div class="angle-label" id="angle-3d-2">0°</div>
+              </div>
             </div>
           </div>
-        </div>
+          <div class="viewer plot-card">
+            <div class="metrics-row">
+              <div class="selector-group">
+                <span class="small-label muted">Similarity vs angle</span>
+              </div>
+              <div class="metric-group align-right small-legend">
+                <span class="legend legend-clip"></span>
+                <span class="small-label">CLIP</span>
+                <span class="spacer"></span>
+                <span class="legend legend-dino"></span>
+                <span class="small-label">DINO</span>
+              </div>
+            </div>
+            <div id="plot-3d" class="plot"></div>
+          </div>
+        </section>
 
-        <div class="viewers" style="overflow: hidden;">
-          <div class="viewer">
-            <div class="image-frame">
-              <img id="img-color-1" alt="Color View 1" loading="lazy" />
-            </div>
-            <div class="slider-row">
-              <input id="slider-color-1" type="range" min="0" max="0" step="1" value="0" aria-label="Color index slider 1" />
-              <div class="angle-label" id="angle-color-1">0</div>
-            </div>
-          </div>
-
-          <div class="viewer">
-            <div class="image-frame">
-              <img id="img-color-2" alt="Color View 2" loading="lazy" />
-            </div>
-            <div class="slider-row">
-              <input id="slider-color-2" type="range" min="0" max="0" step="1" value="0" aria-label="Color index slider 2" />
-              <div class="angle-label" id="angle-color-2">0</div>
-            </div>
-          </div>
-        </div>
-        <div class="viewer plot-card">
-          <div class="metrics-row">
-            <div class="selector-group">
-              <span class="small-label muted">Similarity vs index</span>
-            </div>
-            <div class="metric-group align-right small-legend">
-              <span class="legend legend-clip"></span>
-              <span class="small-label">CLIP</span>
-              <span class="spacer"></span>
-              <span class="legend legend-dino"></span>
-              <span class="small-label">DINO</span>
-            </div>
-          </div>
-          <div id="plot-color" class="plot"></div>
-        </div>
-      </section>
-
-      <section id="sec-subj" class="content-section">
-        <div class="viewer viewer-slim">
-          <div class="metrics-row">
-            <div class="selector-group">
-              <label for="modelSelect-subj" class="muted small-label">Subject</label>
-              <select id="modelSelect-subj" aria-label="Subject selector"></select>
-            </div>
-            <div class="metric-group align-right">
-              <span class="muted small-label">CLIP</span>
-              <span id="clipValue-subj" class="metric metric-clip">—</span>
-              <span class="spacer"></span>
-              <span class="muted small-label">DINO</span>
-              <span id="dinoValue-subj" class="metric metric-dino">—</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="viewers" style="overflow: hidden;">
-          <div class="viewer">
-            <div class="image-frame">
-              <img id="img-subj-1" alt="Subject View 1" loading="lazy" />
-            </div>
-            <div class="slider-row">
-              <input id="slider-subj-1" type="range" min="0" max="0" step="1" value="0" aria-label="Subject index slider 1" />
-              <div class="angle-label" id="angle-subj-1">0</div>
+        <section id="sec-rot" class="content-section">
+          <div class="viewer viewer-slim">
+            <div class="metrics-row">
+              <div class="selector-group">
+                <label for="modelSelect-rot" class="muted small-label">Model</label>
+                <select id="modelSelect-rot" aria-label="Rotation model selector"></select>
+              </div>
+              <div class="metric-group align-right">
+                <span class="muted small-label">CLIP</span>
+                <span id="clipValue-rot" class="metric metric-clip">—</span>
+                <span class="spacer"></span>
+                <span class="muted small-label">DINO</span>
+                <span id="dinoValue-rot" class="metric metric-dino">—</span>
+              </div>
             </div>
           </div>
 
-          <div class="viewer">
-            <div class="image-frame">
-              <img id="img-subj-2" alt="Subject View 2" loading="lazy" />
+          <div class="viewers" style="overflow: hidden;">
+            <div class="viewer">
+              <div class="image-frame">
+                <img id="img-rot-1" alt="Rotation View 1" loading="lazy" />
+              </div>
+              <div class="slider-row">
+                <input id="slider-rot-1" type="range" min="0" max="360" step="5" value="0"
+                  aria-label="Rotation angle slider 1" />
+                <div class="angle-label" id="angle-rot-1">0°</div>
+              </div>
             </div>
-            <div class="slider-row">
-              <input id="slider-subj-2" type="range" min="0" max="0" step="1" value="0" aria-label="Subject index slider 2" />
-              <div class="angle-label" id="angle-subj-2">0</div>
-            </div>
-          </div>
-        </div>
-        <div class="viewer plot-card">
-          <div class="metrics-row">
-            <div class="selector-group">
-              <span class="small-label muted">Similarity vs index</span>
-            </div>
-            <div class="metric-group align-right small-legend">
-              <span class="legend legend-clip"></span>
-              <span class="small-label">CLIP</span>
-              <span class="spacer"></span>
-              <span class="legend legend-dino"></span>
-              <span class="small-label">DINO</span>
-            </div>
-          </div>
-          <div id="plot-subj" class="plot"></div>
-        </div>
-      </section>
-      <section id="sec-dewey" class="content-section">
-        <div class="viewer viewer-slim">
-          <div class="metrics-row">
-            <div class="selector-group">
-              <span id="dewey-header-label" class="muted small-label">Dewey Decimal System</span>
+
+            <div class="viewer">
+              <div class="image-frame">
+                <img id="img-rot-2" alt="Rotation View 2" loading="lazy" />
+              </div>
+              <div class="slider-row">
+                <input id="slider-rot-2" type="range" min="0" max="360" step="5" value="0"
+                  aria-label="Rotation angle slider 2" />
+                <div class="angle-label" id="angle-rot-2">0°</div>
+              </div>
             </div>
           </div>
-        </div>
-        <div class="viewer plot-card">
-          <div id="chart-dewey" class="dewey-chart"></div>
-        </div>
-      </section>
+          <div class="viewer plot-card">
+            <div class="metrics-row">
+              <div class="selector-group">
+                <span class="small-label muted">Similarity vs angle</span>
+              </div>
+              <div class="metric-group align-right small-legend">
+                <span class="legend legend-clip"></span>
+                <span class="small-label">CLIP</span>
+                <span class="spacer"></span>
+                <span class="legend legend-dino"></span>
+                <span class="small-label">DINO</span>
+              </div>
+            </div>
+            <div id="plot-rot" class="plot"></div>
+          </div>
+        </section>
+
+        <section id="sec-color" class="content-section">
+          <div class="viewer viewer-slim">
+            <div class="metrics-row">
+              <div class="selector-group">
+                <label for="modelSelect-color" class="muted small-label">Color</label>
+                <select id="modelSelect-color" aria-label="Color selector"></select>
+              </div>
+              <div class="metric-group align-right">
+                <span class="muted small-label">CLIP</span>
+                <span id="clipValue-color" class="metric metric-clip">—</span>
+                <span class="spacer"></span>
+                <span class="muted small-label">DINO</span>
+                <span id="dinoValue-color" class="metric metric-dino">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="viewers" style="overflow: hidden;">
+            <div class="viewer">
+              <div class="image-frame">
+                <img id="img-color-1" alt="Color View 1" loading="lazy" />
+              </div>
+              <div class="slider-row">
+                <input id="slider-color-1" type="range" min="0" max="0" step="1" value="0"
+                  aria-label="Color index slider 1" />
+                <div class="angle-label" id="angle-color-1">0</div>
+              </div>
+            </div>
+
+            <div class="viewer">
+              <div class="image-frame">
+                <img id="img-color-2" alt="Color View 2" loading="lazy" />
+              </div>
+              <div class="slider-row">
+                <input id="slider-color-2" type="range" min="0" max="0" step="1" value="0"
+                  aria-label="Color index slider 2" />
+                <div class="angle-label" id="angle-color-2">0</div>
+              </div>
+            </div>
+          </div>
+          <div class="viewer plot-card">
+            <div class="metrics-row">
+              <div class="selector-group">
+                <span class="small-label muted">Similarity vs index</span>
+              </div>
+              <div class="metric-group align-right small-legend">
+                <span class="legend legend-clip"></span>
+                <span class="small-label">CLIP</span>
+                <span class="spacer"></span>
+                <span class="legend legend-dino"></span>
+                <span class="small-label">DINO</span>
+              </div>
+            </div>
+            <div id="plot-color" class="plot"></div>
+          </div>
+        </section>
+
+        <section id="sec-subj" class="content-section">
+          <div class="viewer viewer-slim">
+            <div class="metrics-row">
+              <div class="selector-group">
+                <label for="modelSelect-subj" class="muted small-label">Subject</label>
+                <select id="modelSelect-subj" aria-label="Subject selector"></select>
+              </div>
+              <div class="metric-group align-right">
+                <span class="muted small-label">CLIP</span>
+                <span id="clipValue-subj" class="metric metric-clip">—</span>
+                <span class="spacer"></span>
+                <span class="muted small-label">DINO</span>
+                <span id="dinoValue-subj" class="metric metric-dino">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="viewers" style="overflow: hidden;">
+            <div class="viewer">
+              <div class="image-frame">
+                <img id="img-subj-1" alt="Subject View 1" loading="lazy" />
+              </div>
+              <div class="slider-row">
+                <input id="slider-subj-1" type="range" min="0" max="0" step="1" value="0"
+                  aria-label="Subject index slider 1" />
+                <div class="angle-label" id="angle-subj-1">0</div>
+              </div>
+            </div>
+
+            <div class="viewer">
+              <div class="image-frame">
+                <img id="img-subj-2" alt="Subject View 2" loading="lazy" />
+              </div>
+              <div class="slider-row">
+                <input id="slider-subj-2" type="range" min="0" max="0" step="1" value="0"
+                  aria-label="Subject index slider 2" />
+                <div class="angle-label" id="angle-subj-2">0</div>
+              </div>
+            </div>
+          </div>
+          <div class="viewer plot-card">
+            <div class="metrics-row">
+              <div class="selector-group">
+                <span class="small-label muted">Similarity vs index</span>
+              </div>
+              <div class="metric-group align-right small-legend">
+                <span class="legend legend-clip"></span>
+                <span class="small-label">CLIP</span>
+                <span class="spacer"></span>
+                <span class="legend legend-dino"></span>
+                <span class="small-label">DINO</span>
+              </div>
+            </div>
+            <div id="plot-subj" class="plot"></div>
+          </div>
+        </section>
+        <section id="sec-dewey" class="content-section">
+          <div class="viewer viewer-slim">
+            <div class="metrics-row">
+              <div class="selector-group">
+                <span id="dewey-header-label" class="muted small-label">Dewey Decimal System</span>
+              </div>
+            </div>
+          </div>
+          <div class="viewer plot-card">
+            <div id="chart-dewey" class="dewey-chart"></div>
+          </div>
+        </section>
       </div>
-      </div>
+    </div>
 
     <script src="https://d3js.org/d3.v3.min.js"></script>
     <script src="script.js"></script>
-  </body>
-  </html>
+</body>
 
+</html>
