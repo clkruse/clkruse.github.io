@@ -30,7 +30,7 @@
 <body>
   <header class="pixel-header">
     <h1 class="pixel-title">What do Embedding Models See?</h1>
-    <div class="pixel-tagline">Exploring how the CLIP and DINO classify and organize the world</div>
+    <div class="pixel-tagline">Exploring how the CLIP and DINO models classify and organize the world</div>
   </header>
   <div class="main-grid">
     <div class="left-scroll">
@@ -188,78 +188,40 @@
           Now the CLIP model starts behaving more like what we’ve seen from the DINO model. It becomes more sensitive to rotations and finds <button class="config-button" onclick="window.setRotationExample(240, 'island')">certain orientations</button> to be highly dissimilar.
         </p>
         <p>
-          It also seems that the models might have a bias toward typical orientations. If we look at an <button class="config-button" onclick="window.setRotationExample(180, 'elk')">image of an elk</button> with the ocean and sky behind it, the DINO model finds an upside-down image very dissimilar.
+          Explore some of the other images. You might see periodic similarities with <button class="config-button" onclick="window.setRotationExample(135, 'checkerboard')">a checkerboard</button>, a stronger reaction to uncommon scenarios when looking at an <button class="config-button" onclick="window.setRotationExample(180, 'elk')">upside-down elk</button>, or a puzzling plot when looking at an <button class="config-button" onclick="window.setRotationExample(290, 'airport')">aerial view of an airport</button>.
         </p>
       </section>
       <section id="text-3d" class="content-section" aria-label="3D rotation description">
-        <h2 class="section-title">3D rotation</h2>
-        <p>Compares two rendered views from 3D models in <code>output_views/3D</code> with data from
-          <code>output_data/3D</code>. Sliders span 0–360°.</p>
+        <h2 class="section-title">3D Rotation</h2>
         <p>
-          CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
-          captures strong structural cues from self-supervised learning. When the object
-          looks nearly identical from two angles, both scores rise. When views expose
-          different geometry (front vs. side), similarity drops.
+          Turning an image upside-down and seeing how the models respond is interesting, but not always realistic. After all, does it matter what a model thinks of an upside-down elk? It would be more informative if we could view the same object from a different perspective and see what the models think.
         </p>
         <p>
-          Values come from precomputed matrices loaded from the <code>output_data/</code>
-          directory. Images are served from <code>output_views/</code>. Try sweeping both
-          sliders together to find stable regions, or move them in opposite directions to
-          see how symmetry affects the embeddings.
+          We'll do exactly this by rendering a 3D model from different perspectives and comparing the similarity of the embeddings. We’ll start with a <button class="config-button" onclick="window.set3DExample('cow', 0, 180)">simple model of a cow</button>.
         </p>
         <div id="inline-fig-3d" class="inline-figure"></div>
+        <p>
+          These rotation plots are more complex to analyze. We see that for a <button class="config-button" onclick="window.set3DExample('Skull', 0, 235)">model of a skull</button>, the CLIP model maintains fairly high similarity, whereas DINO similarity abruptly drops off as soon as the back of the head dominates the frame. Or how the models see geography when looking at a <button class="config-button" onclick="window.set3DExample('Earth', 235, 270)">model of the globe</button>.
+        </p>
       </section>
       
       <section id="text-color" class="content-section" aria-label="Color description">
         <h2 class="section-title">Color</h2>
-        <p>Compares views across images in <code>output_views/Color</code> with data from
-          <code>output_data/Color</code>. Sliders index through available images.</p>
         <p>
-          CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
-          captures strong structural cues from self-supervised learning. When the object
-          looks nearly identical from two angles, both scores rise. When views expose
-          different geometry (front vs. side), similarity drops.
-        </p>
+          Lastly, we’ll look at transforming the color of the image to understand whether color is an important feature to these models. 
         <p>
-          Values come from precomputed matrices loaded from the <code>output_data/</code>
-          directory. Images are served from <code>output_views/</code>. Try sweeping both
-          sliders together to find stable regions, or move them in opposite directions to
-          see how symmetry affects the embeddings.
+          We’ll start by changing the color of an egg yolk. Though in most other cases the DINO model was much more sensitive than CLIP, the roles are reversed here. The DINO model finds all colors to be fairly similar, whereas the CLIP model has significantly more variation.
         </p>
         <div id="inline-fig-color" class="inline-figure"></div>
       </section>
-      <section id="text-subj" class="content-section" aria-label="Subject Similarity description">
-        <h2 class="section-title">Subject Similarity</h2>
-        <p>Compares views across images in <code>output_views/Same-Subject</code> with data from
-          <code>output_data/Same-Subject</code>. Sliders index through available images.</p>
+      <section id="text-conclusion" class="content-section" aria-label="Conclusion">
+        <h2 class="section-title">Conclusions</h2>
         <p>
-          CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
-          captures strong structural cues from self-supervised learning. When the object
-          looks nearly identical from two angles, both scores rise. When views expose
-          different geometry (front vs. side), similarity drops.
-        </p>
+          Lastly, we’ll look at transforming the color of the image to understand whether color is an important feature to these models. 
         <p>
-          Values come from precomputed matrices loaded from the <code>output_data/</code>
-          directory. Images are served from <code>output_views/</code>. Try sweeping both
-          sliders together to find stable regions, or move them in opposite directions to
-          see how symmetry affects the embeddings.
+          We’ll start by changing the color of an egg yolk. Though in most other cases the DINO model was much more sensitive than CLIP, the roles are reversed here. The DINO model finds all colors to be fairly similar, whereas the CLIP model has significantly more variation.
         </p>
-        <div id="inline-fig-subj" class="inline-figure"></div>
-      </section>
-      <section class="content-section">
-        <h2 class="section-title">What the numbers mean</h2>
-        <p>
-          CLIP tends to emphasize semantic cues (silhouette, parts, texture), while DINO
-          captures strong structural cues from self-supervised learning. When the object
-          looks nearly identical from two angles, both scores rise. When views expose
-          different geometry (front vs. side), similarity drops.
-        </p>
-        <p>
-          Values come from precomputed matrices loaded from the <code>output_data/</code>
-          directory. Images are served from <code>output_views/</code>. Try sweeping both
-          sliders together to find stable regions, or move them in opposite directions to
-          see how symmetry affects the embeddings.
-        </p>
+        <div id="inline-fig-color" class="inline-figure"></div>
       </section>
     </div>
     <div class="container">
@@ -475,7 +437,7 @@
           <div class="viewer plot-card">
             <div class="metrics-row">
               <div class="selector-group">
-                <span class="small-label muted">Similarity vs index</span>
+                <span class="small-label muted">Similarity vs color</span>
               </div>
               <div class="metric-group align-right small-legend">
                 <span class="legend legend-clip"></span>

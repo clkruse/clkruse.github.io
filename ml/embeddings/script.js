@@ -1,13 +1,16 @@
 // Section model lists (based on workspace directories)
 const MODELS_3D = [
   "cow",
+  "Airplane",
+  "Earth",
+  "Plant",
+  "Skull",
   "eames-chair",
   "humpback-whale",
   "modern-chair",
   "Owl",
   "Owl-X",
-  "Owl-Z",
-  "skull"
+  "Owl-Z"
 ];
 const MODELS_ROT = [
   "butterfly",
@@ -383,12 +386,15 @@ async function updateSimilarityPlot(cat, model, fixedAngle, currentX, containerI
 
   const xDomain = useIndex ? [0, Math.max(0, header.length - 1)] : [0, 360];
   // ticks
+  const isColorPlot = cat === "color" && useIndex;
   const xTicks = useIndex
-    ? (() => {
-      const n = header.length;
-      const vals = [0, Math.floor(n * 0.25), Math.floor(n * 0.5), Math.floor(n * 0.75), Math.max(0, n - 1)];
-      return Array.from(new Set(vals.filter(v => v >= 0 && v <= Math.max(0, n - 1))));
-    })()
+    ? (isColorPlot
+      ? []
+      : (() => {
+        const n = header.length;
+        const vals = [0, Math.floor(n * 0.25), Math.floor(n * 0.5), Math.floor(n * 0.75), Math.max(0, n - 1)];
+        return Array.from(new Set(vals.filter(v => v >= 0 && v <= Math.max(0, n - 1))));
+      })())
     : [0, 90, 180, 270, 360];
   // fixed Y domain: [globalMin, 1.0]
   const clipMin = clipData.globalMin;
@@ -406,11 +412,11 @@ async function updateSimilarityPlot(cat, model, fixedAngle, currentX, containerI
   ], {
     xDomain,
     currentX: useIndex ? currentX : currentX,
-    showXLabels: true,
+    showXLabels: !(isColorPlot),
     showYLabels: true,
     xTicks,
     yTicks,
-    axisTitleX: useIndex ? "Index" : "Angle (°)",
+    axisTitleX: useIndex ? (isColorPlot ? "Color" : "Index") : "Angle (°)",
     axisTitleY: "Similarity",
     yDomain,
   });
@@ -971,6 +977,41 @@ window.setRotationExample = (angleDeg, modelName) => {
   };
 
   if (selectEl && selectEl.value !== desiredModel && Array.from(selectEl.options).some(opt => opt.value === desiredModel)) {
+    selectEl.value = desiredModel;
+    selectEl.dispatchEvent(new Event('change'));
+    requestAnimationFrame(applyValues);
+  } else {
+    applyValues();
+  }
+};
+
+window.set3DExample = (modelName, leftAngle, rightAngle) => {
+  const selectEl = $('modelSelect-3d');
+  const desiredModel = modelName || 'cow';
+  const snap = (value, fallback = 0) => {
+    const num = Number.isFinite(Number(value)) ? Number(value) : fallback;
+    return toFilenameAngle(num).angle;
+  };
+
+  const applyValues = () => {
+    const slider1 = $('slider-3d-1');
+    const slider2 = $('slider-3d-2');
+    if (slider1) {
+      const snappedLeft = snap(leftAngle, Number(slider1.value) || 0);
+      slider1.value = String(snappedLeft);
+    }
+    if (slider2) {
+      const snappedRight = snap(rightAngle, Number(slider2.value) || 0);
+      slider2.value = String(snappedRight);
+    }
+    slider1?.dispatchEvent(new Event('input'));
+  };
+
+  if (
+    selectEl &&
+    selectEl.value !== desiredModel &&
+    Array.from(selectEl.options).some((opt) => opt.value === desiredModel)
+  ) {
     selectEl.value = desiredModel;
     selectEl.dispatchEvent(new Event('change'));
     requestAnimationFrame(applyValues);
