@@ -5,12 +5,8 @@ const MODELS_3D = [
   "Earth",
   "Plant",
   "Skull",
-  "eames-chair",
   "humpback-whale",
-  "modern-chair",
-  "Owl",
-  "Owl-X",
-  "Owl-Z"
+  "Owl"
 ];
 const MODELS_ROT = [
   "butterfly",
@@ -22,13 +18,17 @@ const MODELS_ROT = [
 ];
 const MODELS_COLOR = [
   "egg",
-  "wine"
+  "Car"
 ];
 const MODELS_SUBJ = [
-  "Animals",
-  "birds",
-  "lilac-roller"
+  "Animals"
 ];
+
+const COLOR_IMAGE_FILES = {
+  egg: Array.from({ length: 37 }, (_, i) => `${String(i).padStart(3, "0")}.00.png`),
+  wine: Array.from({ length: 19 }, (_, i) => `${String(i).padStart(3, "0")}.00.png`),
+  Car: Array.from({ length: 36 }, (_, i) => `${String(i * 10).padStart(3, "0")}.jpg`),
+};
 
 // Parse CSV headers to extract image names
 // The CSV header contains image names like: ",Name1,Name2,Name3,..."
@@ -527,8 +527,9 @@ async function loadDinoFor(cat, model) {
 }
 
 function setImage(srcBase, imgId, labelId, angleRaw) {
-  const { name } = toFilenameAngle(angleRaw);
   const img = $(imgId);
+  if (!img) return;
+  const { name } = toFilenameAngle(angleRaw);
   const nextSrc = `${srcBase}/${name}`;
   applyImageWithPreload(img, nextSrc);
   $(labelId).textContent = `${Math.round(Number(angleRaw) || 0)}°`;
@@ -575,20 +576,33 @@ function setupSection(cfg) {
     const baseViews = `${cfg.viewsBase}/${model}`;
 
     if (isSubject) {
-      scheduleSubjectPreloadFor(baseViews, headerAngles.length);
+      const colorFiles = cfg.cat === "color" ? (COLOR_IMAGE_FILES[model] || []) : null;
+      const preloadCount = colorFiles && colorFiles.length ? colorFiles.length : headerAngles.length;
+      scheduleSubjectPreloadFor(baseViews, preloadCount);
       const i1 = $(cfg.sliders[0]).value;
       const i2 = $(cfg.sliders[1]).value;
       const a1 = indexToAngle(i1);
       const a2 = indexToAngle(i2);
-      // Subject images are indexed sequentially: 000.00.png, 001.00.png, ...
-      const fn1 = `${String(Number(i1) || 0).padStart(3, "0")}.00.png`;
-      const fn2 = `${String(Number(i2) || 0).padStart(3, "0")}.00.png`;
-      const next1 = `${baseViews}/${fn1}`;
-      const next2 = `${baseViews}/${fn2}`;
-      applyImageWithPreload($(cfg.imgs[0]), next1);
-      applyImageWithPreload($(cfg.imgs[1]), next2);
-      $(cfg.labels[0]).textContent = String(i1);
-      $(cfg.labels[1]).textContent = String(i2);
+      if (colorFiles && colorFiles.length) {
+        const idx1 = Math.max(0, Math.min(colorFiles.length - 1, Number(i1) || 0));
+        const idx2 = Math.max(0, Math.min(colorFiles.length - 1, Number(i2) || 0));
+        const next1 = `${baseViews}/${colorFiles[idx1]}`;
+        const next2 = `${baseViews}/${colorFiles[idx2]}`;
+        applyImageWithPreload($(cfg.imgs[0]), next1);
+        applyImageWithPreload($(cfg.imgs[1]), next2);
+        $(cfg.labels[0]).textContent = colorFiles[idx1].replace(/\.[^/.]+$/, "");
+        $(cfg.labels[1]).textContent = colorFiles[idx2].replace(/\.[^/.]+$/, "");
+      } else {
+        // Subject images are indexed sequentially: 000.00.png, 001.00.png, ...
+        const fn1 = `${String(Number(i1) || 0).padStart(3, "0")}.00.png`;
+        const fn2 = `${String(Number(i2) || 0).padStart(3, "0")}.00.png`;
+        const next1 = `${baseViews}/${fn1}`;
+        const next2 = `${baseViews}/${fn2}`;
+        applyImageWithPreload($(cfg.imgs[0]), next1);
+        applyImageWithPreload($(cfg.imgs[1]), next2);
+        $(cfg.labels[0]).textContent = String(i1);
+        $(cfg.labels[1]).textContent = String(i2);
+      }
       // Use exact header-derived values for matrix lookups (no 5° rounding)
       updateMetricsForAngles(cfg.cat, model, a1, a2, cfg.clipId, cfg.dinoId);
       const fixed = a1;
@@ -624,7 +638,21 @@ function setupSection(cfg) {
     loadClipFor(cfg.cat, model).then((data) => {
       headerAngles = data?.header ?? [];
       setSliderBounds(headerAngles.length);
-      scheduleSubjectPreloadFor(baseViews, headerAngles.length);
+      if (cfg.cat === "color") {
+        const files = COLOR_IMAGE_FILES[model] || [];
+        if (files.length) {
+          cfg.sliders.forEach((id) => {
+            const el = $(id);
+            if (!el) return;
+            el.min = "0";
+            el.max = String(Math.max(0, files.length - 1));
+            el.step = "1";
+            if (Number(el.value) > Number(el.max)) el.value = el.max;
+          });
+        }
+      }
+      const preloadCount = cfg.cat === "color" ? (COLOR_IMAGE_FILES[model]?.length || headerAngles.length) : headerAngles.length;
+      scheduleSubjectPreloadFor(baseViews, preloadCount);
       try {
         const mid = Math.max(0, Math.floor((headerAngles.length - 1) / 2));
         $(cfg.sliders[1]).value = String(mid);
@@ -689,7 +717,7 @@ function initVectorPlot() {
 
   // Initial positions for the two vectors (in normalized coordinates -1 to 1)
   let vector1 = { x: 0, y: 0 };
-  let vector2 = { x: 0, y: 0 };
+  let vector2 = { x: 1.1, y: 0.2 };
 
   let dragging = null; // which point is being dragged
   let svgWidth = 800;
@@ -1004,6 +1032,36 @@ window.set3DExample = (modelName, leftAngle, rightAngle) => {
       const snappedRight = snap(rightAngle, Number(slider2.value) || 0);
       slider2.value = String(snappedRight);
     }
+    slider1?.dispatchEvent(new Event('input'));
+  };
+
+  if (
+    selectEl &&
+    selectEl.value !== desiredModel &&
+    Array.from(selectEl.options).some((opt) => opt.value === desiredModel)
+  ) {
+    selectEl.value = desiredModel;
+    selectEl.dispatchEvent(new Event('change'));
+    requestAnimationFrame(applyValues);
+  } else {
+    applyValues();
+  }
+};
+
+window.setColorExample = (modelName, index1, index2) => {
+  const selectEl = $('modelSelect-color');
+  const desiredModel = modelName || 'egg';
+
+  const applyValues = () => {
+    const slider1 = $('slider-color-1');
+    const slider2 = $('slider-color-2');
+    const files = COLOR_IMAGE_FILES[desiredModel] || [];
+    const clampIndex = (val) => {
+      if (!files.length) return Math.max(0, Math.round(Number(val) || 0));
+      return Math.max(0, Math.min(files.length - 1, Math.round(Number(val) || 0)));
+    };
+    if (slider1) slider1.value = String(clampIndex(index1));
+    if (slider2) slider2.value = String(clampIndex(index2))
     slider1?.dispatchEvent(new Event('input'));
   };
 

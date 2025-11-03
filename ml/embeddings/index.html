@@ -213,15 +213,18 @@
           We’ll start by changing the color of an egg yolk. Though in most other cases the DINO model was much more sensitive than CLIP, the roles are reversed here. The DINO model finds all colors to be fairly similar, whereas the CLIP model has significantly more variation.
         </p>
         <div id="inline-fig-color" class="inline-figure"></div>
+        <p>
+          The same pattern holds when looking at a <button class="config-button" onclick="window.setColorExample('Car', 0, 18)">car in different colors</button>. It’s quite interesting to see which color combinations CLIP finds to be most dissimilar.
+        </p>
       </section>
       <section id="text-conclusion" class="content-section" aria-label="Conclusion">
         <h2 class="section-title">Conclusions</h2>
         <p>
-          Lastly, we’ll look at transforming the color of the image to understand whether color is an important feature to these models. 
-        <p>
-          We’ll start by changing the color of an egg yolk. Though in most other cases the DINO model was much more sensitive than CLIP, the roles are reversed here. The DINO model finds all colors to be fairly similar, whereas the CLIP model has significantly more variation.
+          Generally, it seems as if CLIP is more semantic as it groups similar concepts together a little more tightly. This is in contrast to DINO, which seems to look at the images more literally. Most of these results make sense when you look at how the models were trained. DINO with purely image-based training, and CLIP with a training objective to align text and image spaces. Neither approach is necessarily better, but they can have different strengths.
         </p>
-        <div id="inline-fig-color" class="inline-figure"></div>
+        <p>
+          Similarity is a very crude metric for evaluating these incredibly rich embedding vectors, but it gives a glimpse at how the models organize the world by placing images within their embedding spaces. By playing with these examples I have a better intuition for how these models behave and I hope you do too.
+        </p>
       </section>
     </div>
     <div class="container">
