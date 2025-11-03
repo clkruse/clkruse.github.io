@@ -943,8 +943,8 @@ input[type="range"]:focus-visible::-webkit-slider-thumb {
 }
 
 .angle-label-text {
-  font-size: 17px;
-  fill: var(--text);
+  font-size: 14px;
+  fill: #5f5f5f;
   font-family: "Departure Mono", ui-monospace, monospace;
   font-weight: 600;
 }
