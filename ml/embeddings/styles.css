@@ -238,6 +238,7 @@ body {
   max-width: 1600px;
   margin: 12px auto 18px auto;
   padding: 8px 6px 0 6px;
+  position: relative;
 }
 
 .pixel-divider {
@@ -270,6 +271,28 @@ body {
   overflow-wrap: break-word;
   font-size: 22px;
   line-height: 1.1;
+}
+
+.home-link {
+  position: absolute;
+  top: 12px;
+  right: 10px;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-family: "Departure Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  color: rgba(15, 23, 42, 0.45);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.home-link:hover,
+.home-link:focus-visible {
+  color: var(--text);
+}
+
+.home-link:active {
+  color: rgba(15, 23, 42, 0.7);
 }
 
 .pixel-rule {
@@ -1010,6 +1033,24 @@ input[type="range"]:focus-visible::-webkit-slider-thumb {
   max-width: 100%;
   word-wrap: break-word;
   overflow-wrap: break-word;
+}
+
+.sidebar-note a {
+  color: #4f75de;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  font-style: italic;
+  transition: color 0.15s ease;
+}
+
+.sidebar-note a:hover,
+.sidebar-note a:focus-visible {
+  color: #0f172a;
+}
+
+.sidebar-note a:active {
+  color: rgba(15, 23, 42, 0.75);
 }
 
 .sidebar-note::before {
