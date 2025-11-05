@@ -80,6 +80,9 @@ const imagePreloadGroups = new Set();
 
 function preloadImage(url) {
   if (!url) return Promise.resolve(url);
+  if (typeof url === 'string' && url.endsWith('/undefined')) {
+    return Promise.resolve('');
+  }
   if (imagePreloadCache.has(url)) return imagePreloadCache.get(url);
   const p = (async () => {
     try {
@@ -141,10 +144,17 @@ function scheduleAnglePreloadFor(baseViews) {
   schedulePreloadGroup(`angles:${baseViews}`, urls);
 }
 
-function scheduleSubjectPreloadFor(baseViews, count) {
-  const total = Math.max(0, Number(count) || 0);
-  if (!baseViews || !total) return;
-  const urls = [];
+function scheduleSubjectPreloadFor(baseViews, countOrFiles) {
+  if (!baseViews) return;
+  let urls = [];
+  if (Array.isArray(countOrFiles)) {
+    if (!countOrFiles.length) return;
+    urls = countOrFiles.filter((name) => typeof name === 'string' && name.length).map((name) => `${baseViews}/${name}`);
+    schedulePreloadGroup(`subject:${baseViews}:files:${countOrFiles.length}`, urls);
+    return;
+  }
+  const total = Math.max(0, Number(countOrFiles) || 0);
+  if (!total) return;
   for (let i = 0; i < total; i++) {
     const name = `${String(i).padStart(3, "0")}.00.png`;
     urls.push(`${baseViews}/${name}`);
@@ -555,6 +565,7 @@ function setupSection(cfg) {
   const isSubject = !!cfg.isSubject;
   const startEmpty = !!cfg.startEmpty;
   const defaultSecondSlider = cfg.defaultSecondSlider ?? "180";
+  let subjectFileNames = [];
 
   const setSliderBounds = (count) => {
     if (!isSubject) return;
@@ -576,34 +587,46 @@ function setupSection(cfg) {
     const baseViews = `${cfg.viewsBase}/${model}`;
 
     if (isSubject) {
-      const colorFiles = cfg.cat === "color" ? (COLOR_IMAGE_FILES[model] || []) : null;
-      const preloadCount = colorFiles && colorFiles.length ? colorFiles.length : headerAngles.length;
-      scheduleSubjectPreloadFor(baseViews, preloadCount);
+    const colorFiles = cfg.cat === "color" ? (COLOR_IMAGE_FILES[model] || []) : null;
+    const fileList = colorFiles && colorFiles.length ? colorFiles : subjectFileNames;
+      if (fileList && fileList.length) {
+        scheduleSubjectPreloadFor(baseViews, fileList);
+      } else {
+        scheduleSubjectPreloadFor(baseViews, headerAngles.length);
+      }
       const i1 = $(cfg.sliders[0]).value;
       const i2 = $(cfg.sliders[1]).value;
       const a1 = indexToAngle(i1);
       const a2 = indexToAngle(i2);
-      if (colorFiles && colorFiles.length) {
-        const idx1 = Math.max(0, Math.min(colorFiles.length - 1, Number(i1) || 0));
-        const idx2 = Math.max(0, Math.min(colorFiles.length - 1, Number(i2) || 0));
-        const next1 = `${baseViews}/${colorFiles[idx1]}`;
-        const next2 = `${baseViews}/${colorFiles[idx2]}`;
-        applyImageWithPreload($(cfg.imgs[0]), next1);
-        applyImageWithPreload($(cfg.imgs[1]), next2);
-        $(cfg.labels[0]).textContent = colorFiles[idx1].replace(/\.[^/.]+$/, "");
-        $(cfg.labels[1]).textContent = colorFiles[idx2].replace(/\.[^/.]+$/, "");
+      if (fileList && fileList.length) {
+        const clampIndex = (val) => Math.max(0, Math.min(fileList.length - 1, Number(val) || 0));
+        const idx1 = clampIndex(i1);
+        const idx2 = clampIndex(i2);
+        if (fileList[idx1]?.length) {
+          applyImageWithPreload($(cfg.imgs[0]), `${baseViews}/${fileList[idx1]}`);
+        }
+        if (fileList[idx2]?.length) {
+          applyImageWithPreload($(cfg.imgs[1]), `${baseViews}/${fileList[idx2]}`);
+        }
+        if (colorFiles && colorFiles.length) {
+          $(cfg.labels[0]).textContent = (fileList[idx1] || "").replace(/\.[^/.]+$/, "");
+          $(cfg.labels[1]).textContent = (fileList[idx2] || "").replace(/\.[^/.]+$/, "");
+        } else {
+          $(cfg.labels[0]).textContent = headerAngles[idx1] ?? fileList[idx1] ?? String(idx1);
+          $(cfg.labels[1]).textContent = headerAngles[idx2] ?? fileList[idx2] ?? String(idx2);
+        }
       } else {
-        // Subject images are indexed sequentially: 000.00.png, 001.00.png, ...
-        const fn1 = `${String(Number(i1) || 0).padStart(3, "0")}.00.png`;
-        const fn2 = `${String(Number(i2) || 0).padStart(3, "0")}.00.png`;
-        const next1 = `${baseViews}/${fn1}`;
-        const next2 = `${baseViews}/${fn2}`;
-        applyImageWithPreload($(cfg.imgs[0]), next1);
-        applyImageWithPreload($(cfg.imgs[1]), next2);
-        $(cfg.labels[0]).textContent = String(i1);
-        $(cfg.labels[1]).textContent = String(i2);
+        const fallbackList = headerAngles.map((angle) => `${String(angle).padStart(3, "0")}.00.png`);
+        const clampIndex = (val) => Math.max(0, Math.min(fallbackList.length - 1, Number(val) || 0));
+        const idx1 = clampIndex(i1);
+        const idx2 = clampIndex(i2);
+        const fn1 = fallbackList[idx1];
+        const fn2 = fallbackList[idx2];
+        applyImageWithPreload($(cfg.imgs[0]), `${baseViews}/${fn1}`);
+        applyImageWithPreload($(cfg.imgs[1]), `${baseViews}/${fn2}`);
+        $(cfg.labels[0]).textContent = String(headerAngles[idx1] ?? idx1);
+        $(cfg.labels[1]).textContent = String(headerAngles[idx2] ?? idx2);
       }
-      // Use exact header-derived values for matrix lookups (no 5° rounding)
       updateMetricsForAngles(cfg.cat, model, a1, a2, cfg.clipId, cfg.dinoId);
       const fixed = a1;
       const currentX = Number(i2) || 0;
@@ -650,9 +673,11 @@ function setupSection(cfg) {
             if (Number(el.value) > Number(el.max)) el.value = el.max;
           });
         }
+        scheduleSubjectPreloadFor(baseViews, files.length ? files : headerAngles.length);
+      } else {
+        subjectFileNames = headerAngles.map((name) => nameToFilename(String(name), model));
+        scheduleSubjectPreloadFor(baseViews, subjectFileNames.length ? subjectFileNames : headerAngles.length);
       }
-      const preloadCount = cfg.cat === "color" ? (COLOR_IMAGE_FILES[model]?.length || headerAngles.length) : headerAngles.length;
-      scheduleSubjectPreloadFor(baseViews, preloadCount);
       try {
         const mid = Math.max(0, Math.floor((headerAngles.length - 1) / 2));
         $(cfg.sliders[1]).value = String(mid);
