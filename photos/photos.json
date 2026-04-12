@@ -233,5 +233,10 @@
     "description": "Photo party",
     "thumb": "https://clkruse.github.io/photos/img/thumbs/photo-2026-03-11-thumb.jpg",
     "url": "https://clkruse.github.io/photos/img/photo-2026-03-11.jpg"
+  },
+  "2026-04-11": {
+    "description": "Stock market is up!",
+    "thumb": "https://clkruse.github.io/photos/img/thumbs/photo-2026-04-11-thumb.jpg",
+    "url": "https://clkruse.github.io/photos/img/photo-2026-04-11.jpg"
   }
 }
