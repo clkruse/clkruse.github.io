@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Islands of the South China Sea</title>
+  <meta name="description" content="Quarterly Sentinel-2 timelapses of the islands and reefs of the South China Sea." />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="clkruse.github.io" />
+  <meta property="og:title" content="Islands of the South China Sea" />
+  <meta property="og:description" content="Quarterly Sentinel-2 timelapses of the islands and reefs of the South China Sea." />
+  <meta property="og:url" content="https://clkruse.github.io/islands/" />
+  <meta property="og:image" content="https://clkruse.github.io/islands/assets/og-card.jpg" />
+  <meta property="og:image:secure_url" content="https://clkruse.github.io/islands/assets/og-card.jpg" />
+  <meta property="og:image:type" content="image/jpeg" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:alt" content="Namyit Island reclamation, Sentinel-2 imagery, 2021–2026" />
+  <meta property="og:video" content="https://clkruse.github.io/islands/assets/og-card.mp4" />
+  <meta property="og:video:secure_url" content="https://clkruse.github.io/islands/assets/og-card.mp4" />
+  <meta property="og:video:type" content="video/mp4" />
+  <meta property="og:video:width" content="1200" />
+  <meta property="og:video:height" content="630" />
+
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Islands of the South China Sea" />
+  <meta name="twitter:description" content="Quarterly Sentinel-2 timelapses of the islands and reefs of the South China Sea." />
+  <meta name="twitter:image" content="https://clkruse.github.io/islands/assets/og-card.jpg" />
+  <meta name="twitter:image:alt" content="Namyit Island reclamation, Sentinel-2 imagery, 2021–2026" />
+
+  <link rel="preload" href="manifest.json" as="fetch" crossorigin="anonymous" />
+  <script src="app.js" defer></script>
+  <style>
+    :root {
+      --bg: #0b0d10;
+      --fg: #e8e8e8;
+      --muted: #8b8f96;
+      --accent: #ffb04a;
+      --tile: #1a1d22;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); }
+
+    header {
+      text-align: center;
+      padding: 24px 16px 12px;
+    }
+
+    h1 {
+      font-size: 28px;
+      margin: 0;
+      letter-spacing: 0.02em;
+    }
+
+    main {
+      padding: 12px;
+      max-width: none;
+      margin: 0;
+    }
+
+    #grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 10px;
+    }
+
+    .tile {
+      position: relative;
+      margin: 0;
+      padding: 0;
+      background: var(--tile);
+      border-radius: 3px;
+      overflow: hidden;
+      cursor: pointer;
+      aspect-ratio: 1 / 1;
+      outline: 0 solid transparent;
+      transition: outline-color 80ms ease, outline-width 80ms ease, transform 120ms ease;
+      content-visibility: auto;
+      contain-intrinsic-size: 280px 280px;
+    }
+
+    .tile:hover {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      z-index: 2;
+    }
+
+    .tile img,
+    .tile video {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      background: #000;
+      border-radius: inherit;
+    }
+
+    .tile figcaption {
+      position: absolute;
+      right: 6px;
+      bottom: 4px;
+      padding: 3px 6px;
+      font-size: 11px;
+      letter-spacing: 0.02em;
+      color: #fff;
+      pointer-events: none;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 4px rgba(0, 0, 0, 0.6);
+    }
+
+    .status {
+      color: var(--muted);
+      text-align: center;
+      padding: 24px 0;
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+    }
+
+    .lightbox[hidden] { display: none; }
+
+    .lb-figure {
+      margin: 0;
+      max-width: min(90vw, 900px);
+      max-height: 90vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .lb-figure img,
+    .lb-figure video {
+      max-width: 100%;
+      max-height: 80vh;
+      object-fit: contain;
+      background: #000;
+      border-radius: 2px;
+    }
+
+    .lb-figure figcaption {
+      color: var(--fg);
+      font-family: "SF Mono", Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      text-align: center;
+    }
+
+    .lb-plot {
+      width: 100%;
+      height: 40px;
+      display: block;
+      margin-top: 4px;
+    }
+
+    .lb-plot[hidden] { display: none; }
+
+    .lb-plot-line {
+      fill: none;
+      stroke: var(--accent);
+      stroke-width: 1.5;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .lb-plot-fill {
+      fill: var(--accent);
+      fill-opacity: 0.2;
+      stroke: none;
+    }
+
+    .lb-plot-cursor {
+      stroke: rgba(255, 255, 255, 0.6);
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+
+    .lb-timeline {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .lb-ticks {
+      position: relative;
+      height: 14px;
+      width: 100%;
+    }
+
+    .lb-ticks span {
+      position: absolute;
+      top: 0;
+      transform: translateX(-50%);
+      color: var(--muted);
+      font-family: "SF Mono", Menlo, Monaco, Consolas, monospace;
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      white-space: nowrap;
+    }
+
+    .lb-ticks span::before {
+      content: "";
+      position: absolute;
+      left: 50%;
+      top: -5px;
+      width: 1px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .lb-scrubber {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 4px;
+      border-radius: 2px;
+      cursor: pointer;
+      background: linear-gradient(
+        to right,
+        var(--accent) 0%,
+        var(--accent) var(--progress, 0%),
+        rgba(255, 255, 255, 0.18) var(--progress, 0%),
+        rgba(255, 255, 255, 0.18) 100%
+      );
+      outline: none;
+      margin: 0;
+    }
+
+    .lb-scrubber::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid #0b0d10;
+    }
+
+    .lb-scrubber::-moz-range-thumb {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      border: 2px solid #0b0d10;
+    }
+
+    .lb-scrubber:focus-visible {
+      outline: 2px solid var(--accent);
+      outline-offset: 4px;
+    }
+
+    .lb-btn {
+      position: fixed;
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--fg);
+      border: none;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 120ms ease;
+    }
+
+    .lb-btn:hover { background: rgba(255, 255, 255, 0.18); }
+
+    .lb-close { top: 16px; right: 16px; }
+    .lb-prev  { left: 16px;  top: 50%; transform: translateY(-50%); }
+    .lb-next  { right: 16px; top: 50%; transform: translateY(-50%); }
+
+    @media (max-width: 600px) {
+      main { padding: 8px; }
+      #grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
+      .tile { contain-intrinsic-size: 160px 160px; }
+      header { padding: 16px 12px 8px; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Islands of the South China Sea</h1>
+  </header>
+
+  <main>
+    <div id="grid" aria-live="polite"></div>
+    <p id="status" class="status">Loading…</p>
+  </main>
+
+  <div id="lightbox" class="lightbox" hidden aria-hidden="true">
+    <button id="lb-close" class="lb-btn lb-close" aria-label="Close">&times;</button>
+    <button id="lb-prev" class="lb-btn lb-prev" aria-label="Previous">&larr;</button>
+    <button id="lb-next" class="lb-btn lb-next" aria-label="Next">&rarr;</button>
+    <figure class="lb-figure">
+      <video id="lb-video" muted loop autoplay playsinline></video>
+      <svg id="lb-plot" class="lb-plot" preserveAspectRatio="none" viewBox="0 0 100 40" aria-label="Land fraction over time">
+        <polyline id="lb-plot-fill" class="lb-plot-fill" />
+        <polyline id="lb-plot-line" class="lb-plot-line" />
+        <line id="lb-plot-cursor" class="lb-plot-cursor" x1="0" x2="0" y1="0" y2="40" />
+      </svg>
+      <div class="lb-timeline">
+        <input id="lb-scrubber" class="lb-scrubber" type="range" min="0" max="100" step="0.1" value="0" aria-label="Timeline" />
+        <div id="lb-ticks" class="lb-ticks"></div>
+      </div>
+      <figcaption id="lb-caption"></figcaption>
+    </figure>
+  </div>
+</body>
+</html>

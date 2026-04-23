@@ -189,7 +189,7 @@ function renderLegend(geojson) {
   const displayedNames = items.map((entry) => entry[0]);
   const allShown = displayedNames.length > 0 && displayedNames.every((n) => !hiddenGenericNames.has(n));
   const allHidden = displayedNames.length > 0 && displayedNames.every((n) => hiddenGenericNames.has(n));
-  const knownStates = ["ca","co","nv","ut","wy"]; // order
+  const knownStates = ["ca","co","nv","ut","wy","mt", "us"]; // order
   const stateRows = knownStates
     .filter((s) => stateCounts.has(s))
     .map((s) => {
@@ -314,7 +314,7 @@ function renderLegend(geojson) {
         chip.classList.remove('disabled');
       }
       // Normalize: if all known states selected, treat as all (empty set)
-      const allKnown = ["ca","co","nv","ut","wy"].filter((s) => stateCounts.has(s));
+      const allKnown = ["ca","co","nv","ut","wy","mt", "us"].filter((s) => stateCounts.has(s));
       if (allKnown.length > 0 && allKnown.every((s) => enabledStates.has(s))) {
         enabledStates.clear();
       }
@@ -660,7 +660,9 @@ function loadCsvAndRender() {
     "data/observations-ca-09-07-25-clean.csv",
     "data/observations-nv-09-07-25-clean.csv",
     "data/observations-ut-09-07-25-clean.csv",
-    "data/observations-wy-09-07-25-clean.csv"
+    "data/observations-wy-09-07-25-clean.csv",
+    "data/observations-mt-09-07-25-clean.csv",
+    "data/observations-us-09-07-25-clean.csv"
   ];
 
   const paths = allPaths; // always load all; filter via enabledStates
@@ -732,6 +734,8 @@ function populateStateSelector() {
     { value: "nv", label: "Nevada" },
     { value: "ut", label: "Utah" },
     { value: "wy", label: "Wyoming" },
+    { value: "mt", label: "Montana" },
+    { value: "us", label: "United States" },
   ];
   select.innerHTML = options.map((o) => `<option value="${o.value}">${o.label}</option>`).join("");
   select.value = selectedState;

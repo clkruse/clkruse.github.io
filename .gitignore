@@ -1,5 +1,4 @@
-S generated files #
-######################
+# OS generated files
 .DS_Store
 .DS_Store?
 ._*
@@ -7,3 +6,17 @@ S generated files #
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Tooling working dirs
+.claude/
+*.lock
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# Backups / swap files
+*.bak
+*.swp
+*~
