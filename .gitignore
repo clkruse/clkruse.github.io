@@ -20,3 +20,9 @@ __pycache__/
 *.bak
 *.swp
 *~
+
+# island-map derived data (gigabytes of raw Sentinel-2 arrays + intermediate PNGs)
+islands/data/frames_raw/
+islands/data/frames/
+islands/.venv/
+islands/venv/

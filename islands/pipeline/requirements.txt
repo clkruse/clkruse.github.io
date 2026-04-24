@@ -1,0 +1,7 @@
+earthengine-api>=0.1.383
+geopandas
+shapely
+numpy
+pillow
+tqdm
+google-api-core
