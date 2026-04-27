@@ -38,6 +38,26 @@
       --muted: #8b8f96;
       --accent: #ffb04a;
       --tile: #1a1d22;
+      color-scheme: dark;
+      /* Firefox + recent Chromium honor this directly. */
+      scrollbar-color: #2e3138 var(--bg);
+    }
+
+    /* Webkit (Safari, older Chromium) needs explicit pseudo-element styling. */
+    ::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2e3138;
+      border-radius: 6px;
+      border: 3px solid var(--bg);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #3e4148;
     }
 
     * { box-sizing: border-box; }
