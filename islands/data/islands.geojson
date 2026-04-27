@@ -6,6 +6,48 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
+          114.598017,
+          9.907354
+        ]
+      },
+      "properties": {
+        "name": "Ross Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.533078,
+          9.890592
+        ]
+      },
+      "properties": {
+        "name": "Bamford Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.511137,
+          9.868625
+        ]
+      },
+      "properties": {
+        "name": "Tetley Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
           114.28476,
           11.052675
         ]
@@ -118,26 +160,12 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.366828,
-          10.179431
+          114.360863,
+          10.180931
         ]
       },
       "properties": {
         "name": "Namyit Island",
-        "group": "Spratly Islands"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          112.903534,
-          7.922714
-        ]
-      },
-      "properties": {
-        "name": "Amboyna Cay",
         "group": "Spratly Islands"
       }
     },
@@ -216,8 +244,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.534373,
-          10.713985
+          114.534545,
+          10.712109
         ]
       },
       "properties": {
@@ -230,8 +258,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          115.52222,
-          9.881993
+          115.519466,
+          9.908632
         ]
       },
       "properties": {
@@ -244,8 +272,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.067,
-          10.917
+          114.085153,
+          10.925259
         ]
       },
       "properties": {
@@ -258,8 +286,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          112.88872816979126,
-          9.546903359334753
+          112.888728,
+          9.546903
         ]
       },
       "properties": {
@@ -272,8 +300,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          112.833,
-          8.867
+          112.83829,
+          8.862584
         ]
       },
       "properties": {
@@ -286,8 +314,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.223671,
-          10.207517
+          114.225557,
+          10.207302
         ]
       },
       "properties": {
@@ -300,8 +328,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.286691,
-          9.715498
+          114.282957,
+          9.719051
         ]
       },
       "properties": {
@@ -314,8 +342,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.496824,
-          9.908397
+          114.496438,
+          9.911082
         ]
       },
       "properties": {
@@ -328,8 +356,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          113.7,
-          8.967
+          113.698627,
+          8.970201
         ]
       },
       "properties": {
@@ -342,8 +370,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.183,
-          8.717
+          114.188021,
+          8.695557
         ]
       },
       "properties": {
@@ -384,8 +412,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.378451,
-          11.087991
+          114.371499,
+          11.087844
         ]
       },
       "properties": {
@@ -398,8 +426,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.218406,
-          11.05776
+          114.21802,
+          11.059213
         ]
       },
       "properties": {
@@ -426,8 +454,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.801888,
-          11.145895
+          114.795236,
+          11.148737
         ]
       },
       "properties": {
@@ -440,8 +468,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.919696,
-          10.873777
+          114.917008,
+          10.876456
         ]
       },
       "properties": {
@@ -468,8 +496,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          113.85,
-          10.067
+          113.854423,
+          10.022597
         ]
       },
       "properties": {
@@ -482,8 +510,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.583065,
-          10.402914
+          114.584391,
+          10.406906
         ]
       },
       "properties": {
@@ -524,8 +552,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.390391,
-          11.462198
+          114.392747,
+          11.458989
         ]
       },
       "properties": {
@@ -538,8 +566,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.302779,
-          11.38518
+          114.305011,
+          11.38701
         ]
       },
       "properties": {
@@ -580,8 +608,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          111.718245,
-          7.944327
+          111.720064,
+          7.959299
         ]
       },
       "properties": {
@@ -594,36 +622,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          110.5,
-          7.817
-        ]
-      },
-      "properties": {
-        "name": "Grainger Bank",
-        "group": "Spratly Islands"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          110.633,
-          8.017
-        ]
-      },
-      "properties": {
-        "name": "Alexandra Bank",
-        "group": "Spratly Islands"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          113.831172,
-          7.372598
+          113.831043,
+          7.37513
         ]
       },
       "properties": {
@@ -636,8 +636,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          113.933161,
-          7.617402
+          113.93904,
+          7.619815
         ]
       },
       "properties": {
@@ -650,8 +650,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          113.911274,
-          7.98683
+          113.917826,
+          7.97312
         ]
       },
       "properties": {
@@ -692,8 +692,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.577508,
-          8.113334
+          114.57919,
+          8.127124
         ]
       },
       "properties": {
@@ -706,8 +706,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          113.236905,
-          6.333192
+          113.241926,
+          6.333085
         ]
       },
       "properties": {
@@ -734,8 +734,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          115.440253,
-          9.35921
+          115.443944,
+          9.36427
         ]
       },
       "properties": {
@@ -748,8 +748,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          116.922033,
-          9.441809
+          116.92714,
+          9.45762
         ]
       },
       "properties": {
@@ -790,20 +790,6 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          112.93889,
-          5.03667
-        ]
-      },
-      "properties": {
-        "name": "Comus Shoal",
-        "group": "Spratly Islands"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
           112.57917,
           5.07778
         ]
@@ -818,8 +804,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.39401,
-          9.900063
+          114.39421,
+          9.893949
         ]
       },
       "properties": {
@@ -860,8 +846,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          115.944636,
-          9.332979
+          115.942233,
+          9.329655
         ]
       },
       "properties": {
@@ -930,8 +916,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          116.13579,
-          10.130571
+          116.144545,
+          10.121129
         ]
       },
       "properties": {
@@ -944,8 +930,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          112.622246,
-          5.376399
+          112.626194,
+          5.368559
         ]
       },
       "properties": {
@@ -972,8 +958,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.4,
-          9.8
+          114.4003,
+          9.796384
         ]
       },
       "properties": {
@@ -1014,8 +1000,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          115.359974,
-          10.250866
+          115.367742,
+          10.251478
         ]
       },
       "properties": {
@@ -1028,8 +1014,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          116.4583,
-          9.175
+          116.461476,
+          9.176462
         ]
       },
       "properties": {
@@ -1056,54 +1042,12 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          115.706118,
-          10.496838
-        ]
-      },
-      "properties": {
-        "name": "Jackson Atoll",
-        "group": "Spratly Islands"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          114.467,
-          9.833
+          114.459447,
+          9.832049
         ]
       },
       "properties": {
         "name": "Jones Reef /Zhangxi Jiao",
-        "group": "Spratly Islands"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          116.662151,
-          10.503059
-        ]
-      },
-      "properties": {
-        "name": "Katimugan Banks",
-        "group": "Spratly Islands"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          117.471292,
-          11.08399
-        ]
-      },
-      "properties": {
-        "name": "Leslie Bank",
         "group": "Spratly Islands"
       }
     },
@@ -1182,8 +1126,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          116.670363,
-          9.032702
+          116.664181,
+          9.045452
         ]
       },
       "properties": {
@@ -1196,8 +1140,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          113.582142,
-          6.947593
+          113.579996,
+          6.941395
         ]
       },
       "properties": {
@@ -1210,8 +1154,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          116.450136,
-          9.793929
+          116.56863,
+          9.735038
         ]
       },
       "properties": {
@@ -1230,34 +1174,6 @@
       },
       "properties": {
         "name": "Seahorse Breakers",
-        "group": "Spratly Islands"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          117.774074,
-          10.808789
-        ]
-      },
-      "properties": {
-        "name": "Seahorse Shoal / Seashore Shoal/Routh Shoal",
-        "group": "Spratly Islands"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          116.75,
-          10.467
-        ]
-      },
-      "properties": {
-        "name": "Southern Bank (Spratly Islands)",
         "group": "Spratly Islands"
       }
     },
@@ -1420,20 +1336,6 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          112.219103,
-          16.77265
-        ]
-      },
-      "properties": {
-        "name": "Iltis Bank",
-        "group": "Paracel Islands"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
           111.50833,
           16.44778
         ]
@@ -1448,8 +1350,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          111.595941,
-          16.453058
+          111.589754,
+          16.461775
         ]
       },
       "properties": {
@@ -1546,26 +1448,12 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          111.707436,
-          16.450999
+          111.704475,
+          16.450855
         ]
       },
       "properties": {
         "name": "Duncan Island",
-        "group": "Paracel Islands"
-      }
-    },
-    {
-      "type": "Feature",
-      "geometry": {
-        "type": "Point",
-        "coordinates": [
-          112.42778,
-          16.33333
-        ]
-      },
-      "properties": {
-        "name": "Bremen Bank",
         "group": "Paracel Islands"
       }
     },
@@ -1588,8 +1476,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          112.733,
-          16.667
+          112.729352,
+          16.667391
         ]
       },
       "properties": {
@@ -1602,8 +1490,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          111.466569,
-          17.069547
+          111.474423,
+          17.079598
         ]
       },
       "properties": {
@@ -1616,8 +1504,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          111.2,
-          15.783
+          111.206609,
+          15.785746
         ]
       },
       "properties": {
@@ -1644,8 +1532,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          111.76479,
-          16.240397
+          111.778797,
+          16.242754
         ]
       },
       "properties": {
@@ -1658,8 +1546,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          111.76167,
-          16.05667
+          111.776533,
+          16.050996
         ]
       },
       "properties": {
@@ -1686,8 +1574,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          117.739198,
-          15.186691
+          117.735134,
+          15.196964
         ]
       },
       "properties": {
@@ -1700,8 +1588,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          111.666485,
-          8.662298
+          111.67627,
+          8.665628
         ]
       },
       "properties": {
@@ -1715,8 +1603,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.66163,
-          8.85812
+          114.654892,
+          8.855703
         ]
       },
       "properties": {
@@ -1744,8 +1632,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          115.85693006130859,
-          9.791068235828183
+          115.867289,
+          9.787202
         ]
       },
       "properties": {
@@ -1758,8 +1646,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          114.649,
-          9.991
+          114.650371,
+          9.987021
         ]
       },
       "properties": {
@@ -1772,8 +1660,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          113.32314332674812,
-          8.20372961677624
+          113.320998,
+          8.201202
         ]
       },
       "properties": {
@@ -1786,8 +1674,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          113.99362486502521,
-          8.82094647466785
+          113.993711,
+          8.8247
         ]
       },
       "properties": {
@@ -1800,8 +1688,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          112.65949775358906,
-          8.82226878394547
+          112.652932,
+          8.823053
         ]
       },
       "properties": {
@@ -1814,8 +1702,8 @@
       "geometry": {
         "type": "Point",
         "coordinates": [
-          115.2358091593131,
-          8.358478795942945
+          115.235809,
+          8.358479
         ]
       },
       "properties": {

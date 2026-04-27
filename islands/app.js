@@ -35,7 +35,7 @@
   // every subsequent island until you click again.
   let glintsVisible = false;
   const LEGEND_TEXT_ON = "vessels detected this month — AIS broadcasts + VIIRS night light";
-  const LEGEND_TEXT_OFF = "View vessels";
+  const LEGEND_TEXT_OFF = "view vessels";
   // GLINT_MAX caps how many glints we render at once. SCS imagery can produce
   // hundreds of detections per month — past ~80 the SVG starts to feel noisy.
   const GLINT_MAX = 80;
