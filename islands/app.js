@@ -14,6 +14,7 @@
   const lbPlotFill = document.getElementById("lb-plot-fill");
   const lbPlotCursor = document.getElementById("lb-plot-cursor");
   const lbGlints = document.getElementById("lb-glints");
+  const lbGlintsLayer = document.getElementById("lb-glints-layer");
   const lbLegend = document.getElementById("lb-legend");
   const lbPlotLegend = document.getElementById("lb-plot-legend");
   const lbPlotVessels = document.getElementById("lb-plot-vessels");
@@ -40,6 +41,13 @@
   const GLINT_MAX = 80;
 
   const EAGER_TILES = 8;
+
+  // Grid tile year overlay. All current videos cover 2019-01 .. 2026-04
+  // (88 monthly frames). If the dataset's date range later varies per
+  // island, derive these from the manifest entry instead of hardcoding.
+  const TILE_START_YEAR = 2019;
+  const TILE_START_MONTH = 1;
+  const TILE_TOTAL_FRAMES = 88;
 
   const formatCoord = (lat, lon) => {
     const ns = lat >= 0 ? "N" : "S";
@@ -134,13 +142,13 @@
 
   const updateGlints = () => {
     if (!currentVessels || !glintsVisible) {
-      lbGlints.replaceChildren();
+      lbGlintsLayer.replaceChildren();
       return;
     }
     sizeGlintsToVideo();
     const label = monthLabelFor();
     if (!label) {
-      lbGlints.replaceChildren();
+      lbGlintsLayer.replaceChildren();
       return;
     }
     const { west, east, north, south } = currentVessels.bbox;
@@ -171,16 +179,16 @@
         const sy = Math.sin(seedY) * 10000;
         const jx = ((sx - Math.floor(sx)) - 0.5) * 2 * JITTER;
         const jy = ((sy - Math.floor(sy)) - 0.5) * 2 * JITTER;
-        const c = document.createElementNS(ns, "circle");
-        c.setAttribute("cx", (cx + jx).toFixed(2));
-        c.setAttribute("cy", (cy + jy).toFixed(2));
-        c.setAttribute("r", "0.35");
-        c.setAttribute("class", "glint");
-        c.setAttribute("opacity", opacity.toFixed(2));
-        frag.appendChild(c);
+        const u = document.createElementNS(ns, "use");
+        u.setAttribute("href", "#glint-symbol");
+        u.setAttribute("class", "glint");
+        u.setAttribute("x", (cx + jx).toFixed(2));
+        u.setAttribute("y", (cy + jy).toFixed(2));
+        u.setAttribute("opacity", opacity.toFixed(2));
+        frag.appendChild(u);
       }
     }
-    lbGlints.replaceChildren(frag);
+    lbGlintsLayer.replaceChildren(frag);
   };
 
   const render = () => {
@@ -203,8 +211,25 @@
       const cap = document.createElement("figcaption");
       cap.textContent = island.name;
 
+      const yearSpan = document.createElement("span");
+      yearSpan.className = "tile-year";
+      yearSpan.textContent = String(TILE_START_YEAR);
+      let lastYear = TILE_START_YEAR;
+      video.addEventListener("timeupdate", () => {
+        if (!video.duration) return;
+        const pct = Math.min(Math.max(video.currentTime / video.duration, 0), 1);
+        const monthIdx = TILE_START_YEAR * 12 + (TILE_START_MONTH - 1)
+                       + Math.round(pct * (TILE_TOTAL_FRAMES - 1));
+        const y = Math.floor(monthIdx / 12);
+        if (y !== lastYear) {
+          yearSpan.textContent = String(y);
+          lastYear = y;
+        }
+      });
+
       tile.appendChild(video);
       tile.appendChild(cap);
+      tile.appendChild(yearSpan);
       grid.appendChild(tile);
     });
 
@@ -266,7 +291,7 @@
     lbVesselPlot.setAttribute("hidden", "");
     lbPlotVesselLegendItem.hidden = true;
     lbTicks.replaceChildren();
-    lbGlints.replaceChildren();
+    lbGlintsLayer.replaceChildren();
     lbLegend.hidden = true;
     currentVessels = null;
     lightbox.hidden = false;
@@ -331,7 +356,7 @@
     lbVideo.pause();
     lbVideo.removeAttribute("src");
     lbVideo.load();
-    lbGlints.replaceChildren();
+    lbGlintsLayer.replaceChildren();
     lbLegend.hidden = true;
     currentVessels = null;
     currentDateRange = null;

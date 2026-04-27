@@ -135,6 +135,19 @@
       text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 4px rgba(0, 0, 0, 0.6);
     }
 
+    .tile-year {
+      position: absolute;
+      left: 6px;
+      bottom: 4px;
+      padding: 3px 6px;
+      font-size: 11px;
+      letter-spacing: 0.02em;
+      color: #fff;
+      pointer-events: none;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 4px rgba(0, 0, 0, 0.6);
+      font-variant-numeric: tabular-nums;
+    }
+
     .status {
       color: var(--muted);
       text-align: center;
@@ -399,11 +412,22 @@
       overflow: visible;
       display: block;
     }
+    /* SAR-style glint: bright cross + central core, with a soft warm halo
+       layered via two drop-shadows. The cross length is in viewBox units of
+       the lb-glints SVG (0..100) so it scales with the displayed video. */
     .glint {
-      fill: #fff;
-      filter: drop-shadow(0 0 3px rgba(255, 200, 120, 0.95))
-              drop-shadow(0 0 8px rgba(255, 176, 74, 0.55));
+      filter: drop-shadow(0 0 2px rgba(255, 230, 180, 0.95))
+              drop-shadow(0 0 6px rgba(255, 176, 74, 0.55));
       mix-blend-mode: screen;
+    }
+    .glint-streak {
+      stroke: rgba(255, 255, 240, 0.9);
+      stroke-width: 0.18;
+      stroke-linecap: round;
+      fill: none;
+    }
+    .glint-core {
+      fill: #fff;
     }
 
     .lb-legend {
@@ -471,7 +495,16 @@
     <figure class="lb-figure">
       <div class="lb-video-wrap">
         <video id="lb-video" muted loop autoplay playsinline></video>
-        <svg id="lb-glints" class="lb-glints" preserveAspectRatio="none" viewBox="0 0 100 100" aria-hidden="true"></svg>
+        <svg id="lb-glints" class="lb-glints" preserveAspectRatio="none" viewBox="0 0 100 100" aria-hidden="true">
+          <defs>
+            <g id="glint-symbol">
+              <line x1="-1.5" y1="0" x2="1.5" y2="0" class="glint-streak" />
+              <line x1="0" y1="-1.5" x2="0" y2="1.5" class="glint-streak" />
+              <circle cx="0" cy="0" r="0.25" class="glint-core" />
+            </g>
+          </defs>
+          <g id="lb-glints-layer"></g>
+        </svg>
       </div>
       <figcaption id="lb-caption"></figcaption>
       <svg id="lb-plot" class="lb-plot" preserveAspectRatio="none" viewBox="0 0 100 40" aria-label="Land fraction over time">
@@ -511,7 +544,7 @@
       </div>
       <button id="lb-legend" class="lb-legend" type="button" hidden aria-pressed="false">
         <svg class="lb-legend-swatch" viewBox="0 0 10 10" aria-hidden="true">
-          <circle cx="5" cy="5" r="1.6" class="glint" opacity="0.5" />
+          <use href="#glint-symbol" class="glint" x="5" y="5" opacity="0.6" />
         </svg>
         <span>View vessels</span>
       </button>

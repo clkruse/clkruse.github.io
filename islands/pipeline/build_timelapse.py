@@ -255,12 +255,12 @@ def build(
         raise ValueError("no frames supplied")
     raw_arrays = [arr for _, arr in frames]
     processed = process_frames(raw_arrays)
-    labeled = [
-        label_frame(Image.fromarray(arr), label)
-        for (label, _), arr in zip(frames, processed)
-    ]
+    # Date label is no longer burned in; the site overlays a JS-driven year
+    # label on each grid tile instead (see app.js .tile-year). label_frame()
+    # is left defined above for callers that want it back.
+    images = [Image.fromarray(arr).convert("RGB") for arr in processed]
     for p in (video_out, video_thumb_out, poster_out):
         p.parent.mkdir(parents=True, exist_ok=True)
-    _encode_mp4(labeled, video_out)
+    _encode_mp4(images, video_out)
     _encode_mp4_thumb(video_out, video_thumb_out)
-    labeled[-1].save(poster_out, format="WEBP", quality=POSTER_QUALITY, method=6)
+    images[-1].save(poster_out, format="WEBP", quality=POSTER_QUALITY, method=6)
