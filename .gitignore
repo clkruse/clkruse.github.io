@@ -21,6 +21,12 @@ __pycache__/
 *.swp
 *~
 
+# Secrets / API tokens
+.env
+.env.*
+.gfw_token
+*.token
+
 # island-map derived data (gigabytes of raw Sentinel-2 arrays + intermediate PNGs)
 islands/data/frames_raw/
 islands/data/frames/

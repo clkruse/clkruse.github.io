@@ -2,6 +2,7 @@ earthengine-api>=0.1.383
 geopandas
 shapely
 numpy
+scipy
 pillow
 tqdm
 google-api-core

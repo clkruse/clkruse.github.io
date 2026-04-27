@@ -99,9 +99,13 @@ def process_island(
     size_m: float,
     size_px: int,
     cadence: str,
+    last_n: int | None = None,
+    force_rebuild: bool = False,
 ) -> dict | None:
     bbox = bbox_from_point(entry["lat"], entry["lon"], size_m)
     periods = cadence_ranges(cadence, start_year, end_year)
+    if last_n is not None:
+        periods = periods[-last_n:]
     if COMPOSITE_WINDOW_DAYS > 0:
         periods = [
             (label, *_widen(s, e, COMPOSITE_WINDOW_DAYS))
@@ -162,13 +166,30 @@ def process_island(
         log.warning("%s: no usable frames, skipping", entry["name"])
         return None
 
-    frames = [(label, np.load(path)) for label, path in ordered_paths]
     slug = entry["slug"]
     video_out = VIDEO_DIR / f"{slug}.mp4"
     video_thumb_out = VIDEO_THUMB_DIR / f"{slug}.mp4"
     poster_out = POSTER_DIR / f"{slug}.webp"
-    build_timelapse.build(frames, video_out, video_thumb_out, poster_out)
-    log.info("%s: wrote %d frames -> %s", entry["name"], len(frames), video_out.name)
+
+    # Freshness check: if all three outputs already exist and are newer than
+    # both the input frames and the build_timelapse code, skip the encode
+    # (saves ~5-10 s of CPU per cached island that nothing's changed about).
+    outputs = (video_out, video_thumb_out, poster_out)
+    is_current = (
+        not force_rebuild
+        and all(p.exists() for p in outputs)
+        and min(p.stat().st_mtime for p in outputs)
+        >= max(
+            max(p.stat().st_mtime for _, p in ordered_paths),
+            Path(build_timelapse.__file__).stat().st_mtime,
+        )
+    )
+    if is_current:
+        log.info("%s: outputs current, skipping encode", entry["name"])
+    else:
+        frames = [(label, np.load(path)) for label, path in ordered_paths]
+        build_timelapse.build(frames, video_out, video_thumb_out, poster_out)
+        log.info("%s: wrote %d frames -> %s", entry["name"], len(frames), video_out.name)
 
     return {
         "slug": slug,
@@ -178,8 +199,8 @@ def process_island(
         "video": f"assets/videos/{slug}.mp4",
         "video_thumb": f"assets/videos-thumb/{slug}.mp4",
         "poster": f"assets/posters/{slug}.webp",
-        "date_range": [frames[0][0], frames[-1][0]],
-        "frame_count": len(frames),
+        "date_range": [ordered_paths[0][0], ordered_paths[-1][0]],
+        "frame_count": len(ordered_paths),
     }
 
 
@@ -209,6 +230,12 @@ def main() -> None:
                    help="Process only the first N features in the geojson.")
     p.add_argument("--only", default=None,
                    help="Comma-separated slugs to process (filters the geojson).")
+    p.add_argument("--last-n", type=int, default=None,
+                   help="Process only the last N cadence periods. Useful for "
+                        "smoke tests on slow connections.")
+    p.add_argument("--force-rebuild", action="store_true",
+                   help="Re-encode videos/posters even when the cached outputs "
+                        "are already newer than their inputs and build_timelapse.")
     args = p.parse_args()
 
     logging.basicConfig(level=logging.INFO, format="%(message)s")
@@ -240,6 +267,8 @@ def main() -> None:
             args.size_m,
             args.size_px,
             args.cadence,
+            last_n=args.last_n,
+            force_rebuild=args.force_rebuild,
         )
         if result is not None:
             manifest_entries.append(result)

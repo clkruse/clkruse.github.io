@@ -1,17 +1,20 @@
 """
-Compute water fraction per frame (how much of the 5 km scene is open water),
-rank islands by how developed they are now (lowest water fraction = most
-land), and attach the water-fraction time series to each manifest entry so
-the site can plot change over time.
+Rank islands by detected reclamation. Uses pixel-level persistent water→land
+flips between a window of early frames and a window of late frames, cleaned
+with a morphological opening, scored by the area of the largest connected
+component.
+
+Per-frame scene-level water fraction is still computed (only as the
+`land_series` time series the lightbox plots) but no longer drives ranking.
+The slope/R² approach the previous version used conflated three unrelated
+things — real reclamation, monotone seasonal/atmospheric drift, and small
+absolute changes inside a 25 km² scene — and produced the false positives
+(noisy shallow reefs) and false negatives (small but real builds) that
+prompted this rewrite.
 
 Water detection: Normalized Blue-Red Difference Index on raw reflectance,
-NBRDI = (B - R) / (B + R). Water absorbs red and reflects blue, so NBRDI > 0
-for water, ~0 for neutral bright surfaces (sand, concrete), and negative
-for vegetation. Thresholded to a binary mask and meaned over valid pixels.
-
-Runs on the raw-reflectance .npy cache — NOT on the processed video frames —
-so the numbers are atmosphere-corrected and independent of the display
-stretch.
+NBRDI = (B - R) / (B + R). To be replaced with NDWI/NIR-based detection
+once extract.py fetches B8.
 """
 
 from __future__ import annotations
@@ -20,48 +23,150 @@ import json
 from pathlib import Path
 
 import numpy as np
+from scipy import ndimage
 
 ROOT = Path(__file__).resolve().parent.parent
 DATA_DIR = ROOT / "data"
 FRAMES_DIR = DATA_DIR / "frames_raw"
-# Input: full archive written by run.py (every island field, no land_series).
+GEOJSON_PATH = DATA_DIR / "islands.geojson"
 MANIFEST_PATH = DATA_DIR / "manifest.json"
-# Output: full archive with land_series attached, kept for debugging + re-runs.
+OCCUPIERS_PATH = DATA_DIR / "occupiers.json"
 FULL_ARCHIVE_PATH = DATA_DIR / "manifest.full.json"
-# Site output: slim grid index + one detail JSON per island, loaded lazily by
-# the lightbox. Keeping the per-island series out of the grid manifest drops
-# initial JSON parse from ~224 KB to ~24 KB.
 SITE_MANIFEST = ROOT / "manifest.json"
 SERIES_DIR = ROOT / "series"
 
 SLIM_FIELDS = ("slug", "name", "video_thumb", "video", "poster")
-DETAIL_FIELDS = ("slug", "lat", "lon", "date_range", "frame_count", "land_series")
+DETAIL_FIELDS = (
+    "slug", "lat", "lon", "date_range", "frame_count",
+    "land_series", "occupier", "claimants",
+)
+
+# Group-level claimants. Paracels and Spratlys are each claimed wholesale by
+# the PRC, ROC (Taiwan), and Vietnam under the nine-dash / U-shaped line and
+# Vietnamese pre-1975 administration; the Philippines' Kalayaan claim covers
+# most Spratly features; Malaysia's claim covers the southern Spratlys.
+GROUP_CLAIMANTS = {
+    "Paracel Islands": ["China", "Taiwan", "Vietnam"],
+    "Scarborough Shoal": ["China", "Taiwan", "Philippines"],
+    "Spratly Islands": ["China", "Taiwan", "Vietnam", "Philippines", "Malaysia"],
+}
+DEFAULT_CLAIMANTS = ["China", "Taiwan", "Vietnam"]
+# Per-slug additions. Brunei's claim covers a small area in the southern
+# Spratlys; Louisa Reef is the canonical example.
+EXTRA_CLAIMANTS = {
+    "louisa-reef": ["Brunei"],
+}
 
 NBRDI_THRESHOLD = 0.05  # pixels with (B-R)/(B+R) above this count as water
 
+# Persistent-change scoring.
+# Window of frames at each end. 12 monthly frames smooths over a full annual
+# cycle (tides, sun angle, monsoon) so seasonal noise can't sneak through.
+WINDOW_MONTHS = 12
+# Per-pixel majority vote needs at least this fraction of valid frames within
+# the window or the pixel is excluded from the change mask.
+MIN_VALID_FRACTION = 0.4
+# Morphological opening iterations. 1 drops single scattered noise pixels but
+# preserves any structure ≥ 2 px wide (~20 m at 10 m/px source).
+OPENING_ITERATIONS = 1
 
-def water_fraction(arr: np.ndarray) -> float:
-    valid = ~np.isnan(arr).any(axis=-1)
-    denom = int(valid.sum())
-    if denom == 0:
-        return 0.0
+
+def _water_and_valid(arr: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """(water, valid) HxW boolean masks for a single raw-reflectance frame."""
+    valid = ~np.isnan(arr).any(axis=-1) & (np.nansum(arr, axis=-1) > 0)
     r = arr[..., 0]
     b = arr[..., 2]
     with np.errstate(invalid="ignore", divide="ignore"):
         nbrdi = (b - r) / (b + r + 1e-6)
     water = (nbrdi > NBRDI_THRESHOLD) & valid
-    return float(water.sum()) / float(denom)
+    return water, valid
 
 
-def score_island(
+def water_fraction(arr: np.ndarray) -> float:
+    water, valid = _water_and_valid(arr)
+    denom = int(valid.sum())
+    return float(water.sum()) / denom if denom > 0 else 0.0
+
+
+def _aggregate_window(window_paths: list[Path]) -> tuple[np.ndarray, np.ndarray]:
+    """Per-pixel (water_count, valid_count) across the window's frames."""
+    water_count = None
+    valid_count = None
+    for p in window_paths:
+        w, v = _water_and_valid(np.load(p))
+        if water_count is None:
+            water_count = np.zeros(w.shape, dtype=np.int16)
+            valid_count = np.zeros(v.shape, dtype=np.int16)
+        water_count += w.astype(np.int16)
+        valid_count += v.astype(np.int16)
+    return water_count, valid_count
+
+
+def development_score(
     slug: str, cadence: str = "monthly"
-) -> tuple[float, float, list[float]] | None:
+) -> dict | None:
+    """Persistent water→land area, normalized by valid scene coverage.
+
+    Returns dict with `score`, `area_px`, `compactness`, or None if the cache
+    has too few frames to fill both windows.
+    """
+    frames_dir = FRAMES_DIR / slug / cadence
+    paths = sorted(frames_dir.glob("*.npy"))
+    if len(paths) < 2 * WINDOW_MONTHS:
+        return None
+
+    early = _aggregate_window(paths[:WINDOW_MONTHS])
+    late = _aggregate_window(paths[-WINDOW_MONTHS:])
+    early_water, early_valid = early
+    late_water, late_valid = late
+    late_land = late_valid - late_water
+
+    min_valid = WINDOW_MONTHS * MIN_VALID_FRACTION
+    early_ok = early_valid >= min_valid
+    late_ok = late_valid >= min_valid
+
+    # Strict-majority (>50% of valid frames) so a tied pixel doesn't flip.
+    early_is_water = (early_water * 2 > early_valid) & early_ok
+    late_is_land = (late_land * 2 > late_valid) & late_ok
+
+    flipped = early_is_water & late_is_land
+    cleaned = ndimage.binary_opening(flipped, iterations=OPENING_ITERATIONS)
+
+    # 8-connectivity: corners-touching pixels join the same component.
+    labeled, num = ndimage.label(cleaned, structure=np.ones((3, 3), dtype=int))
+    coverage = int((early_ok & late_ok).sum())
+    if num == 0 or coverage == 0:
+        return {"score": 0.0, "area_px": 0, "compactness": 0.0}
+
+    sizes = np.bincount(labeled.ravel())
+    sizes[0] = 0  # background label
+    largest_label = int(np.argmax(sizes))
+    largest_size = int(sizes[largest_label])
+    score = largest_size / coverage
+
+    largest_mask = labeled == largest_label
+    boundary = largest_mask & ~ndimage.binary_erosion(largest_mask)
+    perimeter = int(boundary.sum())
+    # 4πA/P²: 1.0 = perfect circle (most-compact possible blob), down toward
+    # 0 for jagged/elongated shapes. Reclamation is geometric (runways,
+    # polygonal pads) so its compactness lands well above noise blobs that
+    # squeak past the opening filter.
+    compactness = (4 * np.pi * largest_size / (perimeter ** 2)) if perimeter > 0 else 0.0
+    compactness = min(compactness, 1.0)
+
+    return {
+        "score": float(score),
+        "area_px": int(largest_size),
+        "compactness": float(compactness),
+    }
+
+
+def water_series(slug: str, cadence: str = "monthly") -> list[float] | None:
     frames_dir = FRAMES_DIR / slug / cadence
     paths = sorted(frames_dir.glob("*.npy"))
     if len(paths) < 2:
         return None
-    series = [water_fraction(np.load(p)) for p in paths]
-    return (series[0], series[-1], series)
+    return [water_fraction(np.load(p)) for p in paths]
 
 
 def reject_outliers(
@@ -98,46 +203,67 @@ def reject_outliers(
     return cleaned.tolist()
 
 
-def linear_trend(series: list[float]) -> tuple[float, float]:
-    """OLS slope×duration and R² of linear fit."""
-    if len(series) < 3:
-        return 0.0, 0.0
-    x = np.arange(len(series), dtype=np.float64)
-    y = np.array(series, dtype=np.float64)
-    slope, intercept = np.polyfit(x, y, 1)
-    pred = slope * x + intercept
-    ss_res = float(((y - pred) ** 2).sum())
-    ss_tot = float(((y - y.mean()) ** 2).sum())
-    r2 = max(1.0 - ss_res / ss_tot, 0.0) if ss_tot > 0 else 0.0
-    return float(slope * (len(series) - 1)), r2
+def _slugify(s: str) -> str:
+    import re
+    return re.sub(r"[^a-z0-9]+", "-", s.strip().lower()).strip("-")
+
+
+def load_groups() -> dict[str, str]:
+    gj = json.loads(GEOJSON_PATH.read_text())
+    out: dict[str, str] = {}
+    for f in gj["features"]:
+        p = f.get("properties") or {}
+        name = p.get("name") or ""
+        if not name:
+            continue
+        slug = _slugify(p.get("slug") or name)
+        group = p.get("group")
+        if group:
+            out[slug] = group
+    return out
 
 
 def main() -> None:
     manifest = json.loads(MANIFEST_PATH.read_text())
+    occupiers = json.loads(OCCUPIERS_PATH.read_text())
+    groups = load_groups()
     for entry in manifest["islands"]:
-        res = score_island(entry["slug"])
-        if res is None:
+        slug = entry["slug"]
+        entry["occupier"] = occupiers.get(slug, "Disputed")
+        claimants = list(GROUP_CLAIMANTS.get(groups.get(slug, ""), DEFAULT_CLAIMANTS))
+        for extra in EXTRA_CLAIMANTS.get(slug, []):
+            if extra not in claimants:
+                claimants.append(extra)
+        # Defensive: if an island is occupied by a nation not yet in the
+        # claimants list (data inconsistency), include it so the lightbox
+        # never shows "Occupied by X · Also claimed by [list without X]".
+        if entry["occupier"] != "Disputed" and entry["occupier"] not in claimants:
+            claimants.append(entry["occupier"])
+        entry["claimants"] = claimants
+        ws = water_series(slug)
+        if ws is None or len(ws) < 2:
             entry["land_series"] = []
             entry["land_first"] = 0.0
             entry["land_last"] = 0.0
             entry["growth"] = 0.0
-            entry["trend_r2"] = 0.0
-            entry["trend_score"] = 0.0
         else:
-            first_w, last_w, water_series = res
-            raw_land = [1.0 - w for w in water_series]
-            cleaned = reject_outliers(raw_land)
-            fit_delta, r2 = linear_trend(cleaned)
+            cleaned = reject_outliers([1.0 - w for w in ws])
             entry["land_series"] = [round(v, 4) for v in cleaned]
             entry["land_first"] = round(cleaned[0], 4)
             entry["land_last"] = round(cleaned[-1], 4)
             entry["growth"] = round(cleaned[-1] - cleaned[0], 4)
-            entry["trend_r2"] = round(r2, 4)
-            entry["trend_score"] = round(fit_delta * r2, 4)
 
-    # Sort by trend score — combines magnitude (fit delta) and smoothness
-    # (R²) so noisy growth doesn't beat clean gradual growth.
-    manifest["islands"].sort(key=lambda x: -x.get("trend_score", 0.0))
+        dev = development_score(entry["slug"])
+        if dev is None:
+            entry["development_score"] = 0.0
+            entry["dev_area_px"] = 0
+            entry["dev_compactness"] = 0.0
+        else:
+            entry["development_score"] = round(dev["score"], 5)
+            entry["dev_area_px"] = dev["area_px"]
+            entry["dev_compactness"] = round(dev["compactness"], 4)
+
+    manifest["islands"].sort(key=lambda x: -x.get("development_score", 0.0))
 
     FULL_ARCHIVE_PATH.write_text(json.dumps(manifest, indent=2))
 
@@ -150,11 +276,14 @@ def main() -> None:
             json.dumps(detail, separators=(",", ":"))
         )
 
-    print(f"{'slug':<25} {'first':>7} {'last':>7} {'growth':>8} {'R²':>6} {'score':>8}")
+    print(f"{'slug':<25} {'score':>8} {'area_px':>8} {'compact':>8} {'growth':>8}")
     for e in manifest["islands"]:
         print(
-            f"{e['slug']:<25} {e['land_first']:>7.3f} {e['land_last']:>7.3f} "
-            f"{e['growth']:>+8.3f} {e['trend_r2']:>6.2f} {e['trend_score']:>+8.3f}"
+            f"{e['slug']:<25} "
+            f"{e['development_score']:>8.4f} "
+            f"{e['dev_area_px']:>8} "
+            f"{e['dev_compactness']:>8.3f} "
+            f"{e['growth']:>+8.3f}"
         )
 
 

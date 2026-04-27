@@ -1,0 +1,1824 @@
+{
+  "islands": [
+    {
+      "slug": "thitu-island",
+      "name": "Thitu Island",
+      "lat": 11.052675,
+      "lon": 114.28476,
+      "video": "assets/videos/thitu-island.mp4",
+      "video_thumb": "assets/videos-thumb/thitu-island.mp4",
+      "poster": "assets/posters/thitu-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "west-york-island",
+      "name": "West York Island",
+      "lat": 11.081379,
+      "lon": 115.023695,
+      "video": "assets/videos/west-york-island.mp4",
+      "video_thumb": "assets/videos-thumb/west-york-island.mp4",
+      "poster": "assets/posters/west-york-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "northeast-cay",
+      "name": "Northeast Cay",
+      "lat": 11.452763,
+      "lon": 114.355193,
+      "video": "assets/videos/northeast-cay.mp4",
+      "video_thumb": "assets/videos-thumb/northeast-cay.mp4",
+      "poster": "assets/posters/northeast-cay.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "southwest-cay",
+      "name": "Southwest Cay",
+      "lat": 11.428857,
+      "lon": 114.331756,
+      "video": "assets/videos/southwest-cay.mp4",
+      "video_thumb": "assets/videos-thumb/southwest-cay.mp4",
+      "poster": "assets/posters/southwest-cay.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "sin-cowe-island",
+      "name": "Sin Cowe Island",
+      "lat": 9.884265,
+      "lon": 114.329664,
+      "video": "assets/videos/sin-cowe-island.mp4",
+      "video_thumb": "assets/videos-thumb/sin-cowe-island.mp4",
+      "poster": "assets/posters/sin-cowe-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "nanshan-island",
+      "name": "Nanshan Island",
+      "lat": 10.732512,
+      "lon": 115.802892,
+      "video": "assets/videos/nanshan-island.mp4",
+      "video_thumb": "assets/videos-thumb/nanshan-island.mp4",
+      "poster": "assets/posters/nanshan-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "sand-cay",
+      "name": "Sand Cay",
+      "lat": 10.374747,
+      "lon": 114.480089,
+      "video": "assets/videos/sand-cay.mp4",
+      "video_thumb": "assets/videos-thumb/sand-cay.mp4",
+      "poster": "assets/posters/sand-cay.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "loaita-island",
+      "name": "Loaita Island",
+      "lat": 10.667865,
+      "lon": 114.423652,
+      "video": "assets/videos/loaita-island.mp4",
+      "video_thumb": "assets/videos-thumb/loaita-island.mp4",
+      "poster": "assets/posters/loaita-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "namyit-island",
+      "name": "Namyit Island",
+      "lat": 10.179431,
+      "lon": 114.366828,
+      "video": "assets/videos/namyit-island.mp4",
+      "video_thumb": "assets/videos-thumb/namyit-island.mp4",
+      "poster": "assets/posters/namyit-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "amboyna-cay",
+      "name": "Amboyna Cay",
+      "lat": 7.922714,
+      "lon": 112.903534,
+      "video": "assets/videos/amboyna-cay.mp4",
+      "video_thumb": "assets/videos-thumb/amboyna-cay.mp4",
+      "poster": "assets/posters/amboyna-cay.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "grierson-reef",
+      "name": "Grierson Reef",
+      "lat": 9.902515,
+      "lon": 114.563867,
+      "video": "assets/videos/grierson-reef.mp4",
+      "video_thumb": "assets/videos-thumb/grierson-reef.mp4",
+      "poster": "assets/posters/grierson-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "west-london-reef",
+      "name": "West London Reef",
+      "lat": 8.867227,
+      "lon": 112.256391,
+      "video": "assets/videos/west-london-reef.mp4",
+      "video_thumb": "assets/videos-thumb/west-london-reef.mp4",
+      "poster": "assets/posters/west-london-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "central-london-reef",
+      "name": "Central London Reef",
+      "lat": 8.931113,
+      "lon": 112.349957,
+      "video": "assets/videos/central-london-reef.mp4",
+      "video_thumb": "assets/videos-thumb/central-london-reef.mp4",
+      "poster": "assets/posters/central-london-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "flat-island",
+      "name": "Flat Island",
+      "lat": 10.816347,
+      "lon": 115.822322,
+      "video": "assets/videos/flat-island.mp4",
+      "video_thumb": "assets/videos-thumb/flat-island.mp4",
+      "poster": "assets/posters/flat-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "loaita-cay",
+      "name": "Loaita Cay",
+      "lat": 10.72861,
+      "lon": 114.3525,
+      "video": "assets/videos/loaita-cay.mp4",
+      "video_thumb": "assets/videos-thumb/loaita-cay.mp4",
+      "poster": "assets/posters/loaita-cay.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "lankiam-cay",
+      "name": "Lankiam Cay",
+      "lat": 10.713985,
+      "lon": 114.534373,
+      "video": "assets/videos/lankiam-cay.mp4",
+      "video_thumb": "assets/videos-thumb/lankiam-cay.mp4",
+      "poster": "assets/posters/lankiam-cay.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "mischief-reef",
+      "name": "Mischief Reef",
+      "lat": 9.881993,
+      "lon": 115.52222,
+      "video": "assets/videos/mischief-reef.mp4",
+      "video_thumb": "assets/videos-thumb/mischief-reef.mp4",
+      "poster": "assets/posters/mischief-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "subi-reef",
+      "name": "Subi Reef",
+      "lat": 10.917,
+      "lon": 114.067,
+      "video": "assets/videos/subi-reef.mp4",
+      "video_thumb": "assets/videos-thumb/subi-reef.mp4",
+      "poster": "assets/posters/subi-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "fiery-cross-reef",
+      "name": "Fiery Cross Reef",
+      "lat": 9.546903359334753,
+      "lon": 112.88872816979126,
+      "video": "assets/videos/fiery-cross-reef.mp4",
+      "video_thumb": "assets/videos-thumb/fiery-cross-reef.mp4",
+      "poster": "assets/posters/fiery-cross-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "cuarteron-reef",
+      "name": "Cuarteron Reef",
+      "lat": 8.867,
+      "lon": 112.833,
+      "video": "assets/videos/cuarteron-reef.mp4",
+      "video_thumb": "assets/videos-thumb/cuarteron-reef.mp4",
+      "poster": "assets/posters/cuarteron-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "gaven-reefs",
+      "name": "Gaven Reefs",
+      "lat": 10.207517,
+      "lon": 114.223671,
+      "video": "assets/videos/gaven-reefs.mp4",
+      "video_thumb": "assets/videos-thumb/gaven-reefs.mp4",
+      "poster": "assets/posters/gaven-reefs.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "johnson-south-reef",
+      "name": "Johnson South Reef",
+      "lat": 9.715498,
+      "lon": 114.286691,
+      "video": "assets/videos/johnson-south-reef.mp4",
+      "video_thumb": "assets/videos-thumb/johnson-south-reef.mp4",
+      "poster": "assets/posters/johnson-south-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "hughes-reef",
+      "name": "Hughes Reef",
+      "lat": 9.908397,
+      "lon": 114.496824,
+      "video": "assets/videos/hughes-reef.mp4",
+      "video_thumb": "assets/videos-thumb/hughes-reef.mp4",
+      "poster": "assets/posters/hughes-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "pearson-reef",
+      "name": "Pearson Reef",
+      "lat": 8.967,
+      "lon": 113.7,
+      "video": "assets/videos/pearson-reef.mp4",
+      "video_thumb": "assets/videos-thumb/pearson-reef.mp4",
+      "poster": "assets/posters/pearson-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "cornwallis-south-reef",
+      "name": "Cornwallis South Reef",
+      "lat": 8.717,
+      "lon": 114.183,
+      "video": "assets/videos/cornwallis-south-reef.mp4",
+      "video_thumb": "assets/videos-thumb/cornwallis-south-reef.mp4",
+      "poster": "assets/posters/cornwallis-south-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "trident-shoal",
+      "name": "Trident Shoal",
+      "lat": 11.41284,
+      "lon": 114.649814,
+      "video": "assets/videos/trident-shoal.mp4",
+      "video_thumb": "assets/videos-thumb/trident-shoal.mp4",
+      "poster": "assets/posters/trident-shoal.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "lys-shoal",
+      "name": "Lys Shoal",
+      "lat": 11.358894,
+      "lon": 114.603119,
+      "video": "assets/videos/lys-shoal.mp4",
+      "video_thumb": "assets/videos-thumb/lys-shoal.mp4",
+      "poster": "assets/posters/lys-shoal.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "thitu-reef",
+      "name": "Thitu Reef",
+      "lat": 11.087991,
+      "lon": 114.378451,
+      "video": "assets/videos/thitu-reef.mp4",
+      "video_thumb": "assets/videos-thumb/thitu-reef.mp4",
+      "poster": "assets/posters/thitu-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "sandy-cay-spratly-islands",
+      "name": "Sandy Cay (Spratly Islands)",
+      "lat": 11.05776,
+      "lon": 114.218406,
+      "video": "assets/videos/sandy-cay-spratly-islands.mp4",
+      "video_thumb": "assets/videos-thumb/sandy-cay-spratly-islands.mp4",
+      "poster": "assets/posters/sandy-cay-spratly-islands.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "loaita-nan",
+      "name": "Loaita Nan",
+      "lat": 10.704618,
+      "lon": 114.327772,
+      "video": "assets/videos/loaita-nan.mp4",
+      "video_thumb": "assets/videos-thumb/loaita-nan.mp4",
+      "poster": "assets/posters/loaita-nan.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "menzies-reef",
+      "name": "Menzies Reef",
+      "lat": 11.145895,
+      "lon": 114.801888,
+      "video": "assets/videos/menzies-reef.mp4",
+      "video_thumb": "assets/videos-thumb/menzies-reef.mp4",
+      "poster": "assets/posters/menzies-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "irving-reef",
+      "name": "Irving Reef",
+      "lat": 10.873777,
+      "lon": 114.919696,
+      "video": "assets/videos/irving-reef.mp4",
+      "video_thumb": "assets/videos-thumb/irving-reef.mp4",
+      "poster": "assets/posters/irving-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "western-reef",
+      "name": "Western Reef",
+      "lat": 10.233,
+      "lon": 113.63883,
+      "video": "assets/videos/western-reef.mp4",
+      "video_thumb": "assets/videos-thumb/western-reef.mp4",
+      "poster": "assets/posters/western-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "discovery-great-reef",
+      "name": "Discovery Great Reef",
+      "lat": 10.067,
+      "lon": 113.85,
+      "video": "assets/videos/discovery-great-reef.mp4",
+      "video_thumb": "assets/videos-thumb/discovery-great-reef.mp4",
+      "poster": "assets/posters/discovery-great-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "petley-reef",
+      "name": "Petley Reef",
+      "lat": 10.402914,
+      "lon": 114.583065,
+      "video": "assets/videos/petley-reef.mp4",
+      "video_thumb": "assets/videos-thumb/petley-reef.mp4",
+      "poster": "assets/posters/petley-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "taiping-island",
+      "name": "Taiping Island",
+      "lat": 10.376879,
+      "lon": 114.365884,
+      "video": "assets/videos/taiping-island.mp4",
+      "video_thumb": "assets/videos-thumb/taiping-island.mp4",
+      "poster": "assets/posters/taiping-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "zhongzhou-reef",
+      "name": "Zhongzhou Reef",
+      "lat": 10.38611,
+      "lon": 114.41361,
+      "video": "assets/videos/zhongzhou-reef.mp4",
+      "video_thumb": "assets/videos-thumb/zhongzhou-reef.mp4",
+      "poster": "assets/posters/zhongzhou-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "north-reef-spratly-islands",
+      "name": "North Reef (Spratly Islands)",
+      "lat": 11.462198,
+      "lon": 114.390391,
+      "video": "assets/videos/north-reef-spratly-islands.mp4",
+      "video_thumb": "assets/videos-thumb/north-reef-spratly-islands.mp4",
+      "poster": "assets/posters/north-reef-spratly-islands.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "south-reef",
+      "name": "South Reef",
+      "lat": 11.38518,
+      "lon": 114.302779,
+      "video": "assets/videos/south-reef.mp4",
+      "video_thumb": "assets/videos-thumb/south-reef.mp4",
+      "poster": "assets/posters/south-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "collins-reef",
+      "name": "Collins Reef",
+      "lat": 9.771758,
+      "lon": 114.256352,
+      "video": "assets/videos/collins-reef.mp4",
+      "video_thumb": "assets/videos-thumb/collins-reef.mp4",
+      "poster": "assets/posters/collins-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "lansdowne-reef",
+      "name": "Lansdowne Reef",
+      "lat": 9.778792,
+      "lon": 114.370691,
+      "video": "assets/videos/lansdowne-reef.mp4",
+      "video_thumb": "assets/videos-thumb/lansdowne-reef.mp4",
+      "poster": "assets/posters/lansdowne-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "bombay-castle",
+      "name": "Bombay Castle",
+      "lat": 7.944327,
+      "lon": 111.718245,
+      "video": "assets/videos/bombay-castle.mp4",
+      "video_thumb": "assets/videos-thumb/bombay-castle.mp4",
+      "poster": "assets/posters/bombay-castle.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "grainger-bank",
+      "name": "Grainger Bank",
+      "lat": 7.817,
+      "lon": 110.5,
+      "video": "assets/videos/grainger-bank.mp4",
+      "video_thumb": "assets/videos-thumb/grainger-bank.mp4",
+      "poster": "assets/posters/grainger-bank.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 87
+    },
+    {
+      "slug": "alexandra-bank",
+      "name": "Alexandra Bank",
+      "lat": 8.017,
+      "lon": 110.633,
+      "video": "assets/videos/alexandra-bank.mp4",
+      "video_thumb": "assets/videos-thumb/alexandra-bank.mp4",
+      "poster": "assets/posters/alexandra-bank.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 87
+    },
+    {
+      "slug": "swallow-reef",
+      "name": "Swallow Reef",
+      "lat": 7.372598,
+      "lon": 113.831172,
+      "video": "assets/videos/swallow-reef.mp4",
+      "video_thumb": "assets/videos-thumb/swallow-reef.mp4",
+      "poster": "assets/posters/swallow-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "ardasier-reef",
+      "name": "Ardasier Reef",
+      "lat": 7.617402,
+      "lon": 113.933161,
+      "video": "assets/videos/ardasier-reef.mp4",
+      "video_thumb": "assets/videos-thumb/ardasier-reef.mp4",
+      "poster": "assets/posters/ardasier-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "mariveles-reef",
+      "name": "Mariveles Reef",
+      "lat": 7.98683,
+      "lon": 113.911274,
+      "video": "assets/videos/mariveles-reef.mp4",
+      "video_thumb": "assets/videos-thumb/mariveles-reef.mp4",
+      "poster": "assets/posters/mariveles-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "dallas-reef",
+      "name": "Dallas Reef",
+      "lat": 7.621232,
+      "lon": 113.799743,
+      "video": "assets/videos/dallas-reef.mp4",
+      "video_thumb": "assets/videos-thumb/dallas-reef.mp4",
+      "poster": "assets/posters/dallas-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "erica-reef",
+      "name": "Erica Reef",
+      "lat": 8.107966,
+      "lon": 114.133429,
+      "video": "assets/videos/erica-reef.mp4",
+      "video_thumb": "assets/videos-thumb/erica-reef.mp4",
+      "poster": "assets/posters/erica-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "investigator-shoal",
+      "name": "Investigator Shoal",
+      "lat": 8.113334,
+      "lon": 114.577508,
+      "video": "assets/videos/investigator-shoal.mp4",
+      "video_thumb": "assets/videos-thumb/investigator-shoal.mp4",
+      "poster": "assets/posters/investigator-shoal.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "louisa-reef",
+      "name": "Louisa Reef",
+      "lat": 6.333192,
+      "lon": 113.236905,
+      "video": "assets/videos/louisa-reef.mp4",
+      "video_thumb": "assets/videos-thumb/louisa-reef.mp4",
+      "poster": "assets/posters/louisa-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "aitken-reef",
+      "name": "Aitken Reef",
+      "lat": 5.902455,
+      "lon": 112.526159,
+      "video": "assets/videos/aitken-reef.mp4",
+      "video_thumb": "assets/videos-thumb/aitken-reef.mp4",
+      "poster": "assets/posters/aitken-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "alicia-annie-reef",
+      "name": "Alicia Annie Reef",
+      "lat": 9.35921,
+      "lon": 115.440253,
+      "video": "assets/videos/alicia-annie-reef.mp4",
+      "video_thumb": "assets/videos-thumb/alicia-annie-reef.mp4",
+      "poster": "assets/posters/alicia-annie-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "bombay-shoal",
+      "name": "Bombay Shoal",
+      "lat": 9.441809,
+      "lon": 116.922033,
+      "video": "assets/videos/bombay-shoal.mp4",
+      "video_thumb": "assets/videos-thumb/bombay-shoal.mp4",
+      "poster": "assets/posters/bombay-shoal.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "boxall-reef",
+      "name": "Boxall Reef",
+      "lat": 9.6,
+      "lon": 116.167,
+      "video": "assets/videos/boxall-reef.mp4",
+      "video_thumb": "assets/videos-thumb/boxall-reef.mp4",
+      "poster": "assets/posters/boxall-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "buck-reef",
+      "name": "Buck Reef",
+      "lat": 5.80417,
+      "lon": 112.5375,
+      "video": "assets/videos/buck-reef.mp4",
+      "video_thumb": "assets/videos-thumb/buck-reef.mp4",
+      "poster": "assets/posters/buck-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "comus-shoal",
+      "name": "Comus Shoal",
+      "lat": 5.03667,
+      "lon": 112.93889,
+      "video": "assets/videos/comus-shoal.mp4",
+      "video_thumb": "assets/videos-thumb/comus-shoal.mp4",
+      "poster": "assets/posters/comus-shoal.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "connell-reef",
+      "name": "Connell Reef",
+      "lat": 5.07778,
+      "lon": 112.57917,
+      "video": "assets/videos/connell-reef.mp4",
+      "video_thumb": "assets/videos-thumb/connell-reef.mp4",
+      "poster": "assets/posters/connell-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "edmund-reef",
+      "name": "Edmund Reef",
+      "lat": 9.900063,
+      "lon": 114.39401,
+      "video": "assets/videos/edmund-reef.mp4",
+      "video_thumb": "assets/videos-thumb/edmund-reef.mp4",
+      "poster": "assets/posters/edmund-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "eldad-reef",
+      "name": "Eldad Reef",
+      "lat": 10.35,
+      "lon": 114.7,
+      "video": "assets/videos/eldad-reef.mp4",
+      "video_thumb": "assets/videos-thumb/eldad-reef.mp4",
+      "poster": "assets/posters/eldad-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "empire-reef",
+      "name": "Empire Reef",
+      "lat": 9.977008,
+      "lon": 114.591443,
+      "video": "assets/videos/empire-reef.mp4",
+      "video_thumb": "assets/videos-thumb/empire-reef.mp4",
+      "poster": "assets/posters/empire-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "first-thomas-shoal",
+      "name": "First Thomas Shoal",
+      "lat": 9.332979,
+      "lon": 115.944636,
+      "video": "assets/videos/first-thomas-shoal.mp4",
+      "video_thumb": "assets/videos-thumb/first-thomas-shoal.mp4",
+      "poster": "assets/posters/first-thomas-shoal.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "friendship-shoal",
+      "name": "Friendship Shoal",
+      "lat": 5.955,
+      "lon": 112.52861,
+      "video": "assets/videos/friendship-shoal.mp4",
+      "video_thumb": "assets/videos-thumb/friendship-shoal.mp4",
+      "poster": "assets/posters/friendship-shoal.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "half-moon-shoal",
+      "name": "Half Moon Shoal",
+      "lat": 8.906146,
+      "lon": 116.276355,
+      "video": "assets/videos/half-moon-shoal.mp4",
+      "video_thumb": "assets/videos-thumb/half-moon-shoal.mp4",
+      "poster": "assets/posters/half-moon-shoal.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "hallet-reef",
+      "name": "Hallet Reef",
+      "lat": 9.934163,
+      "lon": 114.522536,
+      "video": "assets/videos/hallet-reef.mp4",
+      "video_thumb": "assets/videos-thumb/hallet-reef.mp4",
+      "poster": "assets/posters/hallet-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "hardie-reef",
+      "name": "Hardie Reef",
+      "lat": 5.787535,
+      "lon": 112.446238,
+      "video": "assets/videos/hardie-reef.mp4",
+      "video_thumb": "assets/videos-thumb/hardie-reef.mp4",
+      "poster": "assets/posters/hardie-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "hardy-reef-hubo-reef",
+      "name": "Hardy Reef /Hubo Reef",
+      "lat": 10.130571,
+      "lon": 116.13579,
+      "video": "assets/videos/hardy-reef-hubo-reef.mp4",
+      "video_thumb": "assets/videos-thumb/hardy-reef-hubo-reef.mp4",
+      "poster": "assets/posters/hardy-reef-hubo-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "hayes-reef",
+      "name": "Hayes Reef",
+      "lat": 5.376399,
+      "lon": 112.622246,
+      "video": "assets/videos/hayes-reef.mp4",
+      "video_thumb": "assets/videos-thumb/hayes-reef.mp4",
+      "poster": "assets/posters/hayes-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 87
+    },
+    {
+      "slug": "herald-reef-spratly-islands",
+      "name": "Herald Reef (Spratly Islands)",
+      "lat": 4.97083,
+      "lon": 112.60417,
+      "video": "assets/videos/herald-reef-spratly-islands.mp4",
+      "video_thumb": "assets/videos-thumb/herald-reef-spratly-islands.mp4",
+      "poster": "assets/posters/herald-reef-spratly-islands.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "higgens-reef",
+      "name": "Higgens Reef",
+      "lat": 9.8,
+      "lon": 114.4,
+      "video": "assets/videos/higgens-reef.mp4",
+      "video_thumb": "assets/videos-thumb/higgens-reef.mp4",
+      "poster": "assets/posters/higgens-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "holiday-reef",
+      "name": "Holiday Reef",
+      "lat": 9.963851,
+      "lon": 114.563824,
+      "video": "assets/videos/holiday-reef.mp4",
+      "video_thumb": "assets/videos-thumb/holiday-reef.mp4",
+      "poster": "assets/posters/holiday-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "hopkins-reef",
+      "name": "Hopkins Reef",
+      "lat": 10.809375,
+      "lon": 116.090241,
+      "video": "assets/videos/hopkins-reef.mp4",
+      "video_thumb": "assets/videos-thumb/hopkins-reef.mp4",
+      "poster": "assets/posters/hopkins-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "hopps-reef",
+      "name": "Hopps Reef",
+      "lat": 10.250866,
+      "lon": 115.359974,
+      "video": "assets/videos/hopps-reef.mp4",
+      "video_thumb": "assets/videos-thumb/hopps-reef.mp4",
+      "poster": "assets/posters/hopps-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "investigator-northeast-shoal",
+      "name": "Investigator Northeast Shoal",
+      "lat": 9.175,
+      "lon": 116.4583,
+      "video": "assets/videos/investigator-northeast-shoal.mp4",
+      "video_thumb": "assets/videos-thumb/investigator-northeast-shoal.mp4",
+      "poster": "assets/posters/investigator-northeast-shoal.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "iroquois-reef",
+      "name": "Iroquois Reef",
+      "lat": 10.625,
+      "lon": 116.175,
+      "video": "assets/videos/iroquois-reef.mp4",
+      "video_thumb": "assets/videos-thumb/iroquois-reef.mp4",
+      "poster": "assets/posters/iroquois-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "jackson-atoll",
+      "name": "Jackson Atoll",
+      "lat": 10.496838,
+      "lon": 115.706118,
+      "video": "assets/videos/jackson-atoll.mp4",
+      "video_thumb": "assets/videos-thumb/jackson-atoll.mp4",
+      "poster": "assets/posters/jackson-atoll.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "jones-reef-zhangxi-jiao",
+      "name": "Jones Reef /Zhangxi Jiao",
+      "lat": 9.833,
+      "lon": 114.467,
+      "video": "assets/videos/jones-reef-zhangxi-jiao.mp4",
+      "video_thumb": "assets/videos-thumb/jones-reef-zhangxi-jiao.mp4",
+      "poster": "assets/posters/jones-reef-zhangxi-jiao.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "katimugan-banks",
+      "name": "Katimugan Banks",
+      "lat": 10.503059,
+      "lon": 116.662151,
+      "video": "assets/videos/katimugan-banks.mp4",
+      "video_thumb": "assets/videos-thumb/katimugan-banks.mp4",
+      "poster": "assets/posters/katimugan-banks.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "leslie-bank",
+      "name": "Leslie Bank",
+      "lat": 11.08399,
+      "lon": 117.471292,
+      "video": "assets/videos/leslie-bank.mp4",
+      "video_thumb": "assets/videos-thumb/leslie-bank.mp4",
+      "poster": "assets/posters/leslie-bank.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "livock-reef",
+      "name": "Livock Reef",
+      "lat": 10.19134,
+      "lon": 115.29965,
+      "video": "assets/videos/livock-reef.mp4",
+      "video_thumb": "assets/videos-thumb/livock-reef.mp4",
+      "poster": "assets/posters/livock-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "loveless-reef",
+      "name": "Loveless Reef",
+      "lat": 9.852093,
+      "lon": 114.281798,
+      "video": "assets/videos/loveless-reef.mp4",
+      "video_thumb": "assets/videos-thumb/loveless-reef.mp4",
+      "poster": "assets/posters/loveless-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "maralie-reef-bittern-reef",
+      "name": "Maralie Reef /Bittern Reef",
+      "lat": 9.20807,
+      "lon": 113.667644,
+      "video": "assets/videos/maralie-reef-bittern-reef.mp4",
+      "video_thumb": "assets/videos-thumb/maralie-reef-bittern-reef.mp4",
+      "poster": "assets/posters/maralie-reef-bittern-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "mckennan-reef-kennan-reef",
+      "name": "McKennan Reef /Kennan Reef",
+      "lat": 9.903572,
+      "lon": 114.465584,
+      "video": "assets/videos/mckennan-reef-kennan-reef.mp4",
+      "video_thumb": "assets/videos-thumb/mckennan-reef-kennan-reef.mp4",
+      "poster": "assets/posters/mckennan-reef-kennan-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "richmond-reef",
+      "name": "Richmond Reef",
+      "lat": 5.05,
+      "lon": 112.66444,
+      "video": "assets/videos/richmond-reef.mp4",
+      "video_thumb": "assets/videos-thumb/richmond-reef.mp4",
+      "poster": "assets/posters/richmond-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "royal-captain-shoal",
+      "name": "Royal Captain Shoal",
+      "lat": 9.032702,
+      "lon": 116.670363,
+      "video": "assets/videos/royal-captain-shoal.mp4",
+      "video_thumb": "assets/videos-thumb/royal-captain-shoal.mp4",
+      "poster": "assets/posters/royal-captain-shoal.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "royal-charlotte-reef",
+      "name": "Royal Charlotte Reef",
+      "lat": 6.947593,
+      "lon": 113.582142,
+      "video": "assets/videos/royal-charlotte-reef.mp4",
+      "video_thumb": "assets/videos-thumb/royal-charlotte-reef.mp4",
+      "poster": "assets/posters/royal-charlotte-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "sabina-shoal",
+      "name": "Sabina Shoal",
+      "lat": 9.793929,
+      "lon": 116.450136,
+      "video": "assets/videos/sabina-shoal.mp4",
+      "video_thumb": "assets/videos-thumb/sabina-shoal.mp4",
+      "poster": "assets/posters/sabina-shoal.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "seahorse-breakers",
+      "name": "Seahorse Breakers",
+      "lat": 5.5,
+      "lon": 112.583,
+      "video": "assets/videos/seahorse-breakers.mp4",
+      "video_thumb": "assets/videos-thumb/seahorse-breakers.mp4",
+      "poster": "assets/posters/seahorse-breakers.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "seahorse-shoal-seashore-shoal-routh-shoal",
+      "name": "Seahorse Shoal / Seashore Shoal/Routh Shoal",
+      "lat": 10.808789,
+      "lon": 117.774074,
+      "video": "assets/videos/seahorse-shoal-seashore-shoal-routh-shoal.mp4",
+      "video_thumb": "assets/videos-thumb/seahorse-shoal-seashore-shoal-routh-shoal.mp4",
+      "poster": "assets/posters/seahorse-shoal-seashore-shoal-routh-shoal.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "southern-bank-spratly-islands",
+      "name": "Southern Bank (Spratly Islands)",
+      "lat": 10.467,
+      "lon": 116.75,
+      "video": "assets/videos/southern-bank-spratly-islands.mp4",
+      "video_thumb": "assets/videos-thumb/southern-bank-spratly-islands.mp4",
+      "poster": "assets/posters/southern-bank-spratly-islands.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "stigant-reef",
+      "name": "Stigant Reef",
+      "lat": 5.02444,
+      "lon": 112.47917,
+      "video": "assets/videos/stigant-reef.mp4",
+      "video_thumb": "assets/videos-thumb/stigant-reef.mp4",
+      "poster": "assets/posters/stigant-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "tagpi",
+      "name": "Tagpi",
+      "lat": 10.551877,
+      "lon": 116.92991,
+      "video": "assets/videos/tagpi.mp4",
+      "video_thumb": "assets/videos-thumb/tagpi.mp4",
+      "poster": "assets/posters/tagpi.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "woody-island",
+      "name": "Woody Island",
+      "lat": 16.835649,
+      "lon": 112.340467,
+      "video": "assets/videos/woody-island.mp4",
+      "video_thumb": "assets/videos-thumb/woody-island.mp4",
+      "poster": "assets/posters/woody-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "west-sand",
+      "name": "West Sand",
+      "lat": 16.9775,
+      "lon": 112.21194,
+      "video": "assets/videos/west-sand.mp4",
+      "video_thumb": "assets/videos-thumb/west-sand.mp4",
+      "poster": "assets/posters/west-sand.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "tree-island",
+      "name": "Tree Island",
+      "lat": 16.98,
+      "lon": 112.27111,
+      "video": "assets/videos/tree-island.mp4",
+      "video_thumb": "assets/videos-thumb/tree-island.mp4",
+      "poster": "assets/posters/tree-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "north-island",
+      "name": "North Island",
+      "lat": 16.96389,
+      "lon": 112.30944,
+      "video": "assets/videos/north-island.mp4",
+      "video_thumb": "assets/videos-thumb/north-island.mp4",
+      "poster": "assets/posters/north-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "middle-island",
+      "name": "Middle Island",
+      "lat": 16.955,
+      "lon": 112.32444,
+      "video": "assets/videos/middle-island.mp4",
+      "video_thumb": "assets/videos-thumb/middle-island.mp4",
+      "poster": "assets/posters/middle-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "south-island",
+      "name": "South Island",
+      "lat": 16.94639,
+      "lon": 112.33444,
+      "video": "assets/videos/south-island.mp4",
+      "video_thumb": "assets/videos-thumb/south-island.mp4",
+      "poster": "assets/posters/south-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "north-sand",
+      "name": "North Sand",
+      "lat": 16.93778,
+      "lon": 112.34167,
+      "video": "assets/videos/north-sand.mp4",
+      "video_thumb": "assets/videos-thumb/north-sand.mp4",
+      "poster": "assets/posters/north-sand.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "middle-sand",
+      "name": "Middle Sand",
+      "lat": 16.93417,
+      "lon": 112.34361,
+      "video": "assets/videos/middle-sand.mp4",
+      "video_thumb": "assets/videos-thumb/middle-sand.mp4",
+      "poster": "assets/posters/middle-sand.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "south-sand",
+      "name": "South Sand",
+      "lat": 16.92917,
+      "lon": 112.34583,
+      "video": "assets/videos/south-sand.mp4",
+      "video_thumb": "assets/videos-thumb/south-sand.mp4",
+      "poster": "assets/posters/south-sand.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "iltis-bank",
+      "name": "Iltis Bank",
+      "lat": 16.77265,
+      "lon": 112.219103,
+      "video": "assets/videos/iltis-bank.mp4",
+      "video_thumb": "assets/videos-thumb/iltis-bank.mp4",
+      "poster": "assets/posters/iltis-bank.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "money-island",
+      "name": "Money Island",
+      "lat": 16.44778,
+      "lon": 111.50833,
+      "video": "assets/videos/money-island.mp4",
+      "video_thumb": "assets/videos-thumb/money-island.mp4",
+      "poster": "assets/posters/money-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "antelope-reef",
+      "name": "Antelope Reef",
+      "lat": 16.453058,
+      "lon": 111.595941,
+      "video": "assets/videos/antelope-reef.mp4",
+      "video_thumb": "assets/videos-thumb/antelope-reef.mp4",
+      "poster": "assets/posters/antelope-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "robert-island",
+      "name": "Robert Island",
+      "lat": 16.50556,
+      "lon": 111.58528,
+      "video": "assets/videos/robert-island.mp4",
+      "video_thumb": "assets/videos-thumb/robert-island.mp4",
+      "poster": "assets/posters/robert-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "pattle-island",
+      "name": "Pattle Island",
+      "lat": 16.53389,
+      "lon": 111.60694,
+      "video": "assets/videos/pattle-island.mp4",
+      "video_thumb": "assets/videos-thumb/pattle-island.mp4",
+      "poster": "assets/posters/pattle-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "quanfu-dao",
+      "name": "Quanfu Dao",
+      "lat": 16.57472,
+      "lon": 111.67333,
+      "video": "assets/videos/quanfu-dao.mp4",
+      "video_thumb": "assets/videos-thumb/quanfu-dao.mp4",
+      "poster": "assets/posters/quanfu-dao.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "lesser-silver-islet",
+      "name": "Lesser Silver Islet",
+      "lat": 16.57917,
+      "lon": 111.70417,
+      "video": "assets/videos/lesser-silver-islet.mp4",
+      "video_thumb": "assets/videos-thumb/lesser-silver-islet.mp4",
+      "poster": "assets/posters/lesser-silver-islet.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "stone-islet",
+      "name": "Stone Islet",
+      "lat": 16.5,
+      "lon": 111.767,
+      "video": "assets/videos/stone-islet.mp4",
+      "video_thumb": "assets/videos-thumb/stone-islet.mp4",
+      "poster": "assets/posters/stone-islet.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "drummond-island",
+      "name": "Drummond Island",
+      "lat": 16.46389,
+      "lon": 111.74167,
+      "video": "assets/videos/drummond-island.mp4",
+      "video_thumb": "assets/videos-thumb/drummond-island.mp4",
+      "poster": "assets/posters/drummond-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "duncan-island",
+      "name": "Duncan Island",
+      "lat": 16.450999,
+      "lon": 111.707436,
+      "video": "assets/videos/duncan-island.mp4",
+      "video_thumb": "assets/videos-thumb/duncan-island.mp4",
+      "poster": "assets/posters/duncan-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "bremen-bank",
+      "name": "Bremen Bank",
+      "lat": 16.33333,
+      "lon": 112.42778,
+      "video": "assets/videos/bremen-bank.mp4",
+      "video_thumb": "assets/videos-thumb/bremen-bank.mp4",
+      "poster": "assets/posters/bremen-bank.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "pyramid-rock",
+      "name": "Pyramid Rock",
+      "lat": 16.576806,
+      "lon": 112.642361,
+      "video": "assets/videos/pyramid-rock.mp4",
+      "video_thumb": "assets/videos-thumb/pyramid-rock.mp4",
+      "poster": "assets/posters/pyramid-rock.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "lincoln-island",
+      "name": "Lincoln Island",
+      "lat": 16.667,
+      "lon": 112.733,
+      "video": "assets/videos/lincoln-island.mp4",
+      "video_thumb": "assets/videos-thumb/lincoln-island.mp4",
+      "poster": "assets/posters/lincoln-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "north-reef",
+      "name": "North Reef",
+      "lat": 17.069547,
+      "lon": 111.466569,
+      "video": "assets/videos/north-reef.mp4",
+      "video_thumb": "assets/videos-thumb/north-reef.mp4",
+      "poster": "assets/posters/north-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "triton-island",
+      "name": "Triton Island",
+      "lat": 15.783,
+      "lon": 111.2,
+      "video": "assets/videos/triton-island.mp4",
+      "video_thumb": "assets/videos-thumb/triton-island.mp4",
+      "poster": "assets/posters/triton-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "bombay-reef",
+      "name": "Bombay Reef",
+      "lat": 16.051813,
+      "lon": 112.539776,
+      "video": "assets/videos/bombay-reef.mp4",
+      "video_thumb": "assets/videos-thumb/bombay-reef.mp4",
+      "poster": "assets/posters/bombay-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "discovery-reef",
+      "name": "Discovery Reef",
+      "lat": 16.240397,
+      "lon": 111.76479,
+      "video": "assets/videos/discovery-reef.mp4",
+      "video_thumb": "assets/videos-thumb/discovery-reef.mp4",
+      "poster": "assets/posters/discovery-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "passu-keah",
+      "name": "Passu Keah",
+      "lat": 16.05667,
+      "lon": 111.76167,
+      "video": "assets/videos/passu-keah.mp4",
+      "video_thumb": "assets/videos-thumb/passu-keah.mp4",
+      "poster": "assets/posters/passu-keah.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "vuladdore-reef",
+      "name": "Vuladdore Reef",
+      "lat": 16.340771,
+      "lon": 112.001444,
+      "video": "assets/videos/vuladdore-reef.mp4",
+      "video_thumb": "assets/videos-thumb/vuladdore-reef.mp4",
+      "poster": "assets/posters/vuladdore-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "scarborough-shoal",
+      "name": "Scarborough Shoal",
+      "lat": 15.186691,
+      "lon": 117.739198,
+      "video": "assets/videos/scarborough-shoal.mp4",
+      "video_thumb": "assets/videos-thumb/scarborough-shoal.mp4",
+      "poster": "assets/posters/scarborough-shoal.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "ladd-reef",
+      "name": "Ladd Reef",
+      "lat": 8.662298,
+      "lon": 111.666485,
+      "video": "assets/videos/ladd-reef.mp4",
+      "video_thumb": "assets/videos-thumb/ladd-reef.mp4",
+      "poster": "assets/posters/ladd-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "tennent-reef",
+      "name": "Tennent Reef",
+      "lat": 8.85812,
+      "lon": 114.66163,
+      "video": "assets/videos/tennent-reef.mp4",
+      "video_thumb": "assets/videos-thumb/tennent-reef.mp4",
+      "poster": "assets/posters/tennent-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "spratly-island",
+      "name": "Spratly Island",
+      "lat": 8.644,
+      "lon": 111.919167,
+      "video": "assets/videos/spratly-island.mp4",
+      "video_thumb": "assets/videos-thumb/spratly-island.mp4",
+      "poster": "assets/posters/spratly-island.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "second-thomas-shoal",
+      "name": "Second Thomas Shoal",
+      "lat": 9.791068235828183,
+      "lon": 115.85693006130859,
+      "video": "assets/videos/second-thomas-shoal.mp4",
+      "video_thumb": "assets/videos-thumb/second-thomas-shoal.mp4",
+      "poster": "assets/posters/second-thomas-shoal.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "whitsun-reef",
+      "name": "Whitsun Reef",
+      "lat": 9.991,
+      "lon": 114.649,
+      "video": "assets/videos/whitsun-reef.mp4",
+      "video_thumb": "assets/videos-thumb/whitsun-reef.mp4",
+      "poster": "assets/posters/whitsun-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "barque-canada-reef",
+      "name": "Barque Canada Reef",
+      "lat": 8.20372961677624,
+      "lon": 113.32314332674812,
+      "video": "assets/videos/barque-canada-reef.mp4",
+      "video_thumb": "assets/videos-thumb/barque-canada-reef.mp4",
+      "poster": "assets/posters/barque-canada-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "alison-reef",
+      "name": "Alison Reef",
+      "lat": 8.82094647466785,
+      "lon": 113.99362486502521,
+      "video": "assets/videos/alison-reef.mp4",
+      "video_thumb": "assets/videos-thumb/alison-reef.mp4",
+      "poster": "assets/posters/alison-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "east-reef",
+      "name": "East Reef",
+      "lat": 8.82226878394547,
+      "lon": 112.65949775358906,
+      "video": "assets/videos/east-reef.mp4",
+      "video_thumb": "assets/videos-thumb/east-reef.mp4",
+      "poster": "assets/posters/east-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    },
+    {
+      "slug": "commodore-reef",
+      "name": "Commodore Reef",
+      "lat": 8.358478795942945,
+      "lon": 115.2358091593131,
+      "video": "assets/videos/commodore-reef.mp4",
+      "video_thumb": "assets/videos-thumb/commodore-reef.mp4",
+      "poster": "assets/posters/commodore-reef.webp",
+      "date_range": [
+        "2019-01",
+        "2026-04"
+      ],
+      "frame_count": 88
+    }
+  ]
+}

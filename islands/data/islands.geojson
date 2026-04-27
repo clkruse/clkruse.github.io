@@ -1,1 +1,1827 @@
-{"type":"FeatureCollection","features":[{"type":"Feature","geometry":{"type":"Point","coordinates":[114.28476,11.052675]},"properties":{"name":"Thitu Island","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[115.023695,11.081379]},"properties":{"name":"West York Island","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.355193,11.452763]},"properties":{"name":"Northeast Cay","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.331756,11.428857]},"properties":{"name":"Southwest Cay","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.329664,9.884265]},"properties":{"name":"Sin Cowe Island","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[115.802892,10.732512]},"properties":{"name":"Nanshan Island","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.480089,10.374747]},"properties":{"name":"Sand Cay","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.423652,10.667865]},"properties":{"name":"Loaita Island","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.366828,10.179431]},"properties":{"name":"Namyit Island","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.903534,7.922714]},"properties":{"name":"Amboyna Cay","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.563867,9.902515]},"properties":{"name":"Grierson Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.256391,8.867227]},"properties":{"name":"West London Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.349957,8.931113]},"properties":{"name":"Central London Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[115.822322,10.816347]},"properties":{"name":"Flat Island","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.3525,10.72861]},"properties":{"name":"Loaita Cay","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.534373,10.713985]},"properties":{"name":"Lankiam Cay","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[115.52222,9.881993]},"properties":{"name":"Mischief Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.067,10.917]},"properties":{"name":"Subi Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.980592,9.650058]},"properties":{"name":"Fiery Cross Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.833,8.867]},"properties":{"name":"Cuarteron Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.223671,10.207517]},"properties":{"name":"Gaven Reefs","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.286691,9.715498]},"properties":{"name":"Johnson South Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.496824,9.908397]},"properties":{"name":"Hughes Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[113.7,8.967]},"properties":{"name":"Pearson Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.183,8.717]},"properties":{"name":"Cornwallis South Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.649814,11.41284]},"properties":{"name":"Trident Shoal","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.603119,11.358894]},"properties":{"name":"Lys Shoal","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.378451,11.087991]},"properties":{"name":"Thitu Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.218406,11.05776]},"properties":{"name":"Sandy Cay (Spratly Islands)","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.327772,10.704618]},"properties":{"name":"Loaita Nan","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.801888,11.145895]},"properties":{"name":"Menzies Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.919696,10.873777]},"properties":{"name":"Irving Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[113.63883,10.233]},"properties":{"name":"Western Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[113.85,10.067]},"properties":{"name":"Discovery Great Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.583065,10.402914]},"properties":{"name":"Petley Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.365884,10.376879]},"properties":{"name":"Taiping Island","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.41361,10.38611]},"properties":{"name":"Zhongzhou Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.390391,11.462198]},"properties":{"name":"North Reef (Spratly Islands)","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.302779,11.38518]},"properties":{"name":"South Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.256352,9.771758]},"properties":{"name":"Collins Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.370691,9.778792]},"properties":{"name":"Lansdowne Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[111.718245,7.944327]},"properties":{"name":"Bombay Castle","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[110.5,7.817]},"properties":{"name":"Grainger Bank","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[110.633,8.017]},"properties":{"name":"Alexandra Bank","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[113.831172,7.372598]},"properties":{"name":"Swallow Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[113.933161,7.617402]},"properties":{"name":"Ardasier Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[113.911274,7.98683]},"properties":{"name":"Mariveles Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[113.799743,7.621232]},"properties":{"name":"Dallas Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.133429,8.107966]},"properties":{"name":"Erica Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.577508,8.113334]},"properties":{"name":"Investigator Shoal","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[113.236905,6.333192]},"properties":{"name":"Louisa Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.526159,5.902455]},"properties":{"name":"Aitken Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[115.440253,9.35921]},"properties":{"name":"Alicia Annie Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[116.922033,9.441809]},"properties":{"name":"Bombay Shoal","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[116.167,9.6]},"properties":{"name":"Boxall Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.5375,5.80417]},"properties":{"name":"Buck Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.93889,5.03667]},"properties":{"name":"Comus Shoal","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.57917,5.07778]},"properties":{"name":"Connell Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.39401,9.900063]},"properties":{"name":"Edmund Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.7,10.35]},"properties":{"name":"Eldad Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.591443,9.977008]},"properties":{"name":"Empire Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[115.944636,9.332979]},"properties":{"name":"First Thomas Shoal","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.52861,5.955]},"properties":{"name":"Friendship Shoal","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[116.276355,8.906146]},"properties":{"name":"Half Moon Shoal","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.522536,9.934163]},"properties":{"name":"Hallet Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.446238,5.787535]},"properties":{"name":"Hardie Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[116.13579,10.130571]},"properties":{"name":"Hardy Reef /Hubo Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.622246,5.376399]},"properties":{"name":"Hayes Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.60417,4.97083]},"properties":{"name":"Herald Reef (Spratly Islands)","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.4,9.8]},"properties":{"name":"Higgens Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.563824,9.963851]},"properties":{"name":"Holiday Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[116.090241,10.809375]},"properties":{"name":"Hopkins Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[115.359974,10.250866]},"properties":{"name":"Hopps Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[116.4583,9.175]},"properties":{"name":"Investigator Northeast Shoal","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[116.175,10.625]},"properties":{"name":"Iroquois Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[115.706118,10.496838]},"properties":{"name":"Jackson Atoll","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.467,9.833]},"properties":{"name":"Jones Reef /Zhangxi Jiao","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[116.662151,10.503059]},"properties":{"name":"Katimugan Banks","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[117.471292,11.08399]},"properties":{"name":"Leslie Bank","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[115.29965,10.19134]},"properties":{"name":"Livock Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.281798,9.852093]},"properties":{"name":"Loveless Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[113.667644,9.20807]},"properties":{"name":"Maralie Reef /Bittern Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.465584,9.903572]},"properties":{"name":"McKennan Reef /Kennan Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.66444,5.05]},"properties":{"name":"Richmond Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[116.670363,9.032702]},"properties":{"name":"Royal Captain Shoal","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[113.582142,6.947593]},"properties":{"name":"Royal Charlotte Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[116.450136,9.793929]},"properties":{"name":"Sabina Shoal","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.583,5.5]},"properties":{"name":"Seahorse Breakers","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[117.774074,10.808789]},"properties":{"name":"Seahorse Shoal / Seashore Shoal/Routh Shoal","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[116.75,10.467]},"properties":{"name":"Southern Bank (Spratly Islands)","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.47917,5.02444]},"properties":{"name":"Stigant Reef","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[116.92991,10.551877]},"properties":{"name":"Tagpi","group":"Spratly Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.340467,16.835649]},"properties":{"name":"Woody Island","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.21194,16.9775]},"properties":{"name":"West Sand","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.27111,16.98]},"properties":{"name":"Tree Island","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.30944,16.96389]},"properties":{"name":"North Island","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.32444,16.955]},"properties":{"name":"Middle Island","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.33444,16.94639]},"properties":{"name":"South Island","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.34167,16.93778]},"properties":{"name":"North Sand","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.34361,16.93417]},"properties":{"name":"Middle Sand","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.34583,16.92917]},"properties":{"name":"South Sand","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.219103,16.77265]},"properties":{"name":"Iltis Bank","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[111.50833,16.44778]},"properties":{"name":"Money Island","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[111.595941,16.453058]},"properties":{"name":"Antelope Reef","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[111.58528,16.50556]},"properties":{"name":"Robert Island","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[111.60694,16.53389]},"properties":{"name":"Pattle Island","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[111.67333,16.57472]},"properties":{"name":"Quanfu Dao","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[111.70417,16.57917]},"properties":{"name":"Lesser Silver Islet","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[111.767,16.5]},"properties":{"name":"Stone Islet","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[111.74167,16.46389]},"properties":{"name":"Drummond Island","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[111.707436,16.450999]},"properties":{"name":"Duncan Island","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.42778,16.33333]},"properties":{"name":"Bremen Bank","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.642361,16.576806]},"properties":{"name":"Pyramid Rock","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.733,16.667]},"properties":{"name":"Lincoln Island","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[111.466569,17.069547]},"properties":{"name":"North Reef","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[111.2,15.783]},"properties":{"name":"Triton Island","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.539776,16.051813]},"properties":{"name":"Bombay Reef","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[111.76479,16.240397]},"properties":{"name":"Discovery Reef","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[111.76167,16.05667]},"properties":{"name":"Passu Keah","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[112.001444,16.340771]},"properties":{"name":"Vuladdore Reef","group":"Paracel Islands"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[117.739198,15.186691]},"properties":{"name":"Scarborough Shoal","group":"Scarborough Shoal"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[111.666485,8.662298]},"properties":{"name":"Ladd Reef","occupier":"Vietnam","amti_url":"https://amti.csis.org/ladd-reef/"}},{"type":"Feature","geometry":{"type":"Point","coordinates":[114.66163,8.85812]},"properties":{"name":"Tennent Reef","occupier":"Vietnam","amti_url":"https://amti.csis.org/tennent-reef/"}}]}
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.28476,
+          11.052675
+        ]
+      },
+      "properties": {
+        "name": "Thitu Island",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.023695,
+          11.081379
+        ]
+      },
+      "properties": {
+        "name": "West York Island",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.355193,
+          11.452763
+        ]
+      },
+      "properties": {
+        "name": "Northeast Cay",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.331756,
+          11.428857
+        ]
+      },
+      "properties": {
+        "name": "Southwest Cay",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.329664,
+          9.884265
+        ]
+      },
+      "properties": {
+        "name": "Sin Cowe Island",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.802892,
+          10.732512
+        ]
+      },
+      "properties": {
+        "name": "Nanshan Island",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.480089,
+          10.374747
+        ]
+      },
+      "properties": {
+        "name": "Sand Cay",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.423652,
+          10.667865
+        ]
+      },
+      "properties": {
+        "name": "Loaita Island",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.366828,
+          10.179431
+        ]
+      },
+      "properties": {
+        "name": "Namyit Island",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.903534,
+          7.922714
+        ]
+      },
+      "properties": {
+        "name": "Amboyna Cay",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.563867,
+          9.902515
+        ]
+      },
+      "properties": {
+        "name": "Grierson Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.256391,
+          8.867227
+        ]
+      },
+      "properties": {
+        "name": "West London Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.349957,
+          8.931113
+        ]
+      },
+      "properties": {
+        "name": "Central London Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.822322,
+          10.816347
+        ]
+      },
+      "properties": {
+        "name": "Flat Island",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.3525,
+          10.72861
+        ]
+      },
+      "properties": {
+        "name": "Loaita Cay",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.534373,
+          10.713985
+        ]
+      },
+      "properties": {
+        "name": "Lankiam Cay",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.52222,
+          9.881993
+        ]
+      },
+      "properties": {
+        "name": "Mischief Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.067,
+          10.917
+        ]
+      },
+      "properties": {
+        "name": "Subi Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.88872816979126,
+          9.546903359334753
+        ]
+      },
+      "properties": {
+        "name": "Fiery Cross Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.833,
+          8.867
+        ]
+      },
+      "properties": {
+        "name": "Cuarteron Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.223671,
+          10.207517
+        ]
+      },
+      "properties": {
+        "name": "Gaven Reefs",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.286691,
+          9.715498
+        ]
+      },
+      "properties": {
+        "name": "Johnson South Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.496824,
+          9.908397
+        ]
+      },
+      "properties": {
+        "name": "Hughes Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.7,
+          8.967
+        ]
+      },
+      "properties": {
+        "name": "Pearson Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.183,
+          8.717
+        ]
+      },
+      "properties": {
+        "name": "Cornwallis South Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.649814,
+          11.41284
+        ]
+      },
+      "properties": {
+        "name": "Trident Shoal",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.603119,
+          11.358894
+        ]
+      },
+      "properties": {
+        "name": "Lys Shoal",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.378451,
+          11.087991
+        ]
+      },
+      "properties": {
+        "name": "Thitu Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.218406,
+          11.05776
+        ]
+      },
+      "properties": {
+        "name": "Sandy Cay (Spratly Islands)",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.327772,
+          10.704618
+        ]
+      },
+      "properties": {
+        "name": "Loaita Nan",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.801888,
+          11.145895
+        ]
+      },
+      "properties": {
+        "name": "Menzies Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.919696,
+          10.873777
+        ]
+      },
+      "properties": {
+        "name": "Irving Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.63883,
+          10.233
+        ]
+      },
+      "properties": {
+        "name": "Western Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.85,
+          10.067
+        ]
+      },
+      "properties": {
+        "name": "Discovery Great Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.583065,
+          10.402914
+        ]
+      },
+      "properties": {
+        "name": "Petley Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.365884,
+          10.376879
+        ]
+      },
+      "properties": {
+        "name": "Taiping Island",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.41361,
+          10.38611
+        ]
+      },
+      "properties": {
+        "name": "Zhongzhou Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.390391,
+          11.462198
+        ]
+      },
+      "properties": {
+        "name": "North Reef (Spratly Islands)",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.302779,
+          11.38518
+        ]
+      },
+      "properties": {
+        "name": "South Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.256352,
+          9.771758
+        ]
+      },
+      "properties": {
+        "name": "Collins Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.370691,
+          9.778792
+        ]
+      },
+      "properties": {
+        "name": "Lansdowne Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.718245,
+          7.944327
+        ]
+      },
+      "properties": {
+        "name": "Bombay Castle",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          110.5,
+          7.817
+        ]
+      },
+      "properties": {
+        "name": "Grainger Bank",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          110.633,
+          8.017
+        ]
+      },
+      "properties": {
+        "name": "Alexandra Bank",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.831172,
+          7.372598
+        ]
+      },
+      "properties": {
+        "name": "Swallow Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.933161,
+          7.617402
+        ]
+      },
+      "properties": {
+        "name": "Ardasier Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.911274,
+          7.98683
+        ]
+      },
+      "properties": {
+        "name": "Mariveles Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.799743,
+          7.621232
+        ]
+      },
+      "properties": {
+        "name": "Dallas Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.133429,
+          8.107966
+        ]
+      },
+      "properties": {
+        "name": "Erica Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.577508,
+          8.113334
+        ]
+      },
+      "properties": {
+        "name": "Investigator Shoal",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.236905,
+          6.333192
+        ]
+      },
+      "properties": {
+        "name": "Louisa Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.526159,
+          5.902455
+        ]
+      },
+      "properties": {
+        "name": "Aitken Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.440253,
+          9.35921
+        ]
+      },
+      "properties": {
+        "name": "Alicia Annie Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          116.922033,
+          9.441809
+        ]
+      },
+      "properties": {
+        "name": "Bombay Shoal",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          116.167,
+          9.6
+        ]
+      },
+      "properties": {
+        "name": "Boxall Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.5375,
+          5.80417
+        ]
+      },
+      "properties": {
+        "name": "Buck Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.93889,
+          5.03667
+        ]
+      },
+      "properties": {
+        "name": "Comus Shoal",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.57917,
+          5.07778
+        ]
+      },
+      "properties": {
+        "name": "Connell Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.39401,
+          9.900063
+        ]
+      },
+      "properties": {
+        "name": "Edmund Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.7,
+          10.35
+        ]
+      },
+      "properties": {
+        "name": "Eldad Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.591443,
+          9.977008
+        ]
+      },
+      "properties": {
+        "name": "Empire Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.944636,
+          9.332979
+        ]
+      },
+      "properties": {
+        "name": "First Thomas Shoal",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.52861,
+          5.955
+        ]
+      },
+      "properties": {
+        "name": "Friendship Shoal",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          116.276355,
+          8.906146
+        ]
+      },
+      "properties": {
+        "name": "Half Moon Shoal",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.522536,
+          9.934163
+        ]
+      },
+      "properties": {
+        "name": "Hallet Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.446238,
+          5.787535
+        ]
+      },
+      "properties": {
+        "name": "Hardie Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          116.13579,
+          10.130571
+        ]
+      },
+      "properties": {
+        "name": "Hardy Reef /Hubo Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.622246,
+          5.376399
+        ]
+      },
+      "properties": {
+        "name": "Hayes Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.60417,
+          4.97083
+        ]
+      },
+      "properties": {
+        "name": "Herald Reef (Spratly Islands)",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.4,
+          9.8
+        ]
+      },
+      "properties": {
+        "name": "Higgens Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.563824,
+          9.963851
+        ]
+      },
+      "properties": {
+        "name": "Holiday Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          116.090241,
+          10.809375
+        ]
+      },
+      "properties": {
+        "name": "Hopkins Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.359974,
+          10.250866
+        ]
+      },
+      "properties": {
+        "name": "Hopps Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          116.4583,
+          9.175
+        ]
+      },
+      "properties": {
+        "name": "Investigator Northeast Shoal",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          116.175,
+          10.625
+        ]
+      },
+      "properties": {
+        "name": "Iroquois Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.706118,
+          10.496838
+        ]
+      },
+      "properties": {
+        "name": "Jackson Atoll",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.467,
+          9.833
+        ]
+      },
+      "properties": {
+        "name": "Jones Reef /Zhangxi Jiao",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          116.662151,
+          10.503059
+        ]
+      },
+      "properties": {
+        "name": "Katimugan Banks",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          117.471292,
+          11.08399
+        ]
+      },
+      "properties": {
+        "name": "Leslie Bank",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.29965,
+          10.19134
+        ]
+      },
+      "properties": {
+        "name": "Livock Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.281798,
+          9.852093
+        ]
+      },
+      "properties": {
+        "name": "Loveless Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.667644,
+          9.20807
+        ]
+      },
+      "properties": {
+        "name": "Maralie Reef /Bittern Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.465584,
+          9.903572
+        ]
+      },
+      "properties": {
+        "name": "McKennan Reef /Kennan Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.66444,
+          5.05
+        ]
+      },
+      "properties": {
+        "name": "Richmond Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          116.670363,
+          9.032702
+        ]
+      },
+      "properties": {
+        "name": "Royal Captain Shoal",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.582142,
+          6.947593
+        ]
+      },
+      "properties": {
+        "name": "Royal Charlotte Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          116.450136,
+          9.793929
+        ]
+      },
+      "properties": {
+        "name": "Sabina Shoal",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.583,
+          5.5
+        ]
+      },
+      "properties": {
+        "name": "Seahorse Breakers",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          117.774074,
+          10.808789
+        ]
+      },
+      "properties": {
+        "name": "Seahorse Shoal / Seashore Shoal/Routh Shoal",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          116.75,
+          10.467
+        ]
+      },
+      "properties": {
+        "name": "Southern Bank (Spratly Islands)",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.47917,
+          5.02444
+        ]
+      },
+      "properties": {
+        "name": "Stigant Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          116.92991,
+          10.551877
+        ]
+      },
+      "properties": {
+        "name": "Tagpi",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.340467,
+          16.835649
+        ]
+      },
+      "properties": {
+        "name": "Woody Island",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.21194,
+          16.9775
+        ]
+      },
+      "properties": {
+        "name": "West Sand",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.27111,
+          16.98
+        ]
+      },
+      "properties": {
+        "name": "Tree Island",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.30944,
+          16.96389
+        ]
+      },
+      "properties": {
+        "name": "North Island",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.32444,
+          16.955
+        ]
+      },
+      "properties": {
+        "name": "Middle Island",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.33444,
+          16.94639
+        ]
+      },
+      "properties": {
+        "name": "South Island",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.34167,
+          16.93778
+        ]
+      },
+      "properties": {
+        "name": "North Sand",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.34361,
+          16.93417
+        ]
+      },
+      "properties": {
+        "name": "Middle Sand",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.34583,
+          16.92917
+        ]
+      },
+      "properties": {
+        "name": "South Sand",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.219103,
+          16.77265
+        ]
+      },
+      "properties": {
+        "name": "Iltis Bank",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.50833,
+          16.44778
+        ]
+      },
+      "properties": {
+        "name": "Money Island",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.595941,
+          16.453058
+        ]
+      },
+      "properties": {
+        "name": "Antelope Reef",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.58528,
+          16.50556
+        ]
+      },
+      "properties": {
+        "name": "Robert Island",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.60694,
+          16.53389
+        ]
+      },
+      "properties": {
+        "name": "Pattle Island",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.67333,
+          16.57472
+        ]
+      },
+      "properties": {
+        "name": "Quanfu Dao",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.70417,
+          16.57917
+        ]
+      },
+      "properties": {
+        "name": "Lesser Silver Islet",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.767,
+          16.5
+        ]
+      },
+      "properties": {
+        "name": "Stone Islet",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.74167,
+          16.46389
+        ]
+      },
+      "properties": {
+        "name": "Drummond Island",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.707436,
+          16.450999
+        ]
+      },
+      "properties": {
+        "name": "Duncan Island",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.42778,
+          16.33333
+        ]
+      },
+      "properties": {
+        "name": "Bremen Bank",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.642361,
+          16.576806
+        ]
+      },
+      "properties": {
+        "name": "Pyramid Rock",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.733,
+          16.667
+        ]
+      },
+      "properties": {
+        "name": "Lincoln Island",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.466569,
+          17.069547
+        ]
+      },
+      "properties": {
+        "name": "North Reef",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.2,
+          15.783
+        ]
+      },
+      "properties": {
+        "name": "Triton Island",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.539776,
+          16.051813
+        ]
+      },
+      "properties": {
+        "name": "Bombay Reef",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.76479,
+          16.240397
+        ]
+      },
+      "properties": {
+        "name": "Discovery Reef",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.76167,
+          16.05667
+        ]
+      },
+      "properties": {
+        "name": "Passu Keah",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.001444,
+          16.340771
+        ]
+      },
+      "properties": {
+        "name": "Vuladdore Reef",
+        "group": "Paracel Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          117.739198,
+          15.186691
+        ]
+      },
+      "properties": {
+        "name": "Scarborough Shoal",
+        "group": "Scarborough Shoal"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.666485,
+          8.662298
+        ]
+      },
+      "properties": {
+        "name": "Ladd Reef",
+        "occupier": "Vietnam",
+        "amti_url": "https://amti.csis.org/ladd-reef/"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.66163,
+          8.85812
+        ]
+      },
+      "properties": {
+        "name": "Tennent Reef",
+        "occupier": "Vietnam",
+        "amti_url": "https://amti.csis.org/tennent-reef/"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          111.919167,
+          8.644
+        ]
+      },
+      "properties": {
+        "name": "Spratly Island",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.85693006130859,
+          9.791068235828183
+        ]
+      },
+      "properties": {
+        "name": "Second Thomas Shoal",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          114.649,
+          9.991
+        ]
+      },
+      "properties": {
+        "name": "Whitsun Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.32314332674812,
+          8.20372961677624
+        ]
+      },
+      "properties": {
+        "name": "Barque Canada Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          113.99362486502521,
+          8.82094647466785
+        ]
+      },
+      "properties": {
+        "name": "Alison Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          112.65949775358906,
+          8.82226878394547
+        ]
+      },
+      "properties": {
+        "name": "East Reef",
+        "group": "Spratly Islands"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          115.2358091593131,
+          8.358478795942945
+        ]
+      },
+      "properties": {
+        "name": "Commodore Reef",
+        "group": "Spratly Islands"
+      }
+    }
+  ]
+}
