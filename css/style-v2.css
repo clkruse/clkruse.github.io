@@ -1,6 +1,5 @@
 @import url('https://fonts.googleapis.com/css?family=Major+Mono+Display');
-@import url('https://fonts.googleapis.com/css2?family=Raleway:wght@400;700');
-@import url('https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,700&family=Raleway:wght@400;700&family=Roboto+Mono:wght@100;200;300&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Mulish:ital,wght@0,200;0,300;0,400;0,600;0,700;0,900;1,200;1,300;1,400;1,700&family=Raleway:wght@400;700&display=swap');
 
 
 h1, h2, h3, h4, h5, h6 {
@@ -98,18 +97,6 @@ p, li {
     width: 100%;
     min-height: 30vw;
     padding-bottom: 2rem;
-}
-
-@media only screen and (max-width:1000px) {
-    .article-heading {
-        font-size: 2.75rem;
-    }
-}
-
-@media only screen and (max-width:767px) {
-    .article-heading {
-        font-size: 2.0rem;
-    }
 }
 
 .footer {

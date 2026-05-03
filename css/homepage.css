@@ -18,14 +18,6 @@
 }
 
 
-.button-group {
-    text-align: right;
-    font-family: Major Mono Display;
-    padding-top: 3vw;
-    padding-bottom: 3vw;
-    text-align: center;
-}
-
 .button-group .button {
     position: relative;
     margin: 0 15px;
