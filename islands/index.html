@@ -90,6 +90,21 @@
     }
     .home-link:hover { color: var(--fg); }
 
+    .about-link {
+      position: absolute;
+      top: 24px;
+      right: 16px;
+      background: none;
+      border: 0;
+      padding: 0;
+      cursor: pointer;
+      color: var(--muted);
+      font-size: 13px;
+      letter-spacing: 0.02em;
+      font-family: inherit;
+    }
+    .about-link:hover { color: var(--fg); }
+
     h1 {
       font-size: 28px;
       margin: 0;
@@ -98,6 +113,7 @@
 
     @media (max-width: 600px) {
       .home-link { top: 16px; }
+      .about-link { top: 16px; }
     }
 
     main {
@@ -450,6 +466,45 @@
       fill: #fff;
     }
 
+    .lb-scale-rect {
+      /* Faint fill makes the small rect read as a "highlighted region"
+         rather than just a 1 px outline floating over the imagery. */
+      fill: rgba(255, 255, 255, 0.1);
+      stroke: rgba(255, 255, 255, 0.95);
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+      filter: drop-shadow(0 0 1.2px rgba(0, 0, 0, 0.85));
+    }
+    .lb-scale-leader {
+      stroke: rgba(255, 255, 255, 0.7);
+      stroke-width: 0.6;
+      vector-effect: non-scaling-stroke;
+      stroke-dasharray: 0.6 0.6;
+    }
+    .lb-scale-mark {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.85);
+      stroke-width: 1;
+      vector-effect: non-scaling-stroke;
+    }
+    .lb-scale-label,
+    .lb-scale-sublabel {
+      font-family: "SF Mono", Menlo, Monaco, Consolas, monospace;
+      letter-spacing: 0.04px;
+      paint-order: stroke fill;
+      stroke: rgba(0, 0, 0, 0.75);
+      stroke-width: 0.35;
+      stroke-linejoin: round;
+    }
+    .lb-scale-label {
+      fill: rgba(255, 255, 255, 0.95);
+      font-weight: 500;
+    }
+    .lb-scale-sublabel {
+      fill: rgba(255, 255, 255, 0.7);
+      stroke-width: 0.3;
+    }
+
     .lb-legend {
       display: flex;
       align-items: center;
@@ -489,11 +544,119 @@
       overflow: visible;
     }
 
+    #about-modal {
+      max-width: min(620px, calc(100vw - 32px));
+      width: 100%;
+      max-height: calc(100vh - 48px);
+      background: #14171c;
+      color: var(--fg);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 0;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+    }
+    #about-modal::backdrop {
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+    #about-modal[open] {
+      display: flex;
+      flex-direction: column;
+      animation: about-in 220ms ease-out;
+    }
+    @keyframes about-in {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .about-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(0, 0, 0, 0.45);
+      color: #fff;
+      border: 0;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      font-size: 18px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0;
+      transition: background 120ms ease;
+      z-index: 2;
+    }
+    .about-close:hover { background: rgba(0, 0, 0, 0.75); }
+    .about-close:focus { outline: none; }
+    .about-close:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+    .about-figure {
+      margin: 0;
+      position: relative;
+    }
+    .about-figure img {
+      display: block;
+      width: 100%;
+      height: auto;
+      max-height: 38vh;
+      object-fit: cover;
+      background: #000;
+    }
+    .about-figure figcaption {
+      position: absolute;
+      bottom: 8px;
+      right: 14px;
+      color: rgba(255, 255, 255, 0.85);
+      font-family: "SF Mono", Menlo, Monaco, Consolas, monospace;
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
+    }
+
+    .about-body {
+      padding: 24px 28px 26px;
+      overflow-y: auto;
+    }
+
+    .about-eyebrow {
+      color: var(--accent);
+      font-family: "SF Mono", Menlo, Monaco, Consolas, monospace;
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      margin: 0 0 6px;
+    }
+
+    .about-title {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
+      margin: 0 0 14px;
+    }
+
+    .about-text {
+      font-size: 14.5px;
+      line-height: 1.65;
+      color: #d2d4d8;
+    }
+    .about-text p { margin: 0 0 12px; }
+    .about-text p:last-child { margin-bottom: 0; }
+
     @media (max-width: 600px) {
       main { padding: 8px; }
       #grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 8px; }
       .tile { contain-intrinsic-size: 160px 160px; }
       header { padding: 16px 12px 8px; }
+      .about-figure img { max-height: 32vh; }
+      .about-body { padding: 18px 20px 20px; }
+      .about-title { font-size: 18px; }
+      .about-text { font-size: 14px; }
     }
   </style>
 </head>
@@ -501,12 +664,87 @@
   <header>
     <a class="home-link" href="/">← home</a>
     <h1>Islands of the South China Sea</h1>
+    <button type="button" class="about-link" id="about-open">about</button>
   </header>
 
   <main>
     <div id="grid" aria-live="polite"></div>
     <p id="status" class="status">Loading…</p>
   </main>
+
+  <dialog id="about-modal" aria-labelledby="about-title">
+    <button type="button" class="about-close" id="about-close" aria-label="Close">&times;</button>
+    <figure class="about-figure">
+      <img src="assets/sandy-cay-combo.jpg" alt="Sandy Cay, an unoccupied reef in the South China Sea" />
+      <figcaption>Occupation of Sandy Cay</figcaption>
+    </figure>
+    <div class="about-body">
+      <h2 id="about-title" class="about-title">Islands of the South China Sea</h2>
+      <div class="about-text">
+        <p>The South China Sea holds more than 250 small islands, reefs, and shoals. Because maritime law grants fishing and resource rights to all waters within 200 nautical miles of a nation's coastline, countries seek to establish a presence on even the smallest islands.</p>
+        <p>Increasingly, these vibrant coral reefs have been turned into militarized bases by countries seeking ownership and claims in the disputed waters.</p>
+        <p>This page shows a satellite's perspective on the development of these islands using publicly-available data from the European Space Agency.</p>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    (() => {
+      const modal = document.getElementById("about-modal");
+      const openBtn = document.getElementById("about-open");
+      const closeBtn = document.getElementById("about-close");
+      const grid = document.getElementById("grid");
+
+      // Intercept any tile that tries to play while the modal is open.
+      // Grid videos are added asynchronously after manifest.json resolves,
+      // and the IntersectionObserver in app.js may call play() at any point.
+      const blockPlay = (e) => {
+        if (e.target instanceof HTMLVideoElement) e.target.pause();
+      };
+
+      const pauseAll = () => {
+        document.querySelectorAll("#grid video").forEach((v) => v.pause());
+      };
+
+      const onOpen = () => {
+        grid.addEventListener("play", blockPlay, true);
+        pauseAll();
+      };
+      const onClose = () => {
+        grid.removeEventListener("play", blockPlay, true);
+        // app.js's IntersectionObserver won't refire on modal close, so
+        // manually resume tiles within its 200px play margin.
+        const vh = window.innerHeight;
+        document.querySelectorAll("#grid video").forEach((v) => {
+          if (!v.src) return;
+          const r = v.getBoundingClientRect();
+          if (r.bottom > -200 && r.top < vh + 200) {
+            v.play().catch(() => {});
+          }
+        });
+      };
+
+      const showModal = () => {
+        onOpen();
+        modal.showModal();
+        // <dialog> auto-focuses the first focusable child (the close button)
+        // on open; blur it so it doesn't render with a focus ring.
+        if (document.activeElement instanceof HTMLElement) {
+          document.activeElement.blur();
+        }
+      };
+
+      modal.addEventListener("close", onClose);
+      openBtn.addEventListener("click", showModal);
+      closeBtn.addEventListener("click", () => modal.close());
+      modal.addEventListener("click", (e) => {
+        if (e.target === modal) modal.close();
+      });
+
+      // Show on every page load.
+      showModal();
+    })();
+  </script>
 
   <div id="lightbox" class="lightbox" hidden aria-hidden="true">
     <button id="lb-close" class="lb-btn lb-close" aria-label="Close">&times;</button>
@@ -523,6 +761,18 @@
               <circle cx="0" cy="0" r="0.25" class="glint-core" />
             </g>
           </defs>
+          <!-- Scale reference: a FIFA-standard soccer field at 105 × 68 m,
+               which is 2.1 × 1.36 viewBox units inside the 5 km bbox.
+               Inner markings (halfway line + penalty boxes) are at true
+               proportions; the center circle and goal areas are sub-pixel
+               at this scale and omitted. -->
+          <g id="lb-scale-overlay" pointer-events="none">
+            <rect class="lb-scale-rect" x="2" y="96.32" width="2.1" height="1.36" />
+            <line class="lb-scale-mark" x1="3.05" y1="96.32" x2="3.05" y2="97.68" />
+            <rect class="lb-scale-mark" x="2" y="96.5968" width="0.33" height="0.8064" />
+            <rect class="lb-scale-mark" x="3.77" y="96.5968" width="0.33" height="0.8064" />
+            <text class="lb-scale-label" x="4.8" y="97" font-size="1.4" dominant-baseline="middle">size of a soccer field</text>
+          </g>
           <g id="lb-glints-layer"></g>
         </svg>
       </div>

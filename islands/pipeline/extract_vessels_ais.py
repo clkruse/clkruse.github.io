@@ -137,7 +137,11 @@ def extract_for_slug(slug: str, max_workers: int = 4, verbose: bool = True) -> d
                 if verbose:
                     print(f"  [{slug}] {ws}..{we}: error {type(e).__name__}: {str(e)[:120]}")
                 continue
-            for entry in data.get("entries", []):
+            # GFW occasionally returns `null` entries (e.g. for empty windows
+            # served under rate-limit pressure) — skip them defensively.
+            for entry in data.get("entries") or []:
+                if not entry:
+                    continue
                 for _ds_key, vessel_list in entry.items():
                     if not vessel_list:
                         continue
