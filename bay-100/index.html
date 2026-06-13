@@ -889,9 +889,10 @@ function initMap(){
     map = new mapboxgl.Map({
       container: "map",
       style: "mapbox://styles/mapbox/light-v11",   // Stratolink basemap
-      projection: "globe",                          // Stratolink globe projection
+      projection: "globe",                          // Stratolink globe projection (flat at this zoom)
       bounds: [[-122.32, 37.715], [-122.05, 37.955]],
-      fitBoundsOptions: { padding: 40, pitch: 58, bearing: -14 },  // tilt to show 3D relief
+      fitBoundsOptions: { padding: 40 },
+      pitch: 0, maxPitch: 0,                        // keep a flat, top-down 2D orientation
       attributionControl: true
     });
   } catch(e){
@@ -903,6 +904,20 @@ function initMap(){
   map.on("error", () => {});  // swallow transient tile/style errors
   map.addControl(new mapboxgl.NavigationControl({ showCompass:false }), "top-right");
   map.on("load", () => {
+    // ---- Stratolink-style relief: shaded topography + bathymetry, rendered flat ----
+    // mapbox-terrain-dem-v1 includes ocean-floor (bathymetry) data, so both the
+    // hills and the bay floor get shaded relief. No 3D extrusion — the view stays
+    // top-down; the hillshade layer supplies the terrain look in 2D.
+    if (!map.getSource("dem")) {
+      map.addSource("dem", { type:"raster-dem", url:"mapbox://mapbox.mapbox-terrain-dem-v1", tileSize:512, maxzoom:14 });
+    }
+    // place hillshade beneath the basemap's labels so text stays crisp
+    let firstSym;
+    for (const L of map.getStyle().layers){ if (L.type === "symbol"){ firstSym = L.id; break; } }
+    map.addLayer({ id:"hillshade", type:"hillshade", source:"dem",
+      paint:{ "hillshade-exaggeration":0.5,
+        "hillshade-shadow-color":"#6b7480", "hillshade-highlight-color":"#ffffff" } }, firstSym);
+
     map.addSource("route", { type:"geojson",
       data:{ type:"Feature", geometry:{ type:"LineString", coordinates: TRACK.map(t => [t[0],t[1]]) } } });
     map.addLayer({ id:"route-line", type:"line", source:"route",
@@ -914,7 +929,7 @@ function initMap(){
         type:"Feature", geometry:{ type:"Point", coordinates:[a.lon,a.lat] },
         properties:{ name:a.name, label:`${a.name} · mi ${a.miles.join(" / ")}` } })) } });
     map.addLayer({ id:"aid-dot", type:"circle", source:"aid",
-      paint:{ "circle-radius":4, "circle-color":"#ffffff",
+      paint:{ "circle-radius":4, "circle-color":"#ffffff", "circle-pitch-scale":"viewport",
         "circle-stroke-color":"#374151", "circle-stroke-width":1.5 } });
     map.addLayer({ id:"aid-label", type:"symbol", source:"aid",
       layout:{ "text-field":["get","name"], "text-size":11, "text-offset":[0,1.1],
@@ -926,6 +941,7 @@ function initMap(){
     map.addLayer({ id:"runner-dot", type:"circle", source:"runners",
       paint:{
         "circle-radius": ["case", ["==",["get","followed"],1], 7, 4.5],
+        "circle-pitch-scale":"viewport",
         // leader green; tracked (followed) red; finished green; everyone else gray
         "circle-color": ["case",
           ["==",["get","state"],"lead"], "#1f9e57",
