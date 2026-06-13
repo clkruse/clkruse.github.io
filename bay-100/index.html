@@ -154,7 +154,9 @@
     .lbl-full{display:none}
     .mini{color:var(--ink); font-size:12.5px}
     table{font-size:13px}
-    .star{padding:0 4px 0 0}
+    thead th{white-space:normal}        /* let headers wrap rather than force wide columns */
+    td.num,th.num{white-space:nowrap}   /* keep numbers on one line */
+    .star{padding:0}
   }
 </style>
 </head>
@@ -872,8 +874,10 @@ function estimatedMile(r, nowSec){
 function nextAidFor(r, nowSec){
   const estMi = estimatedMile(r, nowSec);
   for (let i = 1; i < COURSE.length; i++){
-    if (COURSE[i].mile > estMi + 0.05){
-      const dist = +(COURSE[i].mile - estMi).toFixed(1);
+    // first checkpoint past their last-seen one that they haven't reached yet —
+    // includes the reporting station they're capped at (so we don't skip it)
+    if (i > r.stationIdx && COURSE[i].mile > estMi - 0.06){
+      const dist = Math.max(0, +(COURSE[i].mile - estMi).toFixed(1));
       return { next: COURSE[i], dist, eta: r.paceSec ? dist * r.paceSec : null };
     }
   }
@@ -1090,20 +1094,20 @@ function render(){
     return el("th",{class:(num?"num ":"")+(sorted?"sorted ":"")+extra, onclick:()=>{
       if (state.sort.key===key) state.sort.dir*=-1; else { state.sort.key=key; state.sort.dir = key==="name"?1:1; }
       render();
-    }}, [ label+" ", el("span",{class:"arrow"}, sorted ? (state.sort.dir>0?"▲":"▼") : "▦") ]);
+    }}, [ label, sorted ? el("span",{class:"arrow"}, state.sort.dir>0?" ▲":" ▼") : null ]);
   };
 
   const table = el("table");
   const head = el("tr",{},[
-    el("th",{},""),                 // star
-    th("Pl","place"),
+    el("th",{class:"col-star"},""),  // star
+    th("Pl","place", false, "col-pl"),
     el("th",{class:"col-bib"},"Bib"),
-    th("Runner","name"),
+    th("Runner","name", false, "col-runner"),
     el("th",{class:"col-sa"},"Sex/Age"),
     th("Last seen","progress", false, "col-last"),
-    th("Est. dist","progress", true),
+    th("Dist","progress", true, "col-est"),
     el("th",{class:"col-next"},"Next aid"),
-    th("Time","time", true)
+    th("Time","time", true, "col-time")
   ]);
   table.append(el("thead",{},head));
   const tb = el("tbody");
@@ -1115,10 +1119,10 @@ function render(){
         if (state.followed.has(r.bib)) state.followed.delete(r.bib); else state.followed.add(r.bib);
         saveFollows(); render();
       }}, state.followed.has(r.bib)?"★":"☆");
-    tr.append(el("td",{},star));
-    tr.append(el("td",{class:"place"}, r.place!=null && r.place!=="" ? r.place : "·"));
+    tr.append(el("td",{class:"col-star"},star));
+    tr.append(el("td",{class:"place col-pl"}, r.place!=null && r.place!=="" ? r.place : "·"));
     tr.append(el("td",{class:"bib col-bib"}, r.bib));
-    tr.append(el("td",{class:"name"}, [
+    tr.append(el("td",{class:"name col-runner"}, [
       r.name || "—",
       r.club ? el("div",{style:"font-weight:400;color:var(--muted);font-size:12px"}, r.club) : null
     ]));
@@ -1130,9 +1134,9 @@ function render(){
       el("span",{class:"lbl-full"}, r.lastStation),
       el("div",{class:"mini"}, r.stationIdx>0 ? "mi "+r.mile.toFixed(1) : "—")
     ]));
-    tr.append(el("td",{class:"num estdist", "data-est":r.bib}, estDistText(r)));
+    tr.append(el("td",{class:"num estdist col-est", "data-est":r.bib}, estDistText(r)));
     tr.append(el("td",{class:"lastseen nextaid col-next", "data-next":r.bib}, nextCell(r)));
-    tr.append(el("td",{class:"num"}, r.timeRaw || "—"));
+    tr.append(el("td",{class:"num col-time"}, r.timeRaw || "—"));
     tb.append(tr);
   });
   table.append(tb);
