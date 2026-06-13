@@ -306,12 +306,14 @@ const MAPBOX_TOKEN = "pk.eyJ1IjoiY2xrcnVzZSIsImEiOiJjaXIxY2M2dGcwMnNiZnZtZzN0Znk
 const RACE_START_SEC = 5 * 3600;   // 5:00am cutoff
 
 // Bad timing reads (a mat firing on the wrong runner / cross-talk) show up as a
-// far checkpoint reached at an impossible pace. No one covers this mountain 100
-// faster than ~8 min/mi; the field's real leaders sit at 8.3+ min/mi while the
-// bogus reads come in at 4–7 min/mi. Anything under 7.5 min/mi past mile 10 is a
-// data outlier, not a runner — nix it from the standings.
-const MIN_PLAUSIBLE_PACE_SEC = 7.5 * 60;   // sec per mile
+// far checkpoint reached at an impossible pace. A mountain 100's pace only
+// degrades with distance, so the minimum believable average pace RISES with
+// mileage: a pace that's fine at mile 20 is impossible at mile 74. Anything
+// faster than this floor past mile 10 is a data outlier, not a real position —
+// nix it from the standings. (Tuned with ~1.4 min/mi of headroom over the real
+// field's leaders, who sit ~8.3+ min/mi early and slow from there.)
 const OUTLIER_MIN_MILE = 10;
+function minPlausiblePaceSec(mile){ return (6.0 + 0.04 * mile) * 60; }   // sec per mile
 
 const cfg = {
   event: "392297",
@@ -650,7 +652,7 @@ function parseList(payload, serverNow){
     // ---- two reasons a runner is dropped from the live standings ----
     // (1) data outlier: a far checkpoint reached at an impossible pace = bad read
     o.outlier = o.mile >= OUTLIER_MIN_MILE && o.paceSec != null
-             && o.paceSec < MIN_PLAUSIBLE_PACE_SEC;
+             && o.paceSec < minPlausiblePaceSec(o.mile);
     // (2) early start: implied start (now − elapsed) lands before the 5:00am gun.
     //     now−elapsed can only over-estimate the start, so this never false-flags
     //     a real 5:00am runner.
