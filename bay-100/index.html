@@ -31,7 +31,7 @@
     --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   }
   *{box-sizing:border-box}
-  html,body{margin:0}
+  html,body{margin:0; max-width:100%; overflow-x:hidden}   /* never allow horizontal page scroll */
   body{
     background:var(--paper); color:var(--ink); font-family:var(--body);
     font-size:15px; line-height:1.45; -webkit-font-smoothing:antialiased;
@@ -95,6 +95,7 @@
   .seg button:last-child{border-right:none}
   .seg button.on{background:var(--ink); color:var(--paper); font-weight:500}
   /* ---------- table ---------- */
+  #tableHost{overflow-x:auto}   /* never let the table push the page wider than the screen */
   table{width:100%; border-collapse:collapse; font-size:14px}
   thead th{font-family:var(--display); text-transform:uppercase; letter-spacing:.06em; font-weight:600; font-size:12px; color:var(--muted); text-align:left; padding:6px 10px 8px; border-bottom:1.5px solid var(--ink); white-space:nowrap; cursor:pointer; user-select:none}
   thead th.num{text-align:right}
@@ -111,7 +112,8 @@
   .star.on{color:var(--trail)}
   .tag{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; padding:1px 6px; border-radius:99px; border:1px solid currentColor}
   .tag.dnf{color:var(--drop)} .tag.fin{color:var(--good)} .tag.run{color:var(--water)}
-  .lastseen{color:var(--muted); font-size:13px}
+  .lastseen{color:var(--ink); font-size:13px}
+  .mini{color:var(--muted); font-size:11.5px; font-family:var(--mono)}
   /* expanded splits row */
   tr.detail td{padding:0}
   .splits{padding:10px 12px 18px; background:rgba(77,163,255,.05); border-bottom:1px solid var(--rule)}
@@ -142,12 +144,17 @@
   .colmap span{display:inline-block; margin:2px 6px 2px 0; padding:2px 7px; border:1px solid var(--rule-strong); border-radius:2px}
   .colmap b{color:var(--forest)}
   footer{margin-top:40px; padding-top:14px; border-top:1px solid var(--rule); font-size:11.5px; color:var(--muted); font-family:var(--mono)}
-  @media (max-width:560px){
+  @media (max-width:600px){
     .wrap{padding:14px 13px 56px}
-    .stat{padding-right:14px;margin-right:14px}
-    thead th,tbody td{padding:7px 6px}
+    thead th,tbody td{padding:7px 5px}
     td.place{font-size:14px}
     .station .lab.lab-alt{display:none}   /* thin out crowded labels on small screens */
+    /* compress the leaderboard: drop non-essential columns, show locations as miles */
+    .col-bib, .col-sa{display:none}
+    .lbl-full{display:none}
+    .mini{color:var(--ink); font-size:12.5px}
+    table{font-size:13px}
+    .star{padding:0 4px 0 0}
   }
 </style>
 </head>
@@ -766,28 +773,6 @@ function renderColmap(parsed, listname, contests){
   host.append(map);
 }
 
-function stats(){
-  let started=0, fin=0, dnf=0, course=0, reg=0, hidden=0;
-  state.rows.forEach(r => {
-    if (r.hidden) { hidden++; return; }              // outliers + early starters excluded
-    if (/DNF/i.test(r.status||"")) { dnf++; started++; }
-    else if (r.finished) { fin++; started++; }
-    else if (r.station) { course++; started++; }   // out on course, has a split
-    else reg++;                                      // registered, no data yet
-  });
-  return { started, fin, dnf, course, reg, hidden };
-}
-
-function renderStats(){
-  const s = stats();
-  const host = $("#stats"); host.hidden = false; host.innerHTML = "";
-  const add = (n,l,cls="") => host.append(el("div",{class:"stat "+cls},[ el("div",{class:"n"},String(n)), el("div",{class:"l"},l) ]));
-  add(s.started, "Started");
-  add(s.course, "On course", "oncourse");
-  add(s.fin, "Finished", "fin");
-  add(s.dnf, "Dropped", "drop");
-}
-
 /* course strip — fixed-width elevation-style profile, positioned by real mileage */
 function renderCourse(){
   const track = $("#track"); track.innerHTML = "";
@@ -837,6 +822,10 @@ function updateLivePositions(){
     const r = state.rows.find(x => x.bib === node.getAttribute("data-est"));
     if (r) node.textContent = estDistText(r);
   });
+  document.querySelectorAll("td.nextaid[data-next]").forEach(node => {
+    const r = state.rows.find(x => x.bib === node.getAttribute("data-next"));
+    if (r){ node.innerHTML = ""; node.append(nextCell(r)); }
+  });
 }
 
 /* ---------- live position estimate ---------- */
@@ -848,16 +837,29 @@ function currentRaceNow(){
   return state.serverNow + drift;
 }
 // Estimate a runner's CURRENT mileage: advance from their last checkpoint at
-// their average pace by the time elapsed since they crossed it. Capped at the
-// next checkpoint (we can't assume they've passed an untimed point). Display
-// only — ranking still uses the actual last-checkpoint mileage.
+// their average pace by the time elapsed since they crossed it. We project
+// PAST intermediate aid stations — some checkpoints don't share split times,
+// so a runner can be well beyond their last reported station. Capped only at
+// the finish. Display only — ranking still uses the actual last checkpoint.
 function estimatedMile(r, nowSec){
   if (!r) return 0;
   if (r.finished || r.dnf || r.stationIdx === 0 || r.paceSec == null || nowSec == null) return r.mile;
   const sinceCheckpoint = (nowSec - RACE_START_SEC) - r.timeSec;
   if (sinceCheckpoint <= 0) return r.mile;
   const projected = r.mile + sinceCheckpoint / r.paceSec;
-  return Math.min(projected, r.next ? r.next.mile : COURSE_MILES);
+  return Math.min(projected, COURSE_MILES);
+}
+// The next aid station ahead of a runner's ESTIMATED position (not just their
+// last reported one), so "next aid" stays right even past unreported stations.
+function nextAidFor(r, nowSec){
+  const estMi = estimatedMile(r, nowSec);
+  for (let i = 1; i < COURSE.length; i++){
+    if (COURSE[i].mile > estMi + 0.05){
+      const dist = +(COURSE[i].mile - estMi).toFixed(1);
+      return { next: COURSE[i], dist, eta: r.paceSec ? dist * r.paceSec : null };
+    }
+  }
+  return null;
 }
 
 /* ---------- live geographic map (Mapbox GL) ---------- */
@@ -889,10 +891,10 @@ function initMap(){
     map = new mapboxgl.Map({
       container: "map",
       style: "mapbox://styles/mapbox/light-v11",   // Stratolink basemap
-      projection: "globe",                          // Stratolink globe projection (flat at this zoom)
       bounds: [[-122.32, 37.715], [-122.05, 37.955]],
       fitBoundsOptions: { padding: 40 },
-      pitch: 0, maxPitch: 0,                        // keep a flat, top-down 2D orientation
+      pitch: 0, maxPitch: 0,                        // flat, top-down 2D orientation
+      dragRotate: false,
       attributionControl: true
     });
   } catch(e){
@@ -906,17 +908,18 @@ function initMap(){
   map.on("load", () => {
     // ---- Stratolink-style relief: shaded topography + bathymetry, rendered flat ----
     // mapbox-terrain-dem-v1 includes ocean-floor (bathymetry) data, so both the
-    // hills and the bay floor get shaded relief. No 3D extrusion — the view stays
-    // top-down; the hillshade layer supplies the terrain look in 2D.
-    if (!map.getSource("dem")) {
-      map.addSource("dem", { type:"raster-dem", url:"mapbox://mapbox.mapbox-terrain-dem-v1", tileSize:512, maxzoom:14 });
-    }
-    // place hillshade beneath the basemap's labels so text stays crisp
-    let firstSym;
-    for (const L of map.getStyle().layers){ if (L.type === "symbol"){ firstSym = L.id; break; } }
-    map.addLayer({ id:"hillshade", type:"hillshade", source:"dem",
-      paint:{ "hillshade-exaggeration":0.5,
-        "hillshade-shadow-color":"#6b7480", "hillshade-highlight-color":"#ffffff" } }, firstSym);
+    // hills and the bay floor get shaded relief. Decorative only — wrapped so a
+    // failure can never block the route/runner layers below.
+    try {
+      if (!map.getSource("dem")) {
+        map.addSource("dem", { type:"raster-dem", url:"mapbox://mapbox.mapbox-terrain-dem-v1", tileSize:512, maxzoom:14 });
+      }
+      let firstSym;  // keep hillshade beneath the basemap labels so text stays crisp
+      for (const L of map.getStyle().layers){ if (L.type === "symbol"){ firstSym = L.id; break; } }
+      map.addLayer({ id:"hillshade", type:"hillshade", source:"dem",
+        paint:{ "hillshade-exaggeration":0.5,
+          "hillshade-shadow-color":"#6b7480", "hillshade-highlight-color":"#ffffff" } }, firstSym);
+    } catch(e){ /* relief is optional */ }
 
     map.addSource("route", { type:"geojson",
       data:{ type:"Feature", geometry:{ type:"LineString", coordinates: TRACK.map(t => [t[0],t[1]]) } } });
@@ -1039,15 +1042,20 @@ function estDistText(r){
   if (r.dnf || r.stationIdx === 0) return "—";
   return estimatedMile(r, currentRaceNow()).toFixed(1) + " mi";
 }
-// "Next aid" cell: next station, remaining distance, and estimated time to reach it
+// "Next aid" cell: the next station ahead of the runner's estimated position,
+// with remaining distance and estimated time to reach it
 function nextCell(r){
   if (r.finished) return el("span",{style:"color:var(--good)"},"—");
   if (r.dnf) return el("span",{style:"color:var(--muted)"},"—");
-  if (!r.next) return el("span",{style:"color:var(--muted)"}, r.stationIdx===0 ? "not started" : "—");
+  if (r.stationIdx === 0) return el("span",{style:"color:var(--muted)"},"not started");
+  const na = nextAidFor(r, currentRaceNow());
+  if (!na) return el("span",{style:"color:var(--muted)"},"—");
   return el("div",{}, [
-    r.next.name,
-    el("div",{style:"color:var(--muted);font-size:11.5px;font-family:var(--mono)"},
-      `${r.distToNext} mi` + (r.etaSec!=null ? ` · ~${fmtEta(r.etaSec)}` : ""))
+    el("span",{class:"lbl-full"}, na.next.name),
+    el("div",{class:"mini"}, [
+      `${na.dist} mi`,
+      na.eta!=null ? el("span",{class:"eta"}, ` · ~${fmtEta(na.eta)}`) : null
+    ])
   ]);
 }
 
@@ -1059,9 +1067,9 @@ function render(){
   const rows = sortRows(filtered());
   const host = $("#tableHost"); host.innerHTML = "";
 
-  const th = (label, key, num=false) => {
+  const th = (label, key, num=false, extra="") => {
     const sorted = state.sort.key===key;
-    return el("th",{class:(num?"num ":"")+(sorted?"sorted":""), onclick:()=>{
+    return el("th",{class:(num?"num ":"")+(sorted?"sorted ":"")+extra, onclick:()=>{
       if (state.sort.key===key) state.sort.dir*=-1; else { state.sort.key=key; state.sort.dir = key==="name"?1:1; }
       render();
     }}, [ label+" ", el("span",{class:"arrow"}, sorted ? (state.sort.dir>0?"▲":"▼") : "▦") ]);
@@ -1071,10 +1079,10 @@ function render(){
   const head = el("tr",{},[
     el("th",{},""),                 // star
     th("Pl","place"),
-    el("th",{},"Bib"),
+    el("th",{class:"col-bib"},"Bib"),
     th("Runner","name"),
-    el("th",{},"Sex/Age"),
-    th("Last seen","progress"),
+    el("th",{class:"col-sa"},"Sex/Age"),
+    th("Last seen","progress", false, "col-last"),
     th("Est. dist","progress", true),
     el("th",{},"Next aid"),
     th("Time","time", true)
@@ -1091,21 +1099,21 @@ function render(){
       }}, state.followed.has(r.bib)?"★":"☆");
     tr.append(el("td",{},star));
     tr.append(el("td",{class:"place"}, r.place!=null && r.place!=="" ? r.place : "·"));
-    tr.append(el("td",{class:"bib"}, r.bib));
+    tr.append(el("td",{class:"bib col-bib"}, r.bib));
     tr.append(el("td",{class:"name"}, [
       r.name || "—",
       r.club ? el("div",{style:"font-weight:400;color:var(--muted);font-size:12px"}, r.club) : null
     ]));
-    tr.append(el("td",{}, [
+    tr.append(el("td",{class:"col-sa"}, [
       r.sex ? r.sex.toUpperCase() : "",
       r.age ? el("span",{style:"color:var(--muted)"}, (r.sex?" · ":"")+r.age) : null
     ]));
-    tr.append(el("td",{class:"lastseen"}, [
-      r.lastStation,
-      r.stationIdx>0 ? el("div",{style:"color:var(--muted);font-size:11.5px;font-family:var(--mono)"}, "mi "+r.mile.toFixed(1)) : null
+    tr.append(el("td",{class:"lastseen col-last"}, [
+      el("span",{class:"lbl-full"}, r.lastStation),
+      el("div",{class:"mini"}, r.stationIdx>0 ? "mi "+r.mile.toFixed(1) : "—")
     ]));
     tr.append(el("td",{class:"num estdist", "data-est":r.bib}, estDistText(r)));
-    tr.append(el("td",{class:"lastseen"}, nextCell(r)));
+    tr.append(el("td",{class:"lastseen nextaid", "data-next":r.bib}, nextCell(r)));
     tr.append(el("td",{class:"num"}, r.timeRaw || "—"));
     tb.append(tr);
   });
@@ -1140,11 +1148,14 @@ function toggleDetail(tr, r){
   wrap.append(strip);
   const pace = (r.paceSec && r.mile>0)
     ? `${fmtDur(r.paceSec)}/mi avg` : null;
+  const estNow = estimatedMile(r, currentRaceNow());
+  const na = nextAidFor(r, currentRaceNow());
   wrap.append(el("div",{style:"font-size:12px;color:var(--muted);margin-top:8px"},
     r.dnf ? `Did not finish — last seen at ${r.lastStation} (mi ${r.mile.toFixed(1)}).`
     : r.finished ? `Finished 100 mi in ${r.timeRaw||"—"}${pace?" · "+pace:""}.`
-    : r.station ? `Elapsed ${r.timeRaw||"—"} through mi ${r.mile.toFixed(1)} at ${r.lastStation}${pace?" · "+pace:""}.`
-        + (r.next ? ` Next: ${r.next.name} in ${r.distToNext} mi${r.etaSec!=null?` (~${fmtEta(r.etaSec)})`:""}.` : "")
+    : r.station ? `Last checkpoint ${r.lastStation} (mi ${r.mile.toFixed(1)}) at ${r.timeRaw||"—"}${pace?" · "+pace:""}.`
+        + ` Estimated now ~mi ${estNow.toFixed(1)}.`
+        + (na ? ` Next: ${na.next.name} in ${na.dist} mi${na.eta!=null?` (~${fmtEta(na.eta)})`:""}.` : "")
         + (r.projFinishSec ? ` Projected finish ~${fmtDur(r.projFinishSec)}.` : "")
     : "Entered — no checkpoint recorded yet."));
   td.append(wrap);
