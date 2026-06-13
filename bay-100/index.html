@@ -887,6 +887,21 @@ function nextAidFor(r, nowSec){
 
 /* ---------- live geographic map (Mapbox GL) ---------- */
 let map = null, mapReady = false, mapFailed = false;
+const MAP_BOUNDS = [[-122.32, 37.715], [-122.05, 37.955]];   // the course
+const MAP_FIT = { padding: 40 };
+// pan limit — generous enough to clear the start view's letterboxing (wide on
+// desktop, tall on portrait phones) yet keep the course in frame; you can never
+// pan off into the void
+const MAP_MAX_BOUNDS = [[-122.60, 37.60], [-121.77, 38.07]];
+const MAP_MAX_ZOOM = 14;
+// the start (fit) zoom becomes the floor, so you can't zoom out past the course view
+function lockMinZoom(){
+  if (!map) return;
+  let z;
+  try { const cam = map.cameraForBounds(MAP_BOUNDS, MAP_FIT); z = cam && cam.zoom; } catch(e){}
+  if (z == null) z = map.getZoom();
+  map.setMinZoom(Math.max(0, z - 0.05));
+}
 function buildRunnerFC(){
   const now = currentRaceNow();
   const lead = state.rows.find(r => String(r.place)==="1");
@@ -915,8 +930,10 @@ function initMap(){
     map = new mapboxgl.Map({
       container: "map",
       style: "mapbox://styles/mapbox/light-v11",   // Stratolink basemap
-      bounds: [[-122.32, 37.715], [-122.05, 37.955]],
-      fitBoundsOptions: { padding: 40 },
+      bounds: MAP_BOUNDS,
+      fitBoundsOptions: MAP_FIT,
+      maxBounds: MAP_MAX_BOUNDS,                    // can't pan the course out of view
+      maxZoom: MAP_MAX_ZOOM,                        // and can't zoom in too far
       pitch: 0, maxPitch: 0,                        // flat, top-down 2D orientation
       dragRotate: false,
       attributionControl: true
@@ -929,7 +946,10 @@ function initMap(){
   }
   map.on("error", () => {});  // swallow transient tile/style errors
   map.addControl(new mapboxgl.NavigationControl({ showCompass:false }), "top-right");
+  lockMinZoom();                       // floor the zoom at the start view
+  map.on("resize", lockMinZoom);       // keep that floor correct if the container resizes
   map.on("load", () => {
+    lockMinZoom();
     // ---- Stratolink-style relief: shaded topography + bathymetry, rendered flat ----
     // mapbox-terrain-dem-v1 includes ocean-floor (bathymetry) data, so both the
     // hills and the bay floor get shaded relief. Decorative only — wrapped so a
