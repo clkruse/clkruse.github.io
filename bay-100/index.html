@@ -95,7 +95,7 @@
   .seg button:last-child{border-right:none}
   .seg button.on{background:var(--ink); color:var(--paper); font-weight:500}
   /* ---------- table ---------- */
-  #tableHost{overflow-x:auto}   /* never let the table push the page wider than the screen */
+  #tableHost{overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain}   /* table scrolls sideways; page never does */
   table{width:100%; border-collapse:collapse; font-size:14px}
   thead th{font-family:var(--display); text-transform:uppercase; letter-spacing:.06em; font-weight:600; font-size:12px; color:var(--muted); text-align:left; padding:6px 10px 8px; border-bottom:1.5px solid var(--ink); white-space:nowrap; cursor:pointer; user-select:none}
   thead th.num{text-align:right}
@@ -103,6 +103,7 @@
   thead th.sorted .arrow{opacity:1; color:var(--ink)}
   tbody tr{border-bottom:1px solid var(--rule); cursor:pointer}
   tbody tr:hover{background:rgba(77,163,255,.06)}
+  tbody tr.selected, tbody tr.selected:hover{background:rgba(245,197,24,.16)}   /* matches the yellow map dot */
   tbody td{padding:8px 10px; vertical-align:baseline}
   td.num,th.num{text-align:right; font-family:var(--mono); font-feature-settings:"tnum"; font-variant-numeric:tabular-nums}
   td.bib{font-family:var(--mono); color:var(--muted); font-size:12.5px}
@@ -146,17 +147,14 @@
   footer{margin-top:40px; padding-top:14px; border-top:1px solid var(--rule); font-size:11.5px; color:var(--muted); font-family:var(--mono)}
   @media (max-width:600px){
     .wrap{padding:14px 13px 56px}
-    thead th,tbody td{padding:7px 5px}
+    thead th,tbody td{padding:7px 8px}
     td.place{font-size:14px}
     .station .lab.lab-alt{display:none}   /* thin out crowded labels on small screens */
-    /* compress the leaderboard: drop non-essential columns, show locations as miles */
-    .col-bib, .col-sa, .col-last, .col-next, .eta{display:none}
-    .lbl-full{display:none}
-    .mini{color:var(--ink); font-size:12.5px}
+    /* Keep every column on mobile; the leaderboard scrolls sideways inside
+       #tableHost while the page itself stays put. nowrap gives each column its
+       natural width so the table overflows (and scrolls) instead of squishing. */
     table{font-size:13px}
-    thead th{white-space:normal}        /* let headers wrap rather than force wide columns */
-    td.num,th.num{white-space:nowrap}   /* keep numbers on one line */
-    .star{padding:0}
+    thead th, tbody td{white-space:nowrap}
   }
 </style>
 </head>
@@ -337,6 +335,7 @@ const state = {
   variant: null,     // winning {r,l} params, reused on refresh
   serverNow: null,   // feed server clock, seconds since midnight (Pacific)
   reportingStations: null,  // Set of station indices that currently have data
+  selectedBib: null, // row selected (expanded) in the table — highlighted yellow on the map
   lastOk: 0,
   timer: null
 };
@@ -901,6 +900,7 @@ function buildRunnerFC(){
         name: r.name || ("Bib "+r.bib), bib: String(r.bib),
         place: r.place || "", mile: estMi.toFixed(1), station: r.lastStation,
         time: r.timeRaw || "", followed: state.followed.has(r.bib) ? 1 : 0,
+        selected: r.bib === state.selectedBib ? 1 : 0,
         state: r.finished ? "done" : (r===lead ? "lead" : "run")
       }});
   });
@@ -967,23 +967,26 @@ function initMap(){
     map.addSource("runners", { type:"geojson", data: buildRunnerFC() });
     map.addLayer({ id:"runner-dot", type:"circle", source:"runners",
       paint:{
-        "circle-radius": ["case", ["==",["get","followed"],1], 7, 4.5],
+        "circle-radius": ["case", ["==",["get","selected"],1], 8.5, ["==",["get","followed"],1], 7, 4.5],
         "circle-pitch-scale":"viewport",
-        // leader green; tracked (followed) red; finished green; everyone else gray
+        // selected row = yellow; then leader green; tracked (followed) red; finished green; else gray
         "circle-color": ["case",
+          ["==",["get","selected"],1], "#f5c518",
           ["==",["get","state"],"lead"], "#1f9e57",
           ["==",["get","followed"],1], "#dc2626",
           ["==",["get","state"],"done"], "#1f9e57",
           "#6e7681"],
-        "circle-stroke-color":"#ffffff",
-        "circle-stroke-width": ["case", ["==",["get","followed"],1], 2.5, 1.2]
+        "circle-stroke-color": ["case", ["==",["get","selected"],1], "#1a1d21",
+          ["==",["get","followed"],1], "#dc2626", "#ffffff"],
+        "circle-stroke-width": ["case", ["==",["get","selected"],1], 2.5, ["==",["get","followed"],1], 2.5, 1.2]
       } });
     map.addLayer({ id:"runner-label", type:"symbol", source:"runners",
-      filter:["==",["get","followed"],1],
-      layout:{ "text-field":["get","name"], "text-size":11, "text-offset":[0,-1.2],
+      filter:["any", ["==",["get","followed"],1], ["==",["get","selected"],1]],
+      layout:{ "text-field":["get","name"], "text-size":11, "text-offset":[0,-1.3],
         "text-anchor":"bottom", "text-font":["DIN Pro Medium","Arial Unicode MS Regular"],
         "text-allow-overlap":true },
-      paint:{ "text-color":"#b91c1c", "text-halo-color":"#ffffff", "text-halo-width":1.6 } });
+      paint:{ "text-color": ["case", ["==",["get","selected"],1], "#7a5c00", "#b91c1c"],
+        "text-halo-color":"#ffffff", "text-halo-width":1.6 } });
 
     const pop = new mapboxgl.Popup({ closeButton:false, closeOnClick:false, offset:10 });
     const showPop = (e, html) => { map.getCanvas().style.cursor="pointer";
@@ -1115,7 +1118,8 @@ function render(){
   const tb = el("tbody");
 
   rows.forEach(r => {
-    const tr = el("tr",{ onclick:(e)=>{ if(e.target.closest(".star"))return; toggleDetail(tr,r); } });
+    const tr = el("tr",{ class: r.bib===state.selectedBib ? "selected" : "",
+      onclick:(e)=>{ if(e.target.closest(".star"))return; toggleDetail(tr,r); } });
     const star = el("button",{class:"star"+(state.followed.has(r.bib)?" on":""), title:"Follow on course",
       onclick:(e)=>{ e.stopPropagation();
         if (state.followed.has(r.bib)) state.followed.delete(r.bib); else state.followed.add(r.bib);
@@ -1148,8 +1152,18 @@ function render(){
 
 function toggleDetail(tr, r){
   const next = tr.nextElementSibling;
-  if (next && next.classList.contains("detail")){ next.remove(); return; }
+  if (next && next.classList.contains("detail")){   // clicking the open row closes + deselects it
+    next.remove();
+    tr.classList.remove("selected");
+    state.selectedBib = null;
+    renderMap();
+    return;
+  }
   document.querySelectorAll("tr.detail").forEach(x=>x.remove());
+  document.querySelectorAll("tbody tr.selected").forEach(x=>x.classList.remove("selected"));
+  tr.classList.add("selected");
+  state.selectedBib = r.bib;
+  renderMap();                                       // turn this runner's map dot yellow
   const td = el("td",{colspan:9});
   const wrap = el("div",{class:"splits"});
   const head = [r.name || "Runner "+r.bib, "bib "+r.bib];
