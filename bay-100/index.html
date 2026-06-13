@@ -150,7 +150,7 @@
     td.place{font-size:14px}
     .station .lab.lab-alt{display:none}   /* thin out crowded labels on small screens */
     /* compress the leaderboard: drop non-essential columns, show locations as miles */
-    .col-bib, .col-sa{display:none}
+    .col-bib, .col-sa, .col-last, .col-next, .eta{display:none}
     .lbl-full{display:none}
     .mini{color:var(--ink); font-size:12.5px}
     table{font-size:13px}
@@ -332,6 +332,7 @@ const state = {
   query: "",
   variant: null,     // winning {r,l} params, reused on refresh
   serverNow: null,   // feed server clock, seconds since midnight (Pacific)
+  reportingStations: null,  // Set of station indices that currently have data
   lastOk: 0,
   timer: null
 };
@@ -668,8 +669,14 @@ function parseList(payload, serverNow){
   parsed.forEach(o => { o.place = ""; });
   ranked.forEach((o,i) => { o.place = String(i+1); });
 
+  // Which checkpoints are actively reporting (have at least one runner currently
+  // logged there). A runner is never projected past a reporting station they
+  // haven't reached — only past silent ones.
+  const reporting = new Set();
+  parsed.forEach(o => { if (!o.hidden && !o.placeholder && !o.dns && o.stationIdx > 0) reporting.add(o.stationIdx); });
+
   const kept = parsed.filter(o => o.bib || o.name);
-  return { fields, rows: kept, stations: COURSE.slice(1).map(c => c.name) };
+  return { fields, rows: kept, stations: COURSE.slice(1).map(c => c.name), reporting };
 }
 
 /* ---------- load cycle ---------- */
@@ -718,6 +725,7 @@ async function load(){
     state.fields = parsed.fields;
     state.rows = parsed.rows;
     state.stations = parsed.stations;
+    state.reportingStations = parsed.reporting;
     state.lastOk = Date.now();
 
     renderColmap(parsed, usedName, contests);
@@ -836,18 +844,28 @@ function currentRaceNow(){
   const drift = state.lastOk ? (Date.now() - state.lastOk) / 1000 : 0;
   return state.serverNow + drift;
 }
+// Cap for a runner's projection: the next checkpoint AHEAD of them that is
+// actively reporting. If that station had their time we'd have seen it, so we
+// never project them past it. Silent stations are skipped, so a runner can be
+// projected beyond a checkpoint that isn't sharing splits. No reporting station
+// ahead → project to the finish.
+function projectionCap(r){
+  const rep = state.reportingStations;
+  if (rep) for (let i = r.stationIdx + 1; i < COURSE.length; i++){
+    if (rep.has(i)) return COURSE[i].mile;
+  }
+  return COURSE_MILES;
+}
 // Estimate a runner's CURRENT mileage: advance from their last checkpoint at
-// their average pace by the time elapsed since they crossed it. We project
-// PAST intermediate aid stations — some checkpoints don't share split times,
-// so a runner can be well beyond their last reported station. Capped only at
-// the finish. Display only — ranking still uses the actual last checkpoint.
+// their average pace by the time elapsed since they crossed it, capped per
+// projectionCap(). Display only — ranking still uses the actual last checkpoint.
 function estimatedMile(r, nowSec){
   if (!r) return 0;
   if (r.finished || r.dnf || r.stationIdx === 0 || r.paceSec == null || nowSec == null) return r.mile;
   const sinceCheckpoint = (nowSec - RACE_START_SEC) - r.timeSec;
   if (sinceCheckpoint <= 0) return r.mile;
   const projected = r.mile + sinceCheckpoint / r.paceSec;
-  return Math.min(projected, COURSE_MILES);
+  return Math.min(projected, projectionCap(r));
 }
 // The next aid station ahead of a runner's ESTIMATED position (not just their
 // last reported one), so "next aid" stays right even past unreported stations.
@@ -1084,7 +1102,7 @@ function render(){
     el("th",{class:"col-sa"},"Sex/Age"),
     th("Last seen","progress", false, "col-last"),
     th("Est. dist","progress", true),
-    el("th",{},"Next aid"),
+    el("th",{class:"col-next"},"Next aid"),
     th("Time","time", true)
   ]);
   table.append(el("thead",{},head));
@@ -1113,7 +1131,7 @@ function render(){
       el("div",{class:"mini"}, r.stationIdx>0 ? "mi "+r.mile.toFixed(1) : "—")
     ]));
     tr.append(el("td",{class:"num estdist", "data-est":r.bib}, estDistText(r)));
-    tr.append(el("td",{class:"lastseen nextaid", "data-next":r.bib}, nextCell(r)));
+    tr.append(el("td",{class:"lastseen nextaid col-next", "data-next":r.bib}, nextCell(r)));
     tr.append(el("td",{class:"num"}, r.timeRaw || "—"));
     tb.append(tr);
   });
