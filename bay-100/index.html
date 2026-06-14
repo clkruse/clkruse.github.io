@@ -118,6 +118,7 @@
   .mini{color:var(--muted); font-size:11.5px; font-family:var(--mono)}
   .rowinfo{display:none}   /* mobile-only progress summary under the runner name */
   .sa-m{display:none}      /* mobile-only sex/age (a column of its own on desktop) */
+  .distsub{display:none}   /* mobile-only last reported distance under the time */
   /* expanded detail row — a readout of every column's data for one runner */
   tr.detail td{padding:0}
   .splits{padding:12px 14px 16px; background:rgba(77,163,255,.05); border-bottom:1px solid var(--rule)}
@@ -161,6 +162,8 @@
     .col-bib, .col-sa, .col-last, .col-est, .col-next, .eta{display:none}
     .rowinfo{display:block; margin-top:3px; font-family:var(--mono); font-size:11px; color:var(--muted); line-height:1.4}
     .sa-m{display:inline}
+    .distsub{display:block; font-family:var(--mono); font-size:11px; color:var(--muted); font-weight:400; margin-top:1px}
+    thead th.col-time::after{content:" / Dist"}   /* header reads "Time / Dist" on mobile */
     .splits{padding:11px 13px 14px}
   }
 </style>
@@ -1194,7 +1197,10 @@ function render(){
     ]));
     tr.append(el("td",{class:"num estdist col-est", "data-est":r.bib}, estDistText(r)));
     tr.append(el("td",{class:"lastseen nextaid col-next", "data-next":r.bib}, nextCell(r)));
-    tr.append(el("td",{class:"num col-time"}, r.timeRaw || "—"));
+    tr.append(el("td",{class:"num col-time"}, [
+      r.timeRaw || "—",
+      el("div",{class:"distsub"}, r.stationIdx>0 ? "mi "+r.mile.toFixed(1) : "—")   // last reported distance, mobile-only
+    ]));
     tb.append(tr);
   });
   table.append(tb);
