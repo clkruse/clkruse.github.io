@@ -1161,10 +1161,12 @@ function render(){
   ]);
   table.append(el("thead",{},head));
   const tb = el("tbody");
+  let selectedTr = null, selectedRow = null;   // remember the open row to re-expand after rebuild
 
   rows.forEach(r => {
     const tr = el("tr",{ class: r.bib===state.selectedBib ? "selected" : "",
       onclick:(e)=>{ if(e.target.closest(".star"))return; toggleDetail(tr,r); } });
+    if (r.bib === state.selectedBib){ selectedTr = tr; selectedRow = r; }
     const star = el("button",{class:"star"+(state.followed.has(r.bib)?" on":""), title:"Follow on course",
       onclick:(e)=>{ e.stopPropagation();
         if (state.followed.has(r.bib)) state.followed.delete(r.bib); else state.followed.add(r.bib);
@@ -1197,6 +1199,8 @@ function render(){
   });
   table.append(tb);
   host.append(table);
+  // keep the selected runner's detail card open across auto-refreshes
+  if (selectedTr && selectedRow) openDetail(selectedTr, selectedRow);
   if (!rows.length) host.append(el("div",{class:"empty-state"},"No runners match that filter."));
 }
 
@@ -1214,6 +1218,11 @@ function toggleDetail(tr, r){
   tr.classList.add("selected");
   state.selectedBib = r.bib;
   renderMap();                                       // turn this runner's map dot yellow
+  openDetail(tr, r);
+}
+// build + insert the expanded detail row after tr (no toggle/selection side-effects,
+// so it can be re-created after each auto-refresh to keep the card open)
+function openDetail(tr, r){
   const td = el("td",{colspan:9});
   const wrap = el("div",{class:"splits"});
   const head = [r.name || "Runner "+r.bib];
