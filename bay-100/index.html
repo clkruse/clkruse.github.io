@@ -1001,7 +1001,7 @@ function initMap(){
     map.addSource("runners", { type:"geojson", data: buildRunnerFC() });
     map.addLayer({ id:"runner-dot", type:"circle", source:"runners",
       paint:{
-        "circle-radius": ["case", ["==",["get","selected"],1], 8.5, ["==",["get","followed"],1], 7, 4.5],
+        "circle-radius": ["case", ["==",["get","selected"],1], 6.5, ["==",["get","followed"],1], 5, 4],
         "circle-pitch-scale":"viewport",
         // selected row = yellow; then leader green; tracked (followed) red; finished green; else gray
         "circle-color": ["case",
@@ -1010,9 +1010,8 @@ function initMap(){
           ["==",["get","followed"],1], "#dc2626",
           ["==",["get","state"],"done"], "#1f9e57",
           "#6e7681"],
-        "circle-stroke-color": ["case", ["==",["get","selected"],1], "#1a1d21",
-          ["==",["get","followed"],1], "#dc2626", "#ffffff"],
-        "circle-stroke-width": ["case", ["==",["get","selected"],1], 2.5, ["==",["get","followed"],1], 2.5, 1.2]
+        "circle-stroke-color": ["case", ["==",["get","selected"],1], "#1a1d21", "#ffffff"],
+        "circle-stroke-width": ["case", ["==",["get","selected"],1], 2, ["==",["get","followed"],1], 1.5, 1]
       } });
     map.addLayer({ id:"runner-label", type:"symbol", source:"runners",
       filter:["any", ["==",["get","followed"],1], ["==",["get","selected"],1]],
