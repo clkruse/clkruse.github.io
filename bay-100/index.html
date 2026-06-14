@@ -95,9 +95,11 @@
   .seg button:last-child{border-right:none}
   .seg button.on{background:var(--ink); color:var(--paper); font-weight:500}
   /* ---------- table ---------- */
-  #tableHost{overflow-x:auto; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain}   /* table scrolls sideways; page never does */
+  /* its own scroll area: vertical scroll keeps the sticky header pinned, sideways
+     scroll shows extra columns — the page itself never scrolls horizontally */
+  #tableHost{overflow:auto; max-height:78vh; -webkit-overflow-scrolling:touch; overscroll-behavior:contain}
   table{width:100%; border-collapse:collapse; font-size:14px}
-  thead th{font-family:var(--display); text-transform:uppercase; letter-spacing:.06em; font-weight:600; font-size:12px; color:var(--muted); text-align:left; padding:6px 10px 8px; border-bottom:1.5px solid var(--ink); white-space:nowrap; cursor:pointer; user-select:none}
+  thead th{font-family:var(--display); text-transform:uppercase; letter-spacing:.06em; font-weight:600; font-size:12px; color:var(--muted); text-align:left; padding:6px 10px 8px; white-space:nowrap; cursor:pointer; user-select:none; position:sticky; top:0; z-index:3; background:var(--paper); box-shadow:inset 0 -1.5px 0 var(--ink)}
   thead th.num{text-align:right}
   thead th .arrow{opacity:.35; font-size:10px}
   thead th.sorted .arrow{opacity:1; color:var(--ink)}
@@ -117,14 +119,14 @@
   .mini{color:var(--muted); font-size:11.5px; font-family:var(--mono)}
   /* expanded splits row */
   tr.detail td{padding:0}
-  .splits{padding:10px 12px 18px; background:rgba(77,163,255,.05); border-bottom:1px solid var(--rule)}
-  .splitstrip{display:flex; flex-wrap:wrap; gap:2px 0; align-items:stretch; font-family:var(--mono); font-size:12px; margin-top:6px}
-  .leg{flex:1 1 90px; min-width:80px; border-left:1px solid var(--rule-strong); padding:2px 8px 4px}
-  .leg:first-child{border-left:none}
-  .leg .s{font-size:10px; color:var(--muted); text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .splits{padding:12px 14px 16px; background:rgba(77,163,255,.05); border-bottom:1px solid var(--rule)}
+  .splitstrip{display:grid; grid-template-columns:repeat(auto-fill,minmax(74px,1fr)); gap:5px; font-family:var(--mono); font-size:12px; margin-top:9px}
+  .leg{border:1px solid var(--rule); border-radius:3px; background:var(--panel); padding:4px 7px 5px; min-width:0}
+  .leg .s{font-size:9.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .leg .t{font-weight:500}
-  .leg .d{color:var(--muted); font-size:10.5px}
-  .leg.next{opacity:.4}
+  .leg .d{color:var(--muted); font-size:10px}
+  .leg.next{opacity:.45}
+  .leg.cur{border-color:var(--trail); background:var(--trail-dim)}
   /* ---------- banners / states ---------- */
   .banner{border:1px solid var(--rule-strong); border-left:3px solid var(--trail); background:var(--panel); border-radius:2px; padding:12px 14px; margin:14px 0; font-size:13.5px}
   .banner b{font-weight:600}
@@ -155,6 +157,11 @@
        natural width so the table overflows (and scrolls) instead of squishing. */
     table{font-size:13px}
     thead th, tbody td{white-space:nowrap}
+    /* The expanded detail row spans the full (wide) table, so pin its panel to
+       the left of the viewport and size it to the screen — it stays fully
+       visible and readable no matter how far the table is scrolled sideways. */
+    .splits{position:sticky; left:0; width:calc(100vw - 26px); box-sizing:border-box; padding:11px 13px 14px; white-space:normal}
+    .splitstrip{grid-template-columns:repeat(auto-fill,minmax(80px,1fr))}
   }
 </style>
 </head>
@@ -1199,7 +1206,7 @@ function toggleDetail(tr, r){
   COURSE.forEach((c, i) => {
     const reached = i <= r.stationIdx;
     const current = i === r.stationIdx && i !== 0;
-    const leg = el("div",{class:"leg"+(reached?"":" next")});
+    const leg = el("div",{class:"leg"+(reached?"":" next")+(current?" cur":"")});
     leg.append(el("div",{class:"s"}, c.name));
     leg.append(el("div",{class:"d"}, "mi "+c.mile.toFixed(1)));
     leg.append(el("div",{class:"t", style: current?"color:var(--trail)":""},
