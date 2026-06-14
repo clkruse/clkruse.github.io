@@ -31,7 +31,7 @@
     --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   }
   *{box-sizing:border-box}
-  html,body{margin:0; max-width:100%; overflow-x:hidden}   /* never allow horizontal page scroll */
+  html,body{margin:0; max-width:100%; overflow-x:clip}   /* no horizontal page scroll; clip (not hidden) so it doesn't break sticky headers */
   body{
     background:var(--paper); color:var(--ink); font-family:var(--body);
     font-size:15px; line-height:1.45; -webkit-font-smoothing:antialiased;
@@ -95,9 +95,8 @@
   .seg button:last-child{border-right:none}
   .seg button.on{background:var(--ink); color:var(--paper); font-weight:500}
   /* ---------- table ---------- */
-  /* its own scroll area: vertical scroll keeps the sticky header pinned, sideways
-     scroll shows extra columns — the page itself never scrolls horizontally */
-  #tableHost{overflow:auto; max-height:78vh; -webkit-overflow-scrolling:touch; overscroll-behavior:contain}
+  /* No scroll box — the whole page scrolls and the headers pin to the viewport
+     top (see thead th position:sticky). Keeps the leaderboard feeling grounded. */
   table{width:100%; border-collapse:collapse; font-size:14px}
   thead th{font-family:var(--display); text-transform:uppercase; letter-spacing:.06em; font-weight:600; font-size:12px; color:var(--muted); text-align:left; padding:6px 10px 8px; white-space:nowrap; cursor:pointer; user-select:none; position:sticky; top:0; z-index:3; background:var(--paper); box-shadow:inset 0 -1.5px 0 var(--ink)}
   thead th.num{text-align:right}
@@ -117,16 +116,17 @@
   .tag.dnf{color:var(--drop)} .tag.fin{color:var(--good)} .tag.run{color:var(--water)}
   .lastseen{color:var(--ink); font-size:13px}
   .mini{color:var(--muted); font-size:11.5px; font-family:var(--mono)}
-  /* expanded splits row */
+  .rowinfo{display:none}   /* mobile-only progress summary under the runner name */
+  .sa-m{display:none}      /* mobile-only sex/age (a column of its own on desktop) */
+  /* expanded detail row — a readout of every column's data for one runner */
   tr.detail td{padding:0}
   .splits{padding:12px 14px 16px; background:rgba(77,163,255,.05); border-bottom:1px solid var(--rule)}
-  .splitstrip{display:grid; grid-template-columns:repeat(auto-fill,minmax(74px,1fr)); gap:5px; font-family:var(--mono); font-size:12px; margin-top:9px}
-  .leg{border:1px solid var(--rule); border-radius:3px; background:var(--panel); padding:4px 7px 5px; min-width:0}
-  .leg .s{font-size:9.5px; color:var(--muted); text-transform:uppercase; letter-spacing:.03em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-  .leg .t{font-weight:500}
-  .leg .d{color:var(--muted); font-size:10px}
-  .leg.next{opacity:.45}
-  .leg.cur{border-color:var(--trail); background:var(--trail-dim)}
+  .detailhead{font-family:var(--display); text-transform:uppercase; letter-spacing:.08em; font-size:12px; color:var(--muted)}
+  .statlist{margin-top:8px; font-size:13px}
+  .statlist > div{display:flex; gap:12px; padding:5px 0; border-top:1px solid var(--rule)}
+  .statlist > div:first-child{border-top:none}
+  .statlist .s{color:var(--muted); flex:0 0 112px}
+  .statlist .t{font-weight:500}
   /* ---------- banners / states ---------- */
   .banner{border:1px solid var(--rule-strong); border-left:3px solid var(--trail); background:var(--panel); border-radius:2px; padding:12px 14px; margin:14px 0; font-size:13.5px}
   .banner b{font-weight:600}
@@ -149,19 +149,19 @@
   footer{margin-top:40px; padding-top:14px; border-top:1px solid var(--rule); font-size:11.5px; color:var(--muted); font-family:var(--mono)}
   @media (max-width:600px){
     .wrap{padding:14px 13px 56px}
-    thead th,tbody td{padding:7px 8px}
+    thead th,tbody td{padding:8px 7px}
     td.place{font-size:14px}
     .station .lab.lab-alt{display:none}   /* thin out crowded labels on small screens */
-    /* Keep every column on mobile; the leaderboard scrolls sideways inside
-       #tableHost while the page itself stays put. nowrap gives each column its
-       natural width so the table overflows (and scrolls) instead of squishing. */
+    /* The whole page scrolls (no nested scroll box) and the headers pin to the
+       top of the viewport. The table keeps ★/Pl/Runner/Time as columns; the rest
+       (sex·age, last seen, est dist, next aid) fold into a compact summary line
+       under each runner's name so the info is still visible without sideways
+       scroll. Full splits are a tap away in the detail panel. */
     table{font-size:13px}
-    thead th, tbody td{white-space:nowrap}
-    /* The expanded detail row spans the full (wide) table, so pin its panel to
-       the left of the viewport and size it to the screen — it stays fully
-       visible and readable no matter how far the table is scrolled sideways. */
-    .splits{position:sticky; left:0; width:calc(100vw - 26px); box-sizing:border-box; padding:11px 13px 14px; white-space:normal}
-    .splitstrip{grid-template-columns:repeat(auto-fill,minmax(80px,1fr))}
+    .col-bib, .col-sa, .col-last, .col-est, .col-next, .eta{display:none}
+    .rowinfo{display:block; margin-top:3px; font-family:var(--mono); font-size:11px; color:var(--muted); line-height:1.4}
+    .sa-m{display:inline}
+    .splits{padding:11px 13px 14px}
   }
 </style>
 </head>
@@ -847,6 +847,10 @@ function updateLivePositions(){
     const r = state.rows.find(x => x.bib === node.getAttribute("data-next"));
     if (r){ node.innerHTML = ""; node.append(nextCell(r)); }
   });
+  document.querySelectorAll(".rowinfo[data-info]").forEach(node => {   // mobile summary line
+    const r = state.rows.find(x => x.bib === node.getAttribute("data-info"));
+    if (r) node.textContent = rowInfoText(r);
+  });
 }
 
 /* ---------- live position estimate ---------- */
@@ -1099,6 +1103,18 @@ function estDistText(r){
   if (r.dnf || r.stationIdx === 0) return "—";
   return estimatedMile(r, currentRaceNow()).toFixed(1) + " mi";
 }
+const sexAge = (r) => [r.sex && r.sex.toUpperCase(), r.age].filter(Boolean).join(" ");
+// one-line progress summary shown under the name on mobile (folds in the
+// Est. dist / Last seen / Next aid columns that are hidden on small screens)
+function rowInfoText(r){
+  if (r.dnf) return "DNF · last seen " + r.lastStation;
+  if (r.finished) return "Finished" + (r.timeRaw ? " · " + r.timeRaw : "");
+  if (r.stationIdx === 0) return "not started";
+  const est = estimatedMile(r, currentRaceNow());
+  const na = nextAidFor(r, currentRaceNow());
+  return `~mi ${est.toFixed(1)} · ${r.lastStation}`
+       + (na ? ` → ${na.next.name}` + (na.dist >= 0.1 ? ` ${na.dist} mi` : "") : "");
+}
 // "Next aid" cell: the next station ahead of the runner's estimated position,
 // with remaining distance and estimated time to reach it
 function nextCell(r){
@@ -1109,7 +1125,7 @@ function nextCell(r){
   if (!na) return el("span",{style:"color:var(--muted)"},"—");
   return el("div",{}, [
     el("span",{class:"lbl-full"}, na.next.name),
-    el("div",{class:"mini"}, [
+    el("div",{class:"mini"}, na.dist < 0.1 ? "arriving" : [
       `${na.dist} mi`,
       na.eta!=null ? el("span",{class:"eta"}, ` · ~${fmtEta(na.eta)}`) : null
     ])
@@ -1160,7 +1176,12 @@ function render(){
     tr.append(el("td",{class:"bib col-bib"}, r.bib));
     tr.append(el("td",{class:"name col-runner"}, [
       r.name || "—",
-      r.club ? el("div",{style:"font-weight:400;color:var(--muted);font-size:12px"}, r.club) : null
+      el("div",{style:"font-weight:400;color:var(--muted);font-size:12px"}, [
+        r.club || null,
+        el("span",{class:"sa-m"}, (r.club?" · ":"")+sexAge(r))   // sex/age, mobile-only (own column on desktop)
+      ]),
+      // mobile-only progress summary folding in the columns hidden on small screens
+      el("div",{class:"rowinfo","data-info":r.bib}, rowInfoText(r))
     ]));
     tr.append(el("td",{class:"col-sa"}, [
       r.sex ? r.sex.toUpperCase() : "",
@@ -1196,36 +1217,30 @@ function toggleDetail(tr, r){
   renderMap();                                       // turn this runner's map dot yellow
   const td = el("td",{colspan:9});
   const wrap = el("div",{class:"splits"});
-  const head = [r.name || "Runner "+r.bib, "bib "+r.bib];
+  const head = [r.name || "Runner "+r.bib];
   if (r.place) head.push(r.place + (/^\d+$/.test(r.place)?ord(r.place):"") + " overall");
   if (r.club) head.push(r.club);
-  wrap.append(el("div",{style:"font-family:var(--display);text-transform:uppercase;letter-spacing:.08em;font-size:12px;color:var(--muted)"},
-    head.join(" · ")));
+  wrap.append(el("div",{class:"detailhead"}, head.join(" · ")));
 
-  const strip = el("div",{class:"splitstrip"});
-  COURSE.forEach((c, i) => {
-    const reached = i <= r.stationIdx;
-    const current = i === r.stationIdx && i !== 0;
-    const leg = el("div",{class:"leg"+(reached?"":" next")+(current?" cur":"")});
-    leg.append(el("div",{class:"s"}, c.name));
-    leg.append(el("div",{class:"d"}, "mi "+c.mile.toFixed(1)));
-    leg.append(el("div",{class:"t", style: current?"color:var(--trail)":""},
-      i===0 ? "start" : (current ? (r.timeRaw||"reached") : (reached ? "passed" : "—"))));
-    strip.append(leg);
-  });
-  wrap.append(strip);
-  const pace = (r.paceSec && r.mile>0)
-    ? `${fmtDur(r.paceSec)}/mi avg` : null;
-  const estNow = estimatedMile(r, currentRaceNow());
+  // a readout of every column's data for this runner
   const na = nextAidFor(r, currentRaceNow());
-  wrap.append(el("div",{style:"font-size:12px;color:var(--muted);margin-top:8px"},
-    r.dnf ? `Did not finish — last seen at ${r.lastStation} (mi ${r.mile.toFixed(1)}).`
-    : r.finished ? `Finished 100 mi in ${r.timeRaw||"—"}${pace?" · "+pace:""}.`
-    : r.station ? `Last checkpoint ${r.lastStation} (mi ${r.mile.toFixed(1)}) at ${r.timeRaw||"—"}${pace?" · "+pace:""}.`
-        + ` Estimated now ~mi ${estNow.toFixed(1)}.`
-        + (na ? ` Next: ${na.next.name} in ${na.dist} mi${na.eta!=null?` (~${fmtEta(na.eta)})`:""}.` : "")
-        + (r.projFinishSec ? ` Projected finish ~${fmtDur(r.projFinishSec)}.` : "")
-    : "Entered — no checkpoint recorded yet."));
+  const cells = [
+    ["Bib", r.bib || "—"],
+    ["Sex / Age", sexAge(r) || "—"],
+    ["Last seen", r.stationIdx>0 ? `${r.lastStation} · mi ${r.mile.toFixed(1)}` : "—"],
+  ];
+  if (!r.finished && !r.dnf && r.stationIdx>0)
+    cells.push(["Est. distance", `~mi ${estimatedMile(r, currentRaceNow()).toFixed(1)}`]);
+  cells.push(["Next aid", na ? `${na.next.name}${na.dist>=0.1?` · ${na.dist} mi`:""}${na.eta!=null&&na.dist>=0.1?` (~${fmtEta(na.eta)})`:""}` : "—"]);
+  cells.push(["Elapsed", r.timeRaw || "—"]);
+  if (r.paceSec && r.mile>0) cells.push(["Avg pace", `${fmtDur(r.paceSec)}/mi`]);
+  if (r.projFinishSec) cells.push(["Proj. finish", `~${fmtDur(r.projFinishSec)}`]);
+
+  const list = el("div",{class:"statlist"});
+  cells.forEach(([k,v]) => list.append(el("div",{}, [
+    el("div",{class:"s"}, k), el("div",{class:"t"}, v)
+  ])));
+  wrap.append(list);
   td.append(wrap);
   tr.after(el("tr",{class:"detail"}, td));
 }
