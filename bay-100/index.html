@@ -638,6 +638,14 @@ function parseList(payload, serverNow){
   // Map each runner onto the authoritative course profile (COURSE), then derive
   // mileage, finish state, and an estimated time to the next aid station.
   const LAST = COURSE.length - 1;
+  // The feed clock is time-of-day, but a 100-miler runs past midnight. Roll
+  // "now" forward by whole days until the race is at least as old as its
+  // longest-running runner — otherwise (now − elapsed) wraps negative on day 2+
+  // and every runner looks like a pre-5:00am starter (all hidden).
+  const maxElapsed = parsed.reduce((m,o) => (o.timeSec || 0) > m ? o.timeSec : m, 0);
+  let nowAdj = serverNow;
+  if (nowAdj != null) while (nowAdj - RACE_START_SEC < maxElapsed) nowAdj += 86400;
+
   parsed.forEach(o => {
     if (!o.status && /DNF/i.test(JSON.stringify(o._row).toUpperCase())) o.status = "DNF";
     o.dnf = /DN[FS]/i.test(o.status || "");
@@ -668,7 +676,7 @@ function parseList(payload, serverNow){
     // (2) early start: implied start (now − elapsed) lands before the 5:00am gun.
     //     now−elapsed can only over-estimate the start, so this never false-flags
     //     a real 5:00am runner.
-    o.impliedStartSec = (serverNow != null && o.timeSec != null) ? serverNow - o.timeSec : null;
+    o.impliedStartSec = (nowAdj != null && o.timeSec != null) ? nowAdj - o.timeSec : null;
     o.earlyStart = o.impliedStartSec != null && o.impliedStartSec < RACE_START_SEC;
     o.hidden = o.outlier || o.earlyStart;
     o.hiddenReason = o.outlier ? "outlier" : (o.earlyStart ? "early" : "");
@@ -692,7 +700,7 @@ function parseList(payload, serverNow){
   parsed.forEach(o => { if (!o.hidden && !o.placeholder && !o.dns && o.stationIdx > 0) reporting.add(o.stationIdx); });
 
   const kept = parsed.filter(o => o.bib || o.name);
-  return { fields, rows: kept, stations: COURSE.slice(1).map(c => c.name), reporting };
+  return { fields, rows: kept, stations: COURSE.slice(1).map(c => c.name), reporting, serverNow: nowAdj };
 }
 
 /* ---------- load cycle ---------- */
@@ -742,6 +750,7 @@ async function load(){
     state.rows = parsed.rows;
     state.stations = parsed.stations;
     state.reportingStations = parsed.reporting;
+    state.serverNow = parsed.serverNow;   // day-adjusted, so the live position estimate stays correct past midnight
     state.lastOk = Date.now();
 
     renderColmap(parsed, usedName, contests);
