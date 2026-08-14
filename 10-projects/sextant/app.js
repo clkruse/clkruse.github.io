@@ -220,6 +220,13 @@ let lastTS = 0;
 function frame(ts) {
   const dt = clamp((ts - lastTS) / 1000 || 0.016, 0, 0.05);
   lastTS = ts;
+  // cold-load race: on a first (uncached) load the stylesheet may not have
+  // applied when readPalette() first ran, leaving every color empty and the
+  // canvases painting default black. Re-read until the CSS vars are live.
+  if (!P.ink) {
+    readPalette();
+    if (!P.ink) { requestAnimationFrame(frame); return; }
+  }
   for (const d of visibleDemos) {
     if (!d.w) continue;
     d.t += dt;
@@ -558,10 +565,11 @@ function pointMark(ctx, x, y, color, r = 3.2) {
 
 (function demoAltitude() {
   const d = createDemo('demo-altitude', { aspect: 1.5, maxH: 520, draw });
-  // the example star is the North Star: straight up, over the pole
-  const starA = -90 * D2R; // canvas angle
+  // a generic star at infinity: rays arrive parallel, so the drawing can
+  // stand the GP at the top of the globe without calling that point a pole.
+  const starA = -90 * D2R; // canvas angle of the incoming rays
   const S = { x: Math.cos(starA), y: Math.sin(starA) };
-  let theta = 48 * D2R; // observer offset from GP, along the circle
+  let theta = 48 * D2R; // observer offset from GP
   const altStat = addStat(d, 'altitude h');
   const zStat = addStat(d, 'zenith dist z');
   const distStat = addStat(d, 'distance from GP');
@@ -575,7 +583,6 @@ function pointMark(ctx, x, y, color, r = 3.2) {
     move(p) {
       if (!geo) return;
       if (pane === 'left') {
-        // drag the star up and down the gauge: sets h, keeps the observer's side
         const hDrag = clamp((geo.y0 - p.y) / (geo.y0 - geo.y90) * 90, 0, 89.9);
         const side = theta >= 0 ? 1 : -1;
         theta = side * (90 - hDrag) * D2R;
@@ -596,14 +603,15 @@ function pointMark(ctx, x, y, color, r = 3.2) {
     const zdeg = Math.abs(theta) * R2D;
     const hdeg = 90 - zdeg;
     const below = hdeg < 0;
+    const tiny = zdeg < 8;
     const hC = P.s2;  // altitude: ink blue, in both views
     const zC = P.s1;  // zenith distance: crimson
 
     /* ————— left pane: the height gauge, from the deck ————— */
 
     const splitX = w * 0.36;
-    const ax = 66;                 // the scale line
-    const y0 = h - 64, y90 = 44;   // 0° at the horizon, 90° at the zenith
+    const ax = 66;
+    const y0 = h - 64, y90 = 44;
     const yOf = deg => y0 - (y0 - y90) * deg / 90;
     geo = geo || {};
     geo.splitX = splitX;
@@ -612,7 +620,6 @@ function pointMark(ctx, x, y, color, r = 3.2) {
 
     label(ctx, 'from the deck', splitX * 0.5, 18, { color: P.inkSoft, size: 10.5 });
 
-    // the horizon, with a hint of sea
     ctx.strokeStyle = P.ink;
     ctx.lineWidth = 1;
     ctx.beginPath();
@@ -621,7 +628,6 @@ function pointMark(ctx, x, y, color, r = 3.2) {
     ctx.stroke();
     label(ctx, 'horizon', splitX - 24, y0 + 12, { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'right' });
 
-    // the graduated scale, 0–90°
     ctx.strokeStyle = P.inkSoft;
     ctx.fillStyle = P.inkSoft;
     ctx.lineWidth = 1;
@@ -642,7 +648,6 @@ function pointMark(ctx, x, y, color, r = 3.2) {
     }
 
     if (!below) {
-      // the star's height, as a linear dimension off the scale
       const sx = ax + 52;
       const sy = yOf(hdeg);
       ctx.strokeStyle = P.inkFaint;
@@ -666,12 +671,12 @@ function pointMark(ctx, x, y, color, r = 3.2) {
       label(ctx, hTxt, Math.min(sx + 12, splitX - 12 - textW(ctx, hTxt, 11)),
         Math.min((y0 + sy) / 2, y0 - 16), { color: hC, size: 11, halo: P.paper, align: 'left' });
       starGlyph(ctx, sx, sy, 8, P.ink);
-      const dragTxt = 'North Star – drag';
+      const dragTxt = 'Vega – drag';
       const dragX = Math.min(sx + 16, splitX - 12 - textW(ctx, dragTxt, 10.5));
       label(ctx, dragTxt, dragX, dragX < sx + 16 ? sy - 18 : sy - 12,
         { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'left' });
     } else {
-      label(ctx, 'the North Star is below the horizon', splitX * 0.52, y0 + 34,
+      label(ctx, 'Vega is below the horizon', splitX * 0.52, y0 + 34,
         { color: P.inkSoft, size: 10.5, halo: P.paper });
     }
 
@@ -696,8 +701,8 @@ function pointMark(ctx, x, y, color, r = 3.2) {
     const oA = starA + theta;
     const O = { x: cx + R * Math.cos(oA), y: cy + R * Math.sin(oA) };
     const u = { x: Math.cos(oA), y: Math.sin(oA) };
+    const gp = { x: cx + R * Math.cos(starA), y: cy + R * Math.sin(starA) };
 
-    // the earth and its axis, N up
     ctx.fillStyle = P.paperDeep;
     ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.fill();
     ctx.strokeStyle = P.ink;
@@ -705,11 +710,26 @@ function pointMark(ctx, x, y, color, r = 3.2) {
     ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke();
     centerMark(ctx, cx, cy, 7, P.inkSoft);
     label(ctx, 'earth', cx, cy + R * 0.5, { color: P.inkFaint, size: 10.5 });
-    centerline(ctx, cx, cy + R + 16, cx, cy - R - 30, P.inkFaint);
-    label(ctx, 'N', cx - 12, cy - R - 14, { color: P.inkSoft, size: 11, halo: P.paper });
-    label(ctx, 'S', cx - 12, cy + R + 12, { color: P.inkSoft, size: 11, halo: P.paper });
 
-    // the horizon, labeled at its away-side end
+    // GP ray: parallel to the observer's sight line, labeled so the
+    // parallelism is stated. Star glyph rides the observer's line.
+    centerline(ctx, cx, cy + 10, cx, starY + 8, P.inkFaint);
+    label(ctx, 'to Vega, too', cx - 8, starY, { color: P.inkFaint, size: 9.5, halo: P.paper, align: 'right' });
+
+    pointMark(ctx, gp.x, gp.y, P.ink);
+    if (!tiny) {
+      leaderNote(ctx, 'GP', gp.x, gp.y, -28 * D2R, 26, P.inkSoft, { size: 10.5, halo: P.paper });
+    }
+
+    // surface arc from GP to you: the distance z, just inside the limb
+    if (!tiny && !below) {
+      ctx.strokeStyle = zC;
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      arcBetween(ctx, cx, cy, R - 3.5, starA, oA);
+      ctx.stroke();
+    }
+
     const tHat = rot(u, Math.PI / 2);
     const tUp = (tHat.x * S.x + tHat.y * S.y) >= 0 ? tHat : { x: -tHat.x, y: -tHat.y };
     const angT = Math.atan2(tUp.y, tUp.x);
@@ -724,7 +744,6 @@ function pointMark(ctx, x, y, color, r = 3.2) {
       { color: P.inkSoft, size: 10.5, halo: P.paper, align: hlx > w - 80 ? 'right' : 'left' });
 
     if (!below) {
-      // the sight line: straight up to the North Star
       ctx.strokeStyle = hC;
       ctx.fillStyle = hC;
       ctx.lineWidth = 1.6;
@@ -734,14 +753,25 @@ function pointMark(ctx, x, y, color, r = 3.2) {
       ctx.stroke();
       dimHead(ctx, O.x, starY + 22, -Math.PI / 2, 9, 2.7);
       starGlyph(ctx, O.x, starY, 9, P.ink);
-      label(ctx, 'North Star', O.x + 16, starY, { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'left' });
+      label(ctx, 'Vega', O.x + 16, starY, { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'left' });
 
-      // the measured height, horizon up to the star
       const rH = R * 0.34;
       angleDim(ctx, O.x, O.y, rH, angT, -Math.PI / 2, hC);
       const mH = (angT - Math.PI / 2) / 2;
       label(ctx, 'h', O.x + Math.cos(mH) * (rH + 13), O.y + Math.sin(mH) * (rH + 13),
         { color: hC, halo: P.paper, size: 11.5 });
+    }
+
+    // z at the Earth's center: complement of h, the angle you have sailed
+    if (!below && zdeg >= 6) {
+      const rZ = R * 0.42;
+      angleDim(ctx, cx, cy, rZ, starA, oA, zC);
+      const mZ = (starA + oA) / 2;
+      const crowded = zdeg < 18;
+      if (!crowded) {
+        label(ctx, 'z', cx + Math.cos(mZ) * (rZ + 14), cy + Math.sin(mZ) * (rZ + 14),
+          { color: zC, halo: P.paperDeep, size: 11.5 });
+      }
     }
 
     pointMark(ctx, O.x, O.y, P.ink);
@@ -986,9 +1016,9 @@ function drawGlobeBase(ctx, toView, cx, cy, R) {
    –––––––––––––––––––––––––––––––––––––––––––––––– */
 
 (function layoutController() {
-  const figIds = ['hero-fig', 'demo-gp', 'demo-altitude', 'demo-circle', 'demo-polaris', 'demo-almanac',
-    'demo-twostar', 'demo-mirror', 'demo-sextant', 'demo-scope', 'demo-dip', 'demo-refraction',
-    'demo-clock', 'demo-noon', 'demo-noongeom', 'demo-intercept'];
+  const figIds = ['hero-fig', 'demo-gp', 'demo-altitude', 'demo-circle', 'demo-polaris', 'demo-twostar',
+    'demo-samesky', 'demo-clock', 'demo-almanac', 'demo-mirror', 'demo-sextant', 'demo-scope',
+    'demo-dip', 'demo-refraction', 'demo-noon', 'demo-noongeom', 'demo-lopzoom', 'demo-intercept'];
   const figs = figIds.map(id => document.getElementById(id)).filter(Boolean);
   const panel = document.getElementById('right-panel');
   const leftScroll = document.querySelector('.left-scroll');

@@ -73,9 +73,10 @@
         <canvas class="grab"></canvas>
       </div>
       <div class="demo-controls"></div>
-      <figcaption>Three stars, three points. Each star's ray through the Earth's center pierces the
+      <figcaption>Four stars, four points. Each star's ray through the Earth's center pierces the
         surface exactly once, and standing on that point puts that star straight overhead. The clock turns
-        the planet beneath the stars; dragging turns the whole scene at once. Star distances are not to
+        the planet beneath the stars; dragging turns the whole scene at once. Notice where the North
+        Star's point sits – and that the clock never moves it. Star distances are not to
         scale.</figcaption>
     </figure>
 
@@ -104,9 +105,9 @@
         <canvas></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption>Two views, one moment. The sight lines in both panes point at the same star and stay
-        parallel; the angle you measure on deck falls in lockstep with the arc you have sailed from the
-        GP.</figcaption>
+      <figcaption>Two views, one moment. Vega's rays in both panes stay parallel; the altitude
+        you measure on deck falls in lockstep with the zenith distance – and so with the arc
+        you have sailed from the GP.</figcaption>
     </figure>
 
     <p>
@@ -183,9 +184,9 @@
       </div>
       <figcaption>Two views of one latitude. On deck the horizon feels fixed and Polaris rides up the sky;
         from outside, the sight line to Polaris never moves – it stays parallel to the axis – and it is
-        your <em>horizon</em> that tilts underneath it. Either way, altitude equals latitude. And note
-        where the star is drawn: over <em>you</em>, not over the pole – for a star at infinity both are
-        equally true, because every line pointing at it is parallel.</figcaption>
+        your <em>horizon</em> that tilts underneath it. Either way, altitude equals latitude. The star is
+        drawn over <em>you</em>, not over the pole: at infinity those two lines are the same line, because
+        they are parallel.</figcaption>
     </figure>
 
     <p>
@@ -196,22 +197,48 @@
       star, so southern navigators lean on other bodies. Neither detail disturbs the idea.)
     </p>
 
-    <p class="aside">
-      Where should a drawing put a star that is infinitely far away? Anywhere along <em>any</em> line that
-      points at it. The Earth's axis and your sight line are parallel, and parallel lines meet only at
-      infinity – which is exactly where the star is. It is the railroad-track picture: the rails never
-      touch, and yet they visibly meet at the horizon. Or run it the other way: shrink the Earth to a dot,
-      as the distance to a real star effectively does, and the two lines become one. The drawings in this
-      article pin the star to whichever line reads best, because at these distances every choice is the
-      same choice.
-    </p>
-
-    <h2 id="compass"><span class="sec-no">04</span>Why not a compass?</h2>
+    <h2 id="crossing"><span class="sec-no">04</span>Crossing circles</h2>
 
     <p>
-      So a Polaris sight puts you somewhere on a known parallel. It is tempting to think one more everyday
-      instrument should finish the job: you are somewhere on a circle, and a compass tells you directions –
-      can't the direction you face pick out your spot on the circle?
+      So a Polaris sight puts you on a parallel. For every other star the circle is not so convenient,
+      and we still need a way to decide <em>where on the circle</em> we sit. The fix – in both senses –
+      is to measure a second star. Two circles of position generally cross at two points, mirror images
+      of each other across the line joining the two GPs, and you must be standing on both circles at
+      once – so you are at one of the two crossings. Try adjusting both altitudes below and watch the
+      two candidate positions move:
+    </p>
+
+    <figure class="demo demo--night" id="demo-twostar">
+      <div class="demo-panel">
+        <canvas class="grab"></canvas>
+        <div class="demo-controls"></div>
+      </div>
+      <figcaption>Two circles, two crossings. Dead reckoning – a running guess from heading and speed –
+        lands you near one of them; the other is usually an ocean away.</figcaption>
+    </figure>
+
+    <p>
+      Which of the two crossings is yours? In practice this is never a real dilemma. The two intersections
+      are typically separated by thousands of miles, and a navigator always carries a rough running estimate
+      of the ship's position – the <em>dead reckoning</em> position, kept up by logging speed and heading
+      since the last known fix. If your dead reckoning says you're somewhere off the coast of Chile, you can
+      safely discard the crossing near Japan. A third star, when available, settles it outright – and does something more
+      valuable besides, as we'll see when we plot a real fix: it tells you how good your own measurements
+      were.
+    </p>
+    <p>
+      And that, conceptually, is the entire system. <strong>Measure the altitude of two or three celestial
+      bodies, look up where each body's GP was at the moment of measurement, draw the circles, and find where
+      they cross.</strong> Everything that follows – the clock, the almanac, the mirrors, the corrections –
+      exists to carry out these steps precisely from the deck of a moving ship.
+    </p>
+
+    <h2 id="clock"><span class="sec-no">05</span>The clockwork Earth</h2>
+
+    <p>
+      To draw those circles you must know where each GP is, and it is tempting to think a compass should
+      finish the job without any of that: you are on a circle, a compass tells you directions – can't the
+      direction you face pick out your spot?
     </p>
     <p>
       Look closely at what the compass would have to detect. From <em>every</em> point on your parallel –
@@ -225,10 +252,21 @@
     <p>
       Here is the same trap sprung precisely: stand at latitude <span class="num">40°</span>, longitude
       <span class="num">40°&nbsp;W</span>, and the sky above you is <em>exactly</em> the sky above
-      <span class="num">60°&nbsp;W</span> – eighty minutes later. At a single instant, with no reference to
-      time, no measurement of any kind can tell those two places apart. Longitude is not a geometry problem
-      waiting for a cleverer instrument. It is a <strong>clock problem</strong>, and it always was.
+      <span class="num">60°&nbsp;W</span> – eighty minutes later. Those two situations are the same
+      orientation of Earth under the sky. Without a clock set to Greenwich, no local measurement can tell
+      them apart. Longitude is not a geometry problem waiting for a cleverer instrument. It is a
+      <strong>clock problem</strong>, and it always was:
     </p>
+
+    <figure class="demo" id="demo-samesky">
+      <div class="demo-panel">
+        <canvas></canvas>
+        <div class="demo-controls"></div>
+      </div>
+      <figcaption>Two places, eighty minutes apart, one sky. The view from the deck never changes; only a
+        Greenwich clock can tell you which meridian you are standing on.</figcaption>
+    </figure>
+
     <p class="aside">
       A sharper reader might object: a star away from the pole <em>does</em> change its compass bearing as
       you move along its circle, so altitude plus bearing should fix you. In principle, yes. In practice a
@@ -236,9 +274,6 @@
       while the sextant's arcminutes against the horizon are hundreds of times sharper. Navigators run the
       logic the other way around: they use the stars' computed bearings to check the compass.
     </p>
-
-    <h2 id="clock"><span class="sec-no">05</span>The clockwork Earth</h2>
-
     <p>
       A star's GP has a latitude and a longitude, and the two could hardly be more different in character.
       The latitude of the GP – called the body's <strong>declination</strong> – is set by the tilt of the
@@ -273,6 +308,9 @@
       outperforms it, which is worth pausing on: the cheapest watch you own is the solution to what was once
       the most celebrated technical problem in the world.
     </p>
+
+    <h2 id="almanac"><span class="sec-no">06</span>The almanac</h2>
+
     <p>
       The clock, then, is half of knowing where a GP is. The other half is the almanac – and its internal
       design is a small masterpiece of information economy. A GP is two numbers. Its latitude is called the
@@ -301,7 +339,7 @@
       served as a crude clock in its own right for navigators who could not afford a chronometer.
     </p>
 
-    <h2 id="mirror"><span class="sec-no">06</span>The mirror trick</h2>
+    <h2 id="mirror"><span class="sec-no">07</span>The mirror trick</h2>
 
     <p>
       So much for knowing where a GP is – the almanac and the chronometer carry that half of the problem.
@@ -365,7 +403,7 @@
       in the measured angle.
     </p>
 
-    <h2 id="scope"><span class="sec-no">07</span>Through the telescope</h2>
+    <h2 id="scope"><span class="sec-no">08</span>Through the telescope</h2>
 
     <p>
       Here is what the navigator actually sees: a small telescope aimed at the horizon mirror, showing the
@@ -394,7 +432,7 @@
       deck that won't hold still.
     </p>
 
-    <h2 id="corrections"><span class="sec-no">08</span>Honest angles</h2>
+    <h2 id="corrections"><span class="sec-no">09</span>Honest angles</h2>
 
     <p>
       The angle on the drum – the <em>sextant altitude</em> – is not yet the true angle our circles-on-a-globe
@@ -448,45 +486,9 @@
       sighting the horizon against itself), subtract dip, subtract refraction, add the sun's semidiameter if
       you sighted its lower limb. A minute of arithmetic against printed tables, and the result – the
       <em>observed altitude</em> – is an honest geometric angle, usually trusted to a couple tenths of an
-      arcminute. The instrument's work is done – and since the chronometer and the almanac have already told us where
-      the GP is, every ingredient of a fix is now on the table.
-    </p>
-
-
-    <h2 id="crossing"><span class="sec-no">09</span>Crossing circles</h2>
-
-    <p>
-      Back to the geometry, with the full toolkit now in hand: an honest angle, the exact time, and the
-      star's GP from the almanac. One sight gives one circle. The fix – in both senses – is to measure a
-      second star. Two circles of position generally cross at two points, mirror images of each other across
-      the line joining the two GPs, and you must be standing on both circles at once – so you are at one of
-      the two crossings. Try adjusting both altitudes below and watch the two candidate positions move:
-    </p>
-
-    <figure class="demo demo--night" id="demo-twostar">
-      <div class="demo-panel">
-        <canvas class="grab"></canvas>
-        <div class="demo-controls"></div>
-      </div>
-      <figcaption>Two circles, two crossings. You are standing at one of the two marked points – and the two
-        are usually thousands of miles apart.</figcaption>
-    </figure>
-
-    <p>
-      Which of the two crossings is yours? In practice this is never a real dilemma. The two intersections
-      are typically separated by thousands of miles, and a navigator always carries a rough running estimate
-      of the ship's position – the <em>dead reckoning</em> position, kept up by logging speed and heading
-      since the last known fix. If your dead reckoning says you're somewhere off the coast of Chile, you can
-      safely discard the crossing near Japan. A third star, when available, settles it outright – and does something more
-      valuable besides, as we'll see when we plot a real fix: it tells you how good your own measurements
-      were.
-    </p>
-    <p>
-      And that, conceptually, is the entire system. <strong>Measure the altitude of two or three celestial
-      bodies, look up where each body's GP was at the moment of measurement, draw the circles, and find where
-      they cross.</strong> Everything you've met so far – the mirrors, the corrections, the
-      chronometer, the almanac – exists to carry out these steps precisely from the deck of a moving ship.
-      All that remains is the craft of putting the answer on paper.
+      arcminute. The instrument's work is done. Combined with the chronometer and the almanac, every
+      ingredient of the two-circle fix is now an honest number. All that remains is a special case so
+      convenient that ships lived on it, and the craft of putting the answer on paper.
     </p>
 
 
@@ -521,8 +523,9 @@
       flattens into a single plane. The sun stands directly over latitude <span class="num">δ</span> – its
       <em>declination</em>, printed in the almanac for every day of the year. Your measurement says the
       sun misses your zenith by <span class="num">z = 90° − H</span>. Those two angles stack at the
-      Earth's center, and your latitude simply reads off the top: <span class="num">φ = z + δ</span>.
-      Move yourself and the season below and watch the three angles stack:
+      Earth's center, and your latitude simply reads off the top:
+      <span class="num">φ = z + δ</span> – when the sun is south of you, as it is for most of the year
+      in the mid-latitudes. Move yourself and the season below and watch the three angles stack:
     </p>
 
     <figure class="demo" id="demo-noongeom">
@@ -561,6 +564,17 @@
       pointed straight at his landfall. The "Sumner line" – today's <strong>line of position</strong> –
       transformed navigation.
     </p>
+
+    <figure class="demo" id="demo-lopzoom">
+      <div class="demo-panel">
+        <canvas class="grab"></canvas>
+        <div class="demo-controls"></div>
+      </div>
+      <figcaption>The same circle at two scales. On the globe it is a ring thousands of miles across; in the
+        waters around the ship, that ring is a straight line, perpendicular to the direction of the
+        GP.</figcaption>
+    </figure>
+
     <p>
       The modern method, worked out by the French naval officer Marcq de Saint-Hilaire in the 1870s, makes
       drawing that line almost mechanical. Pick an <strong>assumed position</strong> near your dead-reckoning
@@ -652,6 +666,7 @@
   <script src="demos/gp.js" defer></script>
   <script src="demos/globes.js" defer></script>
   <script src="demos/polaris.js" defer></script>
+  <script src="demos/samesky.js" defer></script>
   <script src="demos/almanac.js" defer></script>
   <script src="demos/mirror.js" defer></script>
   <script src="demos/sextant.js" defer></script>
@@ -660,6 +675,7 @@
   <script src="demos/clock.js" defer></script>
   <script src="demos/noon.js" defer></script>
   <script src="demos/noon-geometry.js" defer></script>
+  <script src="demos/lopzoom.js" defer></script>
   <script src="demos/intercept.js" defer></script>
 </body>
 

@@ -25,11 +25,14 @@
   let viewTilt = 20;     // camera tilt, degrees (+ = north pole toward us)
   let dragged = false;
 
-  // dec is each star's real declination; lon is its GP longitude at 12:00
+  // dec is each star's real declination; lon is its GP longitude at 12:00.
+  // The North Star's point sits a fraction of a degree off the pole, so
+  // the clock visibly leaves it alone while the others sweep west.
   const STARS = [
     { name: 'Vega', dec: 38.8, lon: -77, main: true },
     { name: 'Capella', dec: 46.0, lon: -123 },
     { name: 'Sirius', dec: -16.7, lon: -144 },
+    { name: 'North Star', dec: 89.3, lon: -100 },
   ];
 
   addSlider(d, {
@@ -135,9 +138,15 @@
 
       starGlyph(ctx, px, py, s.main ? 9 : 7, P.ink);
       if (dir2) {
-        const lx = clamp(px + dir2.x * 17, 30, w - 30);
-        const align = dir2.x > 0.35 ? 'left' : dir2.x < -0.35 ? 'right' : 'center';
+        let lx = clamp(px + dir2.x * 17, 30, w - 30);
+        let align = dir2.x > 0.35 ? 'left' : dir2.x < -0.35 ? 'right' : 'center';
         let ly = clamp(py + dir2.y * 17 + (align === 'center' ? (dir2.y > 0 ? 8 : -6) : 2), 12, h - 12);
+        if (py < 26 || py > h - 26) {
+          // glyph pinned at the sheet edge: the name goes beside it
+          align = px > w * 0.5 ? 'right' : 'left';
+          lx = px + (align === 'left' ? 15 : -15);
+          ly = clamp(py + 2, 12, h - 12);
+        }
         // when two stars line up on screen, step the later label clear
         for (const q of placedNames) {
           if (Math.abs(lx - q.x) < 78 && Math.abs(ly - q.y) < 13) ly = q.y + (ly >= h / 2 ? -15 : 15);
