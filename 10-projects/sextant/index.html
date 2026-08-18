@@ -27,15 +27,112 @@
     <div class="pixel-rule"></div>
   </header>
 
-  <figure class="hero-fig" id="hero-fig">
-    <div class="demo-panel">
-      <canvas id="hero-canvas"></canvas>
-    </div>
-  </figure>
-
   <div class="main-grid">
     <div class="left-scroll">
       <main class="article">
+
+    <p>
+      Imagine standing on the deck of a small boat, a thousand miles from the nearest land. Every direction
+      offers the same view: water to the horizon. There are no road signs, no landmarks, and – suppose it's
+      1950, or your electronics have failed – no GPS. And yet with three tools, a navigator can mark an
+      <em>X</em> on the chart that lands within a mile or two of the truth: a <strong>sextant</strong>, an
+      accurate <strong>clock</strong>, and a thin book of tables called an <strong>almanac</strong>.
+    </p>
+    <p>
+      That's a remarkable claim. A mile or two, from the middle of the Pacific, using a hand-held instrument
+      with no electronics of any kind – just two small mirrors on a brass frame. In this article we'll build
+      up, piece by piece, an intuition for how this works. We'll start with a single star, discover why
+      measuring one angle tells you something surprisingly precise about where you are, and end by plotting a
+      full position fix the way navigators still practice it today. Along the way, every diagram is
+      interactive – <em>drag things, move sliders, and break the instrument to see what happens</em>.
+    </p>
+
+    <h2 id="ground-positions"><span class="sec-no">01</span>Stellar ground positions and altitudes</h2>
+
+    <p>
+      Imagine that you are standing at the center of a transparent earth looking outward at the stars. If you
+      pointed a laser at a star, your ray would draw a straight line that passes through the surface of the
+      earth at a single point. That point is called the star’s “ground position” or “GP” for short.
+    </p>
+
+    <figure class="demo" id="demo-center">
+      <div class="demo-panel">
+        <canvas class="grab"></canvas>
+      </div>
+      <figcaption>A laser from the center hits the surface once. That point is the star’s ground position.
+        Drag the star.</figcaption>
+    </figure>
+
+    <p>
+      Now let’s imagine that you traveled up that laser beam’s path to the star’s ground position (GP) on the
+      earth’s surface. Where would you expect the star to be found? You would find it directly overhead. This
+      means that if you planted a flag pole at that spot, it would point right at the star.
+    </p>
+
+    <figure class="demo" id="demo-gp">
+      <div class="demo-panel">
+        <canvas class="grab"></canvas>
+      </div>
+      <div class="demo-controls"></div>
+      <figcaption>Four stars, four points. Each star’s ray through the Earth’s center pierces the
+        surface exactly once, and standing on that point puts that star straight overhead. Drag the globe
+        to look from any other angle – the stars ride along, each one staying glued above its point. Star
+        distances are not to scale.</figcaption>
+    </figure>
+
+    <p>
+      You could describe this star’s position in the sky with an angle. If you say that looking level out at
+      the horizon is 0°, then the flagpole is at a right angle to the horizon and points at 90°. This angle
+      from the horizon to the direction of the star is called a star’s “altitude.”
+    </p>
+
+    <h2 id="finding-position"><span class="sec-no">02</span>Finding your position by measuring a star’s altitude</h2>
+
+    <p>
+      How does this fact help us use the stars to find out where on earth we’re located? One way to find your
+      location using the stars might be to find a star that’s directly above you, look up that star’s ground
+      position in a book, and say that you are at the same location as the star’s known ground position.
+    </p>
+    <p>
+      But what if your book of stellar ground positions lists only a handful of stars and none of these are
+      directly overhead? You’re still in luck, so long as you can precisely measure the star’s altitude. Let’s
+      explore how a star’s altitude relates to how close you are to its ground position.
+    </p>
+    <p>
+      Imagine once again that you’re standing on the star’s ground position. This means that the star is
+      90° overhead. But what happens as you move away from the ground position? From your perspective, the
+      horizon will always remain as a reference at 0° and you’ll keep pointing directly overhead at 90° no
+      matter how you move. But because the earth is round, these directions will shift as your position
+      changes. From an external perspective, the direction you’re pointing when at the North Pole will be
+      very different from the direction when at the equator. But from your perspective, it won’t appear that
+      you’re pointing in a different direction at all.
+    </p>
+
+    <figure class="demo" id="demo-altitude">
+      <div class="demo-panel">
+        <canvas></canvas>
+        <div class="demo-controls"></div>
+      </div>
+      <figcaption>From outside, your horizon and overhead have tilted with you around the earth. From
+        where you stand, those same two directions never move. Drag either view: as you leave the GP,
+        the star falls toward the horizon, then under it.</figcaption>
+    </figure>
+
+    <p>
+      Instead, it will seem like the positions of the stars are moving. As you move away from the ground
+      position, the star’s altitude will fall a little closer to the horizon. The star will continue to move
+      lower in the sky until it disappears beyond the horizon.
+    </p>
+    <p>
+      How does the height of the star change depending on how far you’ve moved? You’ll notice that the
+      horizon is perpendicular to the direction of the star at the GP. And it gets lower in the sky until it
+      sits precisely on the horizon when you’ve traveled 90° away from your starting position. This
+      observation is the heart of celestial navigation! If you measure the height of a star, it tells you
+      exactly how many degrees from the star’s GP you have traveled.
+    </p>
+
+
+    <h2 id="previous-draft"><span class="sec-no">*</span>Previous draft</h2>
 
     <p>
       Imagine standing on the deck of a small boat, a thousand miles from the nearest land. Every direction
@@ -68,18 +165,6 @@
       the stars ride along, each one staying glued above its point:
     </p>
 
-    <figure class="demo" id="demo-gp">
-      <div class="demo-panel">
-        <canvas class="grab"></canvas>
-      </div>
-      <div class="demo-controls"></div>
-      <figcaption>Four stars, four points. Each star's ray through the Earth's center pierces the
-        surface exactly once, and standing on that point puts that star straight overhead. The clock turns
-        the planet beneath the stars; dragging turns the whole scene at once. Notice where the North
-        Star's point sits – and that the clock never moves it. Star distances are not to
-        scale.</figcaption>
-    </figure>
-
     <p>
       Start with the trivial case, because it anchors everything that follows. Suppose you look straight up
       and find a star sitting exactly at your zenith – an altitude of <span class="num">90°</span> above
@@ -99,16 +184,6 @@
       outside the Earth. Drag the star up and down on the left, or sail the observer around the planet on
       the right – they are two views of one fact:
     </p>
-
-    <figure class="demo" id="demo-altitude">
-      <div class="demo-panel">
-        <canvas></canvas>
-        <div class="demo-controls"></div>
-      </div>
-      <figcaption>Two views, one moment. Vega's rays in both panes stay parallel; the altitude
-        you measure on deck falls in lockstep with the zenith distance – and so with the arc
-        you have sailed from the GP.</figcaption>
-    </figure>
 
     <p>
       Notice the two marked angles. The star's altitude <span class="num">h</span>, in blue, is what you
@@ -327,9 +402,9 @@
         <canvas></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption>The sky as a rigid wheel, seen from above the pole. One number moves with the clock – the
-        GHA of Aries – and every star rides at a fixed, catalogued offset from it. Slide the time and watch
-        one addition locate every star in the sky.</figcaption>
+      <figcaption>A page of the almanac, and the same arithmetic unrolled. One number races with the clock –
+        GHA Aries. Each star is a fixed offset from it. Slide the time: the catalog lines do not move; only
+        the Aries column does, and one addition locates Vega.</figcaption>
     </figure>
 
     <p>
@@ -389,18 +464,16 @@
         <canvas class="grab"></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption>Swing the index arm until the doubly-reflected ray runs straight into the telescope,
-        alongside the direct view of the horizon. Try changing the sun's altitude, too.</figcaption>
+      <figcaption>The metal arc is 60° – a sextans. The numbers engraved on it run to 120°, because the
+        mirrors double every move of the arm. Park the arm at 30° and read 60°. Swing until the sun sits
+        on the horizon.</figcaption>
     </figure>
 
     <p>
-      Look closely at the numbers engraved along the arc. Thanks to the doubling rule, rotating the arm by
-      <span class="num">30°</span> swings the measured line of sight by <span class="num">60°</span> – so the
-      arc's physical <span class="num">60°</span> of travel is engraved with labels running from
-      <span class="num">0°</span> to <span class="num">120°</span>. An arc of one sixth of a circle – a
-      <em>sextans</em>, in Latin – measures a third of the sky, and the instrument is named for that arc. The
-      doubling helps precision, too: a tiny error in reading the arm's position produces only half that error
-      in the measured angle.
+      The figure opens on that fact. The arm has moved <span class="num">30°</span>; the engraving says
+      <span class="num">60°</span>. The metal itself is only a sixth of a circle – a <em>sextans</em>, in
+      Latin – and that is the instrument's name. The doubling helps precision, too: a tiny error in reading
+      the arm's position produces only half that error in the measured angle.
     </p>
 
     <h2 id="scope"><span class="sec-no">08</span>Through the telescope</h2>
@@ -607,7 +680,6 @@
     </p>
 
 
-    <div class="fig-anchor" data-fig="hero-fig"></div>
     <h2 id="epilogue"><span class="sec-no">12</span>A day's work at sea</h2>
 
     <p>
@@ -663,6 +735,7 @@
 
   <script src="app.js" defer></script>
   <script src="demos/world.js" defer></script>
+  <script src="demos/center.js" defer></script>
   <script src="demos/gp.js" defer></script>
   <script src="demos/globes.js" defer></script>
   <script src="demos/polaris.js" defer></script>

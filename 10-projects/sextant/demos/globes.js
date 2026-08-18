@@ -1,13 +1,15 @@
 'use strict';
-/* Globe figures: circle of position (§02) and crossing circles (§03).
+/* Globe figures: circle of position (§02) and crossing circles (§04).
    The globe base (ocean, graticule, real coastlines, limb) is the shared
    globeView/drawGlobeBase from app.js, data from demos/world.js. */
 
-function makeGlobe(d, spin0, tilt0) {
-  const g = { spin: spin0, tilt: tilt0 };
+function makeGlobe(d, spin0, tilt0, hit) {
+  const g = { spin: spin0, tilt: tilt0, armed: true };
   g.view = globeView(g.spin, g.tilt);
   addDrag(d.canvas, {
+    start(p) { g.armed = !hit || hit(p); },
     move(p, dp) {
+      if (!g.armed) return;
       g.spin += dp.dx * 0.35;
       g.tilt = clamp(g.tilt + dp.dy * 0.35, -72, 72);
     },
@@ -153,14 +155,17 @@ function latLonToVec(lat, lon) {
 (function demoTwoStar() {
   const d = createDemo('demo-twostar', { aspect: 1.45, maxH: 540, draw });
   const g = makeGlobe(d, -12, 20);
-  const A = { lat: 39, lon: -30, name: 'star A' };
-  const B = { lat: 5, lon: 35, name: 'star B' };
+  const A = { lat: 38.8, lon: -30, name: 'Vega' };
+  const B = { lat: -16.7, lon: 35, name: 'Sirius' };
+  // a running DR guess near the eastern crossing, used only to pick which
+  // of the two intersections the navigator would keep
+  const DR = { lat: 42, lon: 48 };
   const altA = addSlider(d, {
-    label: 'altitude of star A', min: 20, max: 80, step: 0.5, value: 50,
+    label: 'altitude of Vega', min: 15, max: 70, step: 0.5, value: 32,
     fmt: v => v.toFixed(1) + '°',
   });
   const altB = addSlider(d, {
-    label: 'altitude of star B', min: 20, max: 80, step: 0.5, value: 55,
+    label: 'altitude of Sirius', min: 15, max: 70, step: 0.5, value: 28,
     fmt: v => v.toFixed(1) + '°',
   });
   const sepStat = addStat(d, 'candidates apart', true);
@@ -205,20 +210,64 @@ function latLonToVec(lat, lon) {
     }
     const ints = intersections(90 - altA.v, 90 - altB.v);
     if (!ints) {
-      sepStat.set('circles don’t touch – measurements can’t both be right', P.red);
+      sepStat.set('circles don\'t touch – measurements can\'t both be right', P.red);
       return;
     }
-    // candidate fixes: static double-ring marks, ink with paper ring
-    for (const it of ints) {
-      const p = g.proj(it.lat, it.lon, R, cx, cy);
-      if (!p.front) continue;
-      pointMark(ctx, p.x, p.y, P.ink, 2.6);
-      ctx.strokeStyle = P.ink;
+
+    const angDist = (p, q) => {
+      const a = latLonToVec(p.lat, p.lon), b = latLonToVec(q.lat, q.lon);
+      return Math.acos(clamp(a.x * b.x + a.y * b.y + a.z * b.z, -1, 1));
+    };
+    const pick = angDist(ints[0], DR) <= angDist(ints[1], DR) ? 0 : 1;
+
+    // dead-reckoning blot: a hatched disc around the kept crossing
+    const kept = g.proj(ints[pick].lat, ints[pick].lon, R, cx, cy);
+    if (kept.front) {
+      const blotR = R * 0.13;
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(kept.x, kept.y, blotR, 0, TAU);
+      ctx.clip();
+      ctx.strokeStyle = P.inkFaint;
+      ctx.lineWidth = 0.75;
+      ctx.translate(kept.x, kept.y);
+      ctx.rotate(Math.PI / 4);
+      ctx.beginPath();
+      for (let yy = -blotR * 1.5; yy <= blotR * 1.5; yy += 6) {
+        ctx.moveTo(-blotR * 1.5, yy);
+        ctx.lineTo(blotR * 1.5, yy);
+      }
+      ctx.stroke();
+      ctx.restore();
+      ctx.strokeStyle = P.inkSoft;
       ctx.lineWidth = 1;
-      ctx.beginPath(); ctx.arc(p.x, p.y, 6.5, 0, TAU); ctx.stroke();
+      ctx.beginPath(); ctx.arc(kept.x, kept.y, blotR, 0, TAU); ctx.stroke();
+      label(ctx, 'dead reckoning', kept.x, kept.y + blotR + 12,
+        { color: P.inkSoft, size: 10.5, halo: P.paper });
     }
+
+    // candidate fixes: the DR pick is "you"; the other is the discarded crossing
+    ints.forEach((it, i) => {
+      const p = g.proj(it.lat, it.lon, R, cx, cy);
+      if (!p.front) return;
+      if (i === pick) {
+        pointMark(ctx, p.x, p.y, P.ink, 2.8);
+        ctx.strokeStyle = P.ink;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath(); ctx.arc(p.x, p.y, 7, 0, TAU); ctx.stroke();
+        leaderNote(ctx, 'you', p.x, p.y, -55 * D2R, 20, P.ink, { size: 10.5 });
+      } else {
+        pointMark(ctx, p.x, p.y, P.inkSoft, 2.2);
+        ctx.strokeStyle = P.inkSoft;
+        ctx.lineWidth = 1;
+        ctx.setLineDash([3, 3]);
+        ctx.beginPath(); ctx.arc(p.x, p.y, 6.5, 0, TAU); ctx.stroke();
+        ctx.setLineDash([]);
+        label(ctx, 'not you', p.x, p.y - 15, { color: P.inkFaint, size: 10.5, halo: P.paper });
+      }
+    });
     const dot = ints[0].v.x * ints[1].v.x + ints[0].v.y * ints[1].v.y + ints[0].v.z * ints[1].v.z;
     const sep = Math.acos(clamp(dot, -1, 1)) * R2D * 60;
-    sepStat.set(fmtNM(sep) + ' – dead reckoning picks the right one');
+    sepStat.set(fmtNM(sep) + ' – dead reckoning keeps the nearer one');
   }
 })();

@@ -5,11 +5,11 @@
 
 (function demoSextant() {
   const d = createDemo('demo-sextant', { aspect: 1.3, maxH: 600, draw });
-  let sunAlt = 40;   // true altitude of the sun, degrees
-  let arm = 12;      // physical arm rotation, degrees (arc reads 2×)
+  let sunAlt = 60;   // true altitude of the sun, degrees
+  let arm = 30;      // physical arm rotation, degrees (arc reads 2×)
   const armSlider = addSlider(d, {
     label: 'index arm', min: 0, max: 60, step: 0.1, value: arm,
-    fmt: v => v.toFixed(1) + '°',
+    fmt: v => v.toFixed(1) + '° · ' + (2 * v).toFixed(0) + '°',
     onchange: v => { arm = v; },
   });
   addSlider(d, {
@@ -17,7 +17,7 @@
     fmt: v => v.toFixed(0) + '°',
     onchange: v => { sunAlt = v; },
   });
-  const readStat = addStat(d, 'arc reads');
+  const readStat = addStat(d, 'the arc reads');
   const status = addStat(d, 'in the telescope', true);
 
   d.canvas.classList.add('grab');
@@ -135,10 +135,12 @@
     ctx.lineWidth = 1.2;
     ctx.beginPath(); ctx.arc(Pv.x, Pv.y, hubR, 0, TAU); ctx.stroke();
 
-    // graduations: physical every 2.5° = engraved every 5°; majors longer + heavier
+    // two scales on one piece of metal: inner = how far the arm has
+    // actually swung (a sextans, 0–60°, green like Δ on the mirror);
+    // outer = what the engraving claims (0–120°, blue like 2Δ).
     for (let a = 0; a <= 60; a += 2.5) {
       const aa = (A0 + a) * D2R;
-      const major = a % 5 === 0;
+      const major = a % 15 === 0;
       const r1g = Rarc - h * 0.045, r2g = r1g + (major ? h * 0.022 : h * 0.013);
       ctx.strokeStyle = P.ink;
       ctx.lineWidth = major ? 1.2 : 0.7;
@@ -146,15 +148,33 @@
       ctx.moveTo(Pv.x + Math.cos(aa) * r1g, Pv.y + Math.sin(aa) * r1g);
       ctx.lineTo(Pv.x + Math.cos(aa) * r2g, Pv.y + Math.sin(aa) * r2g);
       ctx.stroke();
-      if (a % 10 === 0) {
-        label(ctx, String(2 * a), Pv.x + Math.cos(aa) * (Rarc + 13), Pv.y + Math.sin(aa) * (Rarc + 13),
-          { size: 10.5, color: P.inkSoft, halo: P.paper });
+      if (major && Math.abs(a - arm) > 6) {
+        label(ctx, String(a),
+          Pv.x + Math.cos(aa) * (r1g - 11), Pv.y + Math.sin(aa) * (r1g - 11),
+          { size: 10, color: P.green, halo: P.paperDeep });
+        label(ctx, String(2 * a),
+          Pv.x + Math.cos(aa) * (Rarc + 14), Pv.y + Math.sin(aa) * (Rarc + 14),
+          { size: 11.5, color: P.s2, halo: P.paper });
       }
     }
-    const noteA = (A0 + 45) * D2R;
-    leaderNote(ctx, 'the arc – engraved 2× (0–120°)',
-      Pv.x + Math.cos(noteA) * Rarc, Pv.y + Math.sin(noteA) * Rarc,
-      noteA, 24, P.inkSoft, { size: 10.5 });
+    const sextEnd = {
+      x: Pv.x + Math.cos((A0 + 60) * D2R) * Rarc,
+      y: Pv.y + Math.sin((A0 + 60) * D2R) * Rarc,
+    };
+    if (arm < 50 && sextEnd.x > 140) {
+      leaderNote(ctx, '60° of metal – a sextans',
+        sextEnd.x, sextEnd.y, (A0 + 64) * D2R, 20, P.inkSoft, { size: 10.5 });
+    }
+
+    // Δ on the instrument: the arm's true swing, same green as the mirror
+    if (arm >= 8) {
+      const rD = Rarc * 0.40;
+      angleDim(ctx, Pv.x, Pv.y, rD, A0 * D2R, (A0 + arm) * D2R, P.green);
+      const midD = (A0 + arm / 2) * D2R;
+      label(ctx, 'Δ',
+        Pv.x + Math.cos(midD) * (rD + 12), Pv.y + Math.sin(midD) * (rD + 12),
+        { color: P.green, size: 11.5, halo: P.paper });
+    }
 
     // ––– ray trace (unchanged) –––
     const r1 = reflect(dIn, iN);
@@ -238,6 +258,15 @@
     ctx.moveTo(Pv.x + Math.cos(armA) * (Rarc - h * 0.05), Pv.y + Math.sin(armA) * (Rarc - h * 0.05));
     ctx.lineTo(Pv.x + Math.cos(armA) * Rarc, Pv.y + Math.sin(armA) * Rarc);
     ctx.stroke();
+    // the shout: same tick, two numbers – arm Δ and the engraved 2Δ
+    const side = { x: -Math.sin(armA), y: Math.cos(armA) };
+    const flush = side.x >= 0 ? 1 : -1;
+    const rx = tip.x + side.x * 34, ry = tip.y + side.y * 34;
+    const align = flush > 0 ? 'left' : 'right';
+    label(ctx, 'arm  ' + arm.toFixed(0) + '°', rx, ry - 8,
+      { color: P.green, size: 11, halo: P.paper, align });
+    label(ctx, 'reads  ' + (2 * arm).toFixed(0) + '°', rx, ry + 8,
+      { color: P.s2, size: 11.5, halo: P.paper, align });
 
     // ––– index mirror (rides on the arm pivot): 2px ink, back-hatched –––
     const iDir = rot(iN, Math.PI / 2);
@@ -282,7 +311,7 @@
     const armMid = { x: Pv.x + Math.cos(armA) * Rarc * 0.42, y: Pv.y + Math.sin(armA) * Rarc * 0.42 };
     leaderNote(ctx, 'index arm', armMid.x, armMid.y, 50 * D2R, 26, P.inkSoft, { size: 10.5 });
 
-    readStat.set(fmtDM(2 * arm, 1));
+    readStat.set(fmtDM(2 * arm, 1) + '  –  twice the arm');
     if (aligned) {
       status.set('✓ sun sits on the horizon – altitude = ' + fmtDM(2 * arm, 1), P.good);
     } else if (hit) {

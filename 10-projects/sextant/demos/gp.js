@@ -3,24 +3,21 @@
    (coastlines from demos/world.js) with three stars around it, each ray
    through the Earth's center piercing the surface at that star's GP.
 
-   Two motions, kept physically honest:
-   - the TIME slider turns the Earth about its axis under the stars: the
-     continents rotate on screen, the stars stay put, and every GP sweeps
-     west along its parallel of declination;
-   - DRAGGING orbits the viewer around the whole rigid scene: Earth and
-     stars turn together, each GP staying glued to its spot on the ground.
-     Stars are occluded when they swing behind the globe.
+   Dragging orbits the viewer around the whole rigid scene: Earth and
+   stars turn together, each GP staying glued to its spot on the ground.
+   Stars are occluded when they swing behind the globe. Time is frozen
+   (noon in the star frame) so the figure can introduce the GP without
+   the clock.
 
-   State: t (hours), viewAz/viewTilt (camera direction in the star frame).
-   The Earth-frame view longitude is viewAz + 15*(t-12), so time moves the
-   ground while the stars hold still on screen. Star glyphs sit at a fixed
-   scene distance from the center (not to scale, the caption says so).
-   Globe rendering is the shared globeView/drawGlobeBase from app.js. */
+   State: viewAz/viewTilt (camera direction in the star frame).
+   Star glyphs sit at a fixed scene distance from the center (not to
+   scale, the caption says so). Globe rendering is the shared
+   globeView/drawGlobeBase from app.js. */
 
 (function demoGP() {
   const d = createDemo('demo-gp', { aspect: 1.5, maxH: 500, draw });
 
-  let t = 12;            // hours
+  const t = 12;          // hours, frozen – the clock comes later
   let viewAz = 104;      // camera azimuth in the star frame, degrees
   let viewTilt = 20;     // camera tilt, degrees (+ = north pole toward us)
   let dragged = false;
@@ -35,11 +32,6 @@
     { name: 'North Star', dec: 89.3, lon: -100 },
   ];
 
-  addSlider(d, {
-    label: 'time of day', min: 0, max: 24, step: 0.25, value: t,
-    fmt: v => `${String(Math.floor(v) % 24).padStart(2, '0')}:${String(Math.round(v % 1 * 60)).padStart(2, '0')}`,
-    onchange: v => { t = v; },
-  });
   const latStat = addStat(d, "Vega's GP – latitude");
   const lonStat = addStat(d, "Vega's GP – longitude");
 

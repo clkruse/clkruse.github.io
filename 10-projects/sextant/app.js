@@ -152,30 +152,6 @@ function sunGlyph(ctx, x, y, r) {
   ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill();
 }
 
-function boatGlyph(ctx, x, y, s, color) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.fillStyle = color;
-  ctx.beginPath(); // hull
-  ctx.moveTo(-s, 0);
-  ctx.quadraticCurveTo(-s * 0.7, s * 0.55, 0, s * 0.55);
-  ctx.quadraticCurveTo(s * 0.7, s * 0.55, s, 0);
-  ctx.closePath();
-  ctx.fill();
-  ctx.beginPath(); // sail
-  ctx.moveTo(s * 0.06, -s * 0.12);
-  ctx.lineTo(s * 0.06, -s * 1.5);
-  ctx.quadraticCurveTo(s * 0.75, -s * 0.55, s * 0.14, -s * 0.12);
-  ctx.closePath();
-  ctx.fill();
-  ctx.beginPath();
-  ctx.moveTo(-s * 0.08, -s * 0.12);
-  ctx.lineTo(-s * 0.08, -s * 1.32);
-  ctx.quadraticCurveTo(-s * 0.62, -s * 0.5, -s * 0.16, -s * 0.12);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-}
 
 /* ––––– demo scaffolding ––––– */
 
@@ -335,128 +311,6 @@ function addDrag(canvas, handlers) {
 }
 
 /* ––––––––––––––––––––––––––––––––––––––––––––––––
-   HERO – night sea, twinkling stars, a slow sight
-   –––––––––––––––––––––––––––––––––––––––––––––––– */
-
-(function hero() {
-  const canvas = document.getElementById('hero-canvas');
-  const ctx = canvas.getContext('2d');
-  const stars = [];
-  for (let i = 0; i < 170; i++) {
-    stars.push({
-      x: Math.random(), y: Math.random() * 0.72,
-      r: Math.random() * 1.3 + 0.4,
-      base: Math.random() * 0.5 + 0.35,
-      spd: Math.random() * 1.6 + 0.4,
-      ph: Math.random() * TAU,
-    });
-  }
-  // bright navigation stars the sight cycles through (upper-right region)
-  const navStars = [
-    { x: 0.87, y: 0.14, name: '58° 30′' },
-    { x: 0.80, y: 0.30, name: '41° 06′' },
-    { x: 0.95, y: 0.40, name: '24° 48′' },
-  ];
-  let t = 0, lastT = 0;
-  function draw(ts) {
-    const dt = clamp((ts - lastT) / 1000 || 0.016, 0, 0.05);
-    lastT = ts;
-    t += dt;
-    const w = canvas.clientWidth, h = canvas.clientHeight;
-    if (!w || !h) { requestAnimationFrame(draw); return; }
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
-    if (canvas.width !== Math.round(w * dpr)) {
-      canvas.width = Math.round(w * dpr);
-      canvas.height = Math.round(h * dpr);
-    }
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const hor = h * 0.76;
-    // sky
-    let g = ctx.createLinearGradient(0, 0, 0, hor);
-    g.addColorStop(0, '#070f1a');
-    g.addColorStop(0.75, '#12253a');
-    g.addColorStop(1, '#1b3550');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, 0, w, hor);
-    // sea
-    g = ctx.createLinearGradient(0, hor, 0, h);
-    g.addColorStop(0, '#122b41');
-    g.addColorStop(1, '#081420');
-    ctx.fillStyle = g;
-    ctx.fillRect(0, hor, w, h - hor);
-    // stars
-    for (const s of stars) {
-      const a = s.base + 0.3 * Math.sin(t * s.spd + s.ph);
-      ctx.fillStyle = `rgba(233,237,243,${clamp(a, 0.08, 1)})`;
-      ctx.beginPath();
-      ctx.arc(s.x * w, s.y * h, s.r, 0, TAU);
-      ctx.fill();
-    }
-    // moon-glint path on sea
-    ctx.fillStyle = 'rgba(233,237,243,0.05)';
-    for (let i = 0; i < 14; i++) {
-      const yy = hor + 6 + i * (h - hor) / 15;
-      const ww = 30 + i * 10 + 12 * Math.sin(t * 0.7 + i);
-      ctx.fillRect(w * 0.2 - ww / 2 + 8 * Math.sin(t * 0.4 + i * 1.7), yy, ww, 1.4);
-    }
-    // horizon line
-    ctx.strokeStyle = 'rgba(233,237,243,0.25)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, hor);
-    ctx.lineTo(w, hor);
-    ctx.stroke();
-    // the sight: boat on horizon, measuring cycle (kept right of the titles)
-    const bx = w * 0.70, by = hor - 2;
-    boatGlyph(ctx, bx, by, Math.max(14, w * 0.016), 'rgba(10,18,28,0.95)');
-    ctx.strokeStyle = 'rgba(10,18,28,0.95)';
-    // cycle through nav stars: 6s each (1.2 rise, 3.4 hold, 1.4 fade)
-    const cyc = 6, phase = (t % (cyc * navStars.length)) / cyc;
-    const idx = Math.floor(phase), local = phase - idx;
-    const star = navStars[idx];
-    let alpha = 1, sweep = 1;
-    if (local < 0.2) { sweep = local / 0.2; }
-    else if (local > 0.77) { alpha = 1 - (local - 0.77) / 0.23; }
-    const sx = star.x * w, sy = star.y * h;
-    // star highlight
-    ctx.save();
-    ctx.globalAlpha = alpha;
-    const pulse = 1 + 0.15 * Math.sin(t * 3);
-    starGlyph(ctx, sx, sy, 7 * pulse, 'rgba(255,196,132,0.95)');
-    // angle geometry
-    const aStar = Math.atan2(by - 14 - sy, sx - bx); // above horizontal
-    const aDraw = aStar * sweep;
-    const rayLen = Math.hypot(sx - bx, sy - (by - 14));
-    ctx.strokeStyle = 'rgba(138,164,204,0.85)';
-    ctx.lineWidth = 1.2;
-    ctx.setLineDash([5, 6]);
-    ctx.beginPath();
-    ctx.moveTo(bx, by - 14);
-    ctx.lineTo(bx + rayLen * Math.cos(aDraw), by - 14 - rayLen * Math.sin(aDraw));
-    ctx.stroke();
-    ctx.setLineDash([]);
-    // horizon reference + arc
-    ctx.strokeStyle = 'rgba(233,237,243,0.4)';
-    ctx.beginPath();
-    ctx.moveTo(bx, by - 14);
-    ctx.lineTo(bx + Math.min(150, rayLen * 0.6), by - 14);
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(138,164,204,0.9)';
-    ctx.beginPath();
-    ctx.arc(bx, by - 14, 60, -aDraw, 0);
-    ctx.stroke();
-    if (sweep === 1) {
-      label(ctx, star.name, bx + 74, by - 24 - 30 * Math.sin(aStar / 2), {
-        color: `rgba(138,164,204,${alpha})`, size: 12,
-      });
-    }
-    ctx.restore();
-    requestAnimationFrame(draw);
-  }
-  requestAnimationFrame(draw);
-})();
-
-/* ––––––––––––––––––––––––––––––––––––––––––––––––
    § 01 – altitude & zenith distance (cross-section)
    –––––––––––––––––––––––––––––––––––––––––––––––– */
 
@@ -565,33 +419,34 @@ function pointMark(ctx, x, y, color, r = 3.2) {
 
 (function demoAltitude() {
   const d = createDemo('demo-altitude', { aspect: 1.5, maxH: 520, draw });
-  // a generic star at infinity: rays arrive parallel, so the drawing can
-  // stand the GP at the top of the globe without calling that point a pole.
-  const starA = -90 * D2R; // canvas angle of the incoming rays
+  // star direction is fixed (up the page). You walk away from the GP;
+  // your horizon and overhead tilt with you. Altitude is the angle
+  // between that tilted horizon and the unmoving star.
+  const starA = -90 * D2R;
   const S = { x: Math.cos(starA), y: Math.sin(starA) };
-  let theta = 48 * D2R; // observer offset from GP
-  const altStat = addStat(d, 'altitude h');
-  const zStat = addStat(d, 'zenith dist z');
-  const distStat = addStat(d, 'distance from GP');
+  let theta = -40 * D2R;
+  const altStat = addStat(d, 'altitude');
+  const fromStat = addStat(d, 'from the GP');
+  d.canvas._qaTheta = deg => { theta = clamp(deg, -140, 30) * D2R; };
 
   d.canvas.classList.add('grab');
   let geo = null, pane = null;
   addDrag(d.canvas, {
     start(p) {
-      pane = geo && p.x < geo.splitX ? 'left' : 'right';
+      pane = geo && p.x < geo.splitX ? 'outside' : 'deck';
     },
     move(p) {
       if (!geo) return;
-      if (pane === 'left') {
-        const hDrag = clamp((geo.y0 - p.y) / (geo.y0 - geo.y90) * 90, 0, 89.9);
+      if (pane === 'deck') {
+        const hDrag = clamp((geo.y0 - p.y) / (geo.y0 - geo.y90) * 90, -50, 89.9);
         const side = theta >= 0 ? 1 : -1;
-        theta = side * (90 - hDrag) * D2R;
+        theta = clamp(side * (90 - hDrag) * D2R, -140 * D2R, 30 * D2R);
       } else {
         const a = Math.atan2(p.y - geo.cy, p.x - geo.cx);
         let off = a - starA;
         while (off > Math.PI) off -= TAU;
         while (off < -Math.PI) off += TAU;
-        theta = clamp(off, -2.6, 2.6);
+        theta = clamp(off, -140 * D2R, 30 * D2R);
       }
     },
   });
@@ -600,84 +455,174 @@ function pointMark(ctx, x, y, color, r = 3.2) {
     ctx.fillStyle = P.paper;
     ctx.fillRect(0, 0, w, h);
 
-    const zdeg = Math.abs(theta) * R2D;
-    const hdeg = 90 - zdeg;
+    const fromDeg = Math.abs(theta) * R2D;
+    const hdeg = 90 - fromDeg;
     const below = hdeg < 0;
-    const tiny = zdeg < 8;
-    const hC = P.s2;  // altitude: ink blue, in both views
-    const zC = P.s1;  // zenith distance: crimson
+    const atGP = fromDeg < 3.5;
+    const hC = P.s2;
 
-    /* ————— left pane: the height gauge, from the deck ————— */
-
-    const splitX = w * 0.36;
-    const ax = 66;
-    const y0 = h - 64, y90 = 44;
+    const splitX = w * 0.68;
+    const y0 = h - 64, y90 = 58;
     const yOf = deg => y0 - (y0 - y90) * deg / 90;
     geo = geo || {};
     geo.splitX = splitX;
     geo.y0 = y0;
     geo.y90 = y90;
 
-    label(ctx, 'from the deck', splitX * 0.5, 18, { color: P.inkSoft, size: 10.5 });
+    /* ————— left: from outside —————
+       Broad enough to show the 300°–130° limb, so you can walk
+       the star onto the horizon and then under it. */
 
+    const R = Math.min(h * 0.28, splitX * 0.26);
+    const cx = splitX * 0.50;
+    const cy = Math.max(h * 0.54, R + 145);
+    geo.cx = cx; geo.cy = cy; geo.R = R;
+
+    const oA = starA + theta;
+    const O = { x: cx + R * Math.cos(oA), y: cy + R * Math.sin(oA) };
+    const u = { x: Math.cos(oA), y: Math.sin(oA) };
+    const gp = { x: cx + R * Math.cos(starA), y: cy + R * Math.sin(starA) };
+
+    const tHat = rot(u, Math.PI / 2);
+    const tUp = (tHat.x * S.x + tHat.y * S.y) >= 0 ? tHat : { x: -tHat.x, y: -tHat.y };
+    const angT = Math.atan2(tUp.y, tUp.x);
+    const angOver = Math.atan2(u.y, u.x);
+    const back = { x: -tUp.x, y: -tUp.y }; // horizon, away from the star
+    const inLeft = (x, pad = 22) => clamp(x, pad, splitX - 16);
+    const inY = (y, pad = 28) => clamp(y, pad, h - 16);
+    const haloAt = (x, y) => {
+      const d = Math.hypot(x - cx, y - cy);
+      return (d < R - 1 && d > R - 22) ? P.paperDeep : P.paper;
+    };
+
+    label(ctx, 'from outside', 16, 18, { color: P.inkSoft, size: 10.5, align: 'left' });
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(0, 0, splitX, h);
+    ctx.clip();
+
+    // a crust, not a disk: enough fill to say "this side is earth"
+    // without handing the pane to the interior
+    ctx.fillStyle = P.paperDeep;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, TAU);
+    ctx.arc(cx, cy, Math.max(8, R - 20), 0, TAU, true);
+    ctx.fill('evenodd');
+    ctx.strokeStyle = P.ink;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, 0, TAU);
+    ctx.stroke();
+
+    // horizon is a tangent both ways, so when the star sets you can
+    // see it on the earth side of the line
+    const fitArm = (dir, maxLen) => {
+      let len = maxLen;
+      for (let k = 0; k < 6; k++) {
+        const x = O.x + dir.x * len, y = O.y + dir.y * len;
+        if (x > 36 && x < splitX - 14 && y > 30 && y < h - 20) break;
+        len *= 0.72;
+      }
+      return { x: O.x + dir.x * len, y: O.y + dir.y * len };
+    };
+    const hSky = fitArm(tUp, Math.min(R * 0.42, 78));
+    const hGnd = fitArm(back, Math.min(R * 0.42, 78));
     ctx.strokeStyle = P.ink;
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(ax - 14, y0);
-    ctx.lineTo(splitX - 24, y0);
+    ctx.moveTo(hSky.x, hSky.y);
+    ctx.lineTo(hGnd.x, hGnd.y);
     ctx.stroke();
-    label(ctx, 'horizon', splitX - 24, y0 + 12, { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'right' });
+    const hFar = hGnd;
 
-    ctx.strokeStyle = P.inkSoft;
-    ctx.fillStyle = P.inkSoft;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(ax, y0);
-    ctx.lineTo(ax, y90);
-    ctx.stroke();
-    for (let a = 10; a <= 90; a += 10) {
-      const major = a % 30 === 0;
-      ctx.lineWidth = major ? 1 : 0.75;
+    rightAngleMark(ctx, O.x, O.y, angOver, angT, 11, P.inkSoft);
+
+    const oLen = Math.min(R * 0.32, 72);
+    if (!atGP) {
+      ctx.strokeStyle = P.inkSoft;
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.moveTo(ax, yOf(a));
-      ctx.lineTo(ax - (major ? 7 : 4), yOf(a));
+      ctx.moveTo(O.x, O.y);
+      ctx.lineTo(O.x + u.x * oLen, O.y + u.y * oLen);
       ctx.stroke();
-      if (major) {
-        label(ctx, a + '°', ax - 14, yOf(a), { color: P.inkFaint, size: 9.5, align: 'right' });
-      }
     }
 
-    if (!below) {
-      const sx = ax + 52;
-      const sy = yOf(hdeg);
-      ctx.strokeStyle = P.inkFaint;
-      ctx.lineWidth = 0.9;
-      ctx.beginPath();
-      ctx.moveTo(ax + 4, sy);
-      ctx.lineTo(sx - 14, sy);
-      ctx.stroke();
-      ctx.strokeStyle = hC;
-      ctx.fillStyle = hC;
-      ctx.lineWidth = 1.1;
-      if (sy < y0 - 26) {
-        ctx.beginPath();
-        ctx.moveTo(sx, y0 - 3);
-        ctx.lineTo(sx, sy + 14);
-        ctx.stroke();
-        dimHead(ctx, sx, sy + 14, -Math.PI / 2, 7, 2.3);
-        dimHead(ctx, sx, y0 - 3, Math.PI / 2, 7, 2.3);
-      }
-      const hTxt = 'h = ' + fmtDM(hdeg);
-      label(ctx, hTxt, Math.min(sx + 12, splitX - 12 - textW(ctx, hTxt, 11)),
-        Math.min((y0 + sy) / 2, y0 - 16), { color: hC, size: 11, halo: P.paper, align: 'left' });
-      starGlyph(ctx, sx, sy, 8, P.ink);
-      const dragTxt = 'Vega – drag';
-      const dragX = Math.min(sx + 16, splitX - 12 - textW(ctx, dragTxt, 10.5));
-      label(ctx, dragTxt, dragX, dragX < sx + 16 ? sy - 18 : sy - 12,
-        { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'left' });
+    let starP = { x: O.x + S.x * 86, y: O.y + S.y * 86 };
+    if (Math.hypot(starP.x - cx, starP.y - cy) < R + 16) {
+      const dx = O.x - cx;
+      const rOut = R + 18;
+      const disc = rOut * rOut - dx * dx;
+      starP = disc > 0
+        ? { x: O.x, y: cy - Math.sqrt(disc) - 18 }
+        : { x: O.x, y: 52 };
+    }
+    if (starP.y < 48) starP.y = 48;
+    ctx.strokeStyle = hC;
+    ctx.fillStyle = hC;
+    ctx.lineWidth = 1.6;
+    if (below) ctx.setLineDash([5, 4]);
+    ctx.beginPath();
+    ctx.moveTo(O.x, O.y);
+    ctx.lineTo(starP.x, starP.y + 14);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    if (!below) dimHead(ctx, starP.x, starP.y + 14, starA, 9, 2.7);
+    starGlyph(ctx, starP.x, starP.y, 9, P.ink);
+
+    if (!atGP && !below && hdeg > 14 && hdeg < 78) {
+      const rH = Math.min(R * 0.22, 48);
+      angleDim(ctx, O.x, O.y, rH, angT, starA, hC);
+    }
+
+    if (atGP) {
+      pointMark(ctx, gp.x, gp.y, P.ink);
     } else {
-      label(ctx, 'Vega is below the horizon', splitX * 0.52, y0 + 34,
-        { color: P.inkSoft, size: 10.5, halo: P.paper });
+      pointMark(ctx, gp.x, gp.y, P.ink);
+      pointMark(ctx, O.x, O.y, P.ink);
+    }
+    ctx.restore();
+
+    // labels live outside the clip so leaders and type never get sheared
+    const hx = inLeft(hFar.x);
+    const hy = inY(hFar.y + (hFar.y > O.y ? 13 : -13));
+    label(ctx, 'horizon', hx, hy, {
+      color: P.inkSoft, size: 10.5, halo: haloAt(hx, hy),
+      align: hFar.x < O.x ? 'left' : 'right',
+    });
+
+    if (!atGP && fromDeg > 20 && fromDeg < 100) {
+      const ox = O.x + u.x * oLen;
+      const oy = O.y + u.y * oLen;
+      const lx = inLeft(ox + back.x * 16);
+      const ly = inY(oy + back.y * 16);
+      label(ctx, 'overhead', lx, ly, {
+        color: P.inkSoft, size: 10.5, halo: haloAt(lx, ly),
+        align: back.x >= 0 ? 'left' : 'right',
+      });
+    }
+
+    {
+      const starLeft = starP.x < splitX * 0.55;
+      const slx = inLeft(starLeft ? starP.x - 14 : starP.x + 15);
+      const sly = inY(starP.y);
+      label(ctx, 'star', slx, sly, {
+        color: P.inkSoft, size: 10.5, halo: haloAt(slx, sly),
+        align: starLeft ? 'right' : 'left',
+      });
+    }
+
+    if (atGP) {
+      leaderNote(ctx, 'you, at the GP', gp.x, gp.y, 0.85, 34, P.inkSoft,
+        { size: 10.5, halo: haloAt(gp.x + 24, gp.y + 28) });
+    } else {
+      leaderNote(ctx, 'GP', gp.x, gp.y, theta > 0 ? -2.4 : 2.5, 28, P.inkSoft,
+        { size: 10.5, halo: P.paper });
+      const inward = Math.atan2(-u.y, -u.x);
+      const youDir = inward + (theta < 0 ? 0.55 : -0.55);
+      const yx = O.x + Math.cos(youDir) * 34, yy = O.y + Math.sin(youDir) * 34;
+      leaderNote(ctx, 'you – drag', O.x, O.y, youDir, 34, P.inkSoft,
+        { size: 10.5, halo: haloAt(yx, yy) });
     }
 
     /* ————— divider ————— */
@@ -689,99 +634,63 @@ function pointMark(ctx, x, y, color, r = 3.2) {
     ctx.lineTo(splitX, h - 12);
     ctx.stroke();
 
-    /* ————— right pane: the same moment, seen from outside ————— */
+    /* ————— right: from where you stand, scale on the outer edge ————— */
 
-    const cx = splitX + (w - splitX) * 0.44, cy = h * 0.60;
-    const R = Math.min(h * 0.295, (w - splitX) * 0.28);
-    geo.cx = cx; geo.cy = cy; geo.R = R;
+    const ax = w - 50;
+    label(ctx, 'from where you stand', w - 16, 18,
+      { color: P.inkSoft, size: 10.5, align: 'right' });
 
-    label(ctx, 'from outside – the same moment', splitX + (w - splitX) * 0.5, 18, { color: P.inkSoft, size: 10.5 });
-
-    const starY = 52;
-    const oA = starA + theta;
-    const O = { x: cx + R * Math.cos(oA), y: cy + R * Math.sin(oA) };
-    const u = { x: Math.cos(oA), y: Math.sin(oA) };
-    const gp = { x: cx + R * Math.cos(starA), y: cy + R * Math.sin(starA) };
-
-    ctx.fillStyle = P.paperDeep;
-    ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.fill();
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke();
-    centerMark(ctx, cx, cy, 7, P.inkSoft);
-    label(ctx, 'earth', cx, cy + R * 0.5, { color: P.inkFaint, size: 10.5 });
-
-    // GP ray: parallel to the observer's sight line, labeled so the
-    // parallelism is stated. Star glyph rides the observer's line.
-    centerline(ctx, cx, cy + 10, cx, starY + 8, P.inkFaint);
-    label(ctx, 'to Vega, too', cx - 8, starY, { color: P.inkFaint, size: 9.5, halo: P.paper, align: 'right' });
-
-    pointMark(ctx, gp.x, gp.y, P.ink);
-    if (!tiny) {
-      leaderNote(ctx, 'GP', gp.x, gp.y, -28 * D2R, 26, P.inkSoft, { size: 10.5, halo: P.paper });
-    }
-
-    // surface arc from GP to you: the distance z, just inside the limb
-    if (!tiny && !below) {
-      ctx.strokeStyle = zC;
-      ctx.lineWidth = 1.6;
-      ctx.beginPath();
-      arcBetween(ctx, cx, cy, R - 3.5, starA, oA);
-      ctx.stroke();
-    }
-
-    const tHat = rot(u, Math.PI / 2);
-    const tUp = (tHat.x * S.x + tHat.y * S.y) >= 0 ? tHat : { x: -tHat.x, y: -tHat.y };
-    const angT = Math.atan2(tUp.y, tUp.x);
     ctx.strokeStyle = P.ink;
     ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(O.x + tUp.x * R * 0.55, O.y + tUp.y * R * 0.55);
-    ctx.lineTo(O.x - tUp.x * R * 0.9, O.y - tUp.y * R * 0.9);
+    ctx.moveTo(splitX + 16, y0);
+    ctx.lineTo(ax + 12, y0);
     ctx.stroke();
-    const hlx = O.x - tUp.x * R * 0.9 + 4;
-    label(ctx, 'horizon', Math.min(hlx, w - 10), O.y - tUp.y * R * 0.9 + 13,
-      { color: P.inkSoft, size: 10.5, halo: P.paper, align: hlx > w - 80 ? 'right' : 'left' });
+    label(ctx, '0°', ax + 12, y0 + 13,
+      { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'left' });
+    label(ctx, 'horizon', ax - 12, y0 + 13,
+      { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'right' });
 
-    if (!below) {
-      ctx.strokeStyle = hC;
-      ctx.fillStyle = hC;
-      ctx.lineWidth = 1.6;
+    ctx.strokeStyle = P.inkSoft;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(ax, y0);
+    ctx.lineTo(ax, y90);
+    ctx.stroke();
+    for (let a = 30; a <= 60; a += 30) {
+      ctx.lineWidth = 0.75;
       ctx.beginPath();
-      ctx.moveTo(O.x, O.y);
-      ctx.lineTo(O.x, starY + 22);
+      ctx.moveTo(ax, yOf(a));
+      ctx.lineTo(ax + 6, yOf(a));
       ctx.stroke();
-      dimHead(ctx, O.x, starY + 22, -Math.PI / 2, 9, 2.7);
-      starGlyph(ctx, O.x, starY, 9, P.ink);
-      label(ctx, 'Vega', O.x + 16, starY, { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'left' });
-
-      const rH = R * 0.34;
-      angleDim(ctx, O.x, O.y, rH, angT, -Math.PI / 2, hC);
-      const mH = (angT - Math.PI / 2) / 2;
-      label(ctx, 'h', O.x + Math.cos(mH) * (rH + 13), O.y + Math.sin(mH) * (rH + 13),
-        { color: hC, halo: P.paper, size: 11.5 });
+      label(ctx, a + '°', ax + 12, yOf(a), { color: P.inkFaint, size: 9.5, align: 'left' });
+    }
+    label(ctx, '90°', ax + 12, y90 - 2,
+      { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'left' });
+    if (below || hdeg < 78) {
+      label(ctx, 'overhead', ax - 12, y90 - 2,
+        { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'right' });
     }
 
-    // z at the Earth's center: complement of h, the angle you have sailed
-    if (!below && zdeg >= 6) {
-      const rZ = R * 0.42;
-      angleDim(ctx, cx, cy, rZ, starA, oA, zC);
-      const mZ = (starA + oA) / 2;
-      const crowded = zdeg < 18;
-      if (!crowded) {
-        label(ctx, 'z', cx + Math.cos(mZ) * (rZ + 14), cy + Math.sin(mZ) * (rZ + 14),
-          { color: zC, halo: P.paperDeep, size: 11.5 });
-      }
+    {
+      const sx = ax - 48;
+      const sy = yOf(clamp(hdeg, -16, 90));
+      ctx.strokeStyle = P.inkFaint;
+      ctx.lineWidth = 0.9;
+      ctx.beginPath();
+      ctx.moveTo(ax - 3, sy);
+      ctx.lineTo(sx + 12, sy);
+      ctx.stroke();
+      starGlyph(ctx, sx, sy, 8, P.ink);
+      const nearTop = hdeg > 78;
+      const nearBot = hdeg < 8;
+      label(ctx, below ? 'star – drag (below)' : 'star – drag',
+        sx - 14, sy + (nearTop ? 16 : nearBot ? -14 : 0),
+        { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'right' });
     }
 
-    pointMark(ctx, O.x, O.y, P.ink);
-    let away = Math.atan2(u.y - tUp.y, u.x - tUp.x);
-    if (Math.cos(away) > 0 && O.x + Math.cos(away) * 34 + 72 > w - 6) away = Math.PI - away;
-    leaderNote(ctx, 'you – drag', O.x, O.y, away, 28, P.inkSoft, { size: 10.5 });
-
-    altStat.set(below ? 'below horizon' : fmtDM(hdeg), below ? P.red : '');
-    zStat.set(fmtDM(zdeg));
-    distStat.set(zdeg * 60 < 60 ? (zdeg * 60).toFixed(0) + ' nm' : fmtNM(zdeg * 60));
+    altStat.set(below ? 'below the horizon' : Math.round(hdeg) + '°', below ? P.red : '');
+    fromStat.set(Math.round(fromDeg) + '°');
   }
 })();
 
@@ -1016,7 +925,7 @@ function drawGlobeBase(ctx, toView, cx, cy, R) {
    –––––––––––––––––––––––––––––––––––––––––––––––– */
 
 (function layoutController() {
-  const figIds = ['hero-fig', 'demo-gp', 'demo-altitude', 'demo-circle', 'demo-polaris', 'demo-twostar',
+  const figIds = ['demo-center', 'demo-gp', 'demo-altitude', 'demo-circle', 'demo-polaris', 'demo-twostar',
     'demo-samesky', 'demo-clock', 'demo-almanac', 'demo-mirror', 'demo-sextant', 'demo-scope',
     'demo-dip', 'demo-refraction', 'demo-noon', 'demo-noongeom', 'demo-lopzoom', 'demo-intercept'];
   const figs = figIds.map(id => document.getElementById(id)).filter(Boolean);
@@ -1029,10 +938,8 @@ function drawGlobeBase(ctx, toView, cx, cy, R) {
   const homes = new Map();
   for (const f of figs) {
     const a = document.createElement('div');
-    if (f.id !== 'hero-fig') {
-      a.className = 'fig-anchor';
-      a.dataset.fig = f.id;
-    }
+    a.className = 'fig-anchor';
+    a.dataset.fig = f.id;
     f.before(a);
     homes.set(f, a);
   }
@@ -1045,7 +952,7 @@ function drawGlobeBase(ctx, toView, cx, cy, R) {
   }
 
   function show(id) {
-    if (active === id) return;
+    if (!id || active === id) return;
     active = id;
     for (const f of figs) f.style.display = f.id === id ? '' : 'none';
     const pnl = document.getElementById(id).querySelector('.demo-panel');
@@ -1063,7 +970,7 @@ function drawGlobeBase(ctx, toView, cx, cy, R) {
     // anchors mark where each figure sat inline (right after the text that
     // introduces it), so swap as soon as that spot nears the bottom of the view
     const trigger = leftTop + leftScroll.clientHeight * 0.8;
-    let cur = 'hero-fig';
+    let cur = figs[0] ? figs[0].id : null;
     for (const a of leftScroll.querySelectorAll('.fig-anchor')) {
       if (a.getBoundingClientRect().top < trigger) cur = a.dataset.fig;
     }

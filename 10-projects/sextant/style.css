@@ -89,19 +89,6 @@ body {
 
 .pixel-rule { display: none; }
 
-/* ––––– the animated banner ––––– */
-
-.hero-fig {
-  max-width: 88rem;
-  margin: 0 auto;
-  padding: 0 2rem;
-}
-.hero-fig canvas {
-  display: block;
-  width: 100%;
-  height: min(52vh, 440px);
-}
-
 /* ––––– article column ––––– */
 
 .article {
@@ -170,11 +157,6 @@ strong { font-weight: 700; }
   background: var(--paper);
   overflow: hidden;
 }
-/* every figure is paper-grounded; only the hero banner stays a night scene */
-.hero-fig .demo-panel {
-  background: #0a1120;
-}
-
 .demo canvas {
   display: block;
   width: 100%;
@@ -370,14 +352,12 @@ input[type="range"]::-moz-range-thumb {
     padding: 0.6rem 2px 1.5rem;
   }
 
-  .right-panel .demo,
-  .right-panel .hero-fig {
+  .right-panel .demo {
     width: 100%;
     margin: 0;
     padding: 0;
     max-width: none;
   }
-  .right-panel .hero-fig canvas { height: min(64vh, 540px); }
 }
 
 /* ––––– phones ––––– */
@@ -386,8 +366,6 @@ input[type="range"]::-moz-range-thumb {
   .pixel-header { padding: 2.2rem 1.1rem 0; }
   .article { padding: 1.6rem 1.1rem 2rem; }
   .footer { padding: 0 1.1rem 2.2rem; }
-  .hero-fig { padding: 0 1.1rem; }
-  .hero-fig canvas { height: 300px; }
   .demo-controls { padding: 0.55rem 0.7rem; }
   .ctl { min-width: 100%; gap: 0.5rem; }
   .ctl-label { font-size: 0.76rem; }

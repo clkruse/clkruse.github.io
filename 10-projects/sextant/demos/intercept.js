@@ -4,12 +4,13 @@
 (function demoIntercept() {
   const d = createDemo('demo-intercept', { aspect: 1.2, maxH: 620, draw });
   const STARS = [
-    { name: 'Capella', zn: 42, c: 's1' },
-    { name: 'Regulus', zn: 158, c: 's2' },
-    { name: 'Sirius', zn: 262, c: 's3' },
+    { name: 'Capella', zn: 42, c: 's1', hc: 54.2 },
+    { name: 'Regulus', zn: 158, c: 's2', hc: 31.7 },
+    { name: 'Sirius', zn: 262, c: 's3', hc: 22.4 },
   ];
   let state = null;
   const status = addStat(d, 'plot', true);
+  const hcStat = addStat(d, 'last sight', true);
   const btns = STARS.map((s, i) =>
     addButton(d, `sight ${s.name} (Zn ${String(s.zn).padStart(3, '0')}°)`, () => takeSight(i)));
   const revealBtn = addButton(d, 'reveal the ship', () => {
@@ -26,6 +27,7 @@
     };
     for (const s of state.sights) s.noise = (Math.random() - 0.5) * 2.6;
     status.set('take the three sights');
+    hcStat.set('Ho vs Hc appears with each sight');
   }
   reset();
 
@@ -38,6 +40,11 @@
     s.taken = true;
     s.anim = 0;
     const n = state.sights.filter(x => x.taken).length;
+    const ho = STARS[i].hc + s.a / 60;
+    const toward = s.a >= 0 ? 'toward' : 'away';
+    hcStat.set(
+      `${STARS[i].name}  Ho ${fmtDM(ho, 1)}  Hc ${fmtDM(STARS[i].hc, 1)}  →  ${Math.abs(s.a).toFixed(1)}′ ${toward}`
+    );
     status.set(n < 3 ? `${3 - n} more sight${n === 2 ? '' : 's'} to go` :
       'three lines close into the cocked hat – the ship is inside');
   }
