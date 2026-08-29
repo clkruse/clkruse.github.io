@@ -1,0 +1,1333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>UTMB · Live Tracking</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.css" rel="stylesheet">
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js"></script>
+<style>
+  /* clean light theme on a pure-white page (shared with /bay-100) */
+  :root{
+    --ink:#1a1d21;          /* primary text */
+    --paper:#ffffff;        /* page background — pure white */
+    --panel:#ffffff;        /* cards (defined by borders) */
+    --rule:#e6e8eb;         /* hairline borders */
+    --rule-strong:#cdd2d8;  /* stronger borders */
+    --muted:#6b7178;        /* muted text */
+    --forest:#475569;       /* neutral slate (links, secondary) */
+    --forest-soft:#64748b;
+    --water:#0f7d92;        /* teal — "running" */
+    --trail:#dc2626;        /* accent: tracked runners */
+    --trail-dim:#fdeaea;
+    --good:#1f9e57;         /* leader / finished green */
+    --drop:#b4232a;         /* dropped / DNF */
+    --shadow:0 1px 0 rgba(0,0,0,.04);
+    --display:"Space Grotesk","Inter",system-ui,sans-serif;
+    --body:"Inter",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0; max-width:100%; overflow-x:clip}
+  body{
+    background:var(--paper); color:var(--ink); font-family:var(--body);
+    font-size:15px; line-height:1.45; -webkit-font-smoothing:antialiased;
+    padding:0; max-width:1120px; margin:0 auto;
+  }
+  a{color:var(--forest)}
+  .wrap{padding:18px 20px 64px}
+  /* ---------- masthead ---------- */
+  header.mast{display:flex; align-items:flex-end; justify-content:space-between; gap:16px; flex-wrap:wrap; padding-bottom:10px; border-bottom:1px solid var(--rule-strong)}
+  .mast h1{
+    font-family:var(--display); font-weight:700; letter-spacing:-.01em;
+    text-transform:uppercase; font-size:clamp(28px,5.5vw,42px); line-height:.95; margin:0;
+  }
+  .mast .sub{font-size:13px; color:var(--muted); margin-top:6px; letter-spacing:.02em}
+  .mast .sub b{color:var(--ink); font-weight:600}
+  .livebox{display:flex; flex-direction:column; align-items:flex-end; gap:3px; font-family:var(--mono); font-size:12px; color:var(--muted); text-align:right}
+  .livebox b{color:var(--ink); font-weight:500}
+  .livebox .fin b{color:var(--good)} .livebox .dnf b{color:var(--drop)}
+  /* ---------- section eyebrow ---------- */
+  .eyebrow{font-family:var(--display); text-transform:uppercase; letter-spacing:.12em; font-weight:600; font-size:13px; color:var(--muted); margin:26px 0 10px; display:flex; align-items:baseline; justify-content:space-between; gap:12px}
+  .eyebrow .hint{font-family:var(--body); letter-spacing:0; text-transform:none; font-weight:400; font-size:12px; text-align:right}
+  .eyebrow .hint select{font-family:var(--body); font-size:12px; padding:2px 6px; border:1px solid var(--rule-strong); border-radius:2px; background:var(--panel); color:var(--ink)}
+  /* ---------- live map ---------- */
+  #map{height:clamp(300px,52vh,560px); border:1px solid var(--rule); border-radius:2px; overflow:hidden}
+  .maplegend{display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin:8px 2px 0; font-family:var(--mono); font-size:11px; color:var(--muted)}
+  .maplegend i{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:5px; vertical-align:middle; border:1.5px solid var(--panel)}
+  .mapboxgl-popup-content{font-family:var(--body); font-size:12.5px; padding:7px 10px; border-radius:2px; background:var(--panel); color:var(--ink); border:1px solid var(--rule-strong); box-shadow:0 4px 14px rgba(0,0,0,.15)}
+  .mapboxgl-popup-content b{font-weight:600; color:var(--ink)}
+  .mapboxgl-popup-tip{display:none}
+  /* ---------- course strip (signature) — elevation profile with checkpoint ticks ---------- */
+  .course{background:var(--panel); border:1px solid var(--rule); border-radius:2px; padding:8px 16px 8px; margin-top:12px}
+  .track{position:relative; width:calc(100% - 48px); height:96px; margin:70px 24px 26px; border-bottom:1px solid var(--rule-strong)}
+  .track svg.prof{position:absolute; inset:0; width:100%; height:100%; overflow:visible}
+  .track svg.prof path.fill{fill:#f1f3f5}
+  .track svg.prof path.line{fill:none; stroke:var(--rule-strong); stroke-width:1; vector-effect:non-scaling-stroke}
+  .station{position:absolute; top:0; transform:translateX(-50%)}
+  .station .guide{position:absolute; top:-15px; left:50%; width:1px; height:111px; background:var(--rule-strong)}
+  .station .km{position:absolute; top:96px; left:50%; transform:translateX(-50%); margin-top:5px; font-size:9px; font-family:var(--mono); color:var(--muted); white-space:nowrap}
+  .station .lab{font-size:9px; line-height:1; color:var(--muted); white-space:nowrap; position:absolute; bottom:18px; left:0; padding-left:1px; transform:rotate(-32deg); transform-origin:bottom left; font-family:var(--mono)}
+  .station.start .lab,.station.finish .lab{color:var(--ink);font-weight:500}
+  .runner-mark{position:absolute; top:50%; transform:translate(-50%,-50%); width:9px; height:9px; border-radius:50%; background:var(--trail); border:1.5px solid var(--panel); box-shadow:0 0 0 1px rgba(0,0,0,.25); cursor:pointer; transition:left .8s cubic-bezier(.4,0,.2,1), top .8s cubic-bezier(.4,0,.2,1); z-index:2}
+  .runner-mark:hover, .runner-mark.show{z-index:2000000 !important}   /* the tooltip lives inside the dot's stacking context — lift the whole dot */
+  .runner-mark .tip{display:none; position:absolute; bottom:14px; left:50%; transform:translateX(-50%); background:var(--ink); color:var(--paper); font-family:var(--mono); font-size:11px; padding:3px 7px; border-radius:2px; white-space:nowrap}
+  .runner-mark:hover .tip,.runner-mark.show .tip{display:block}
+  .station .lab.lab-alt, .station .km.lab-alt{display:none}   /* thinned by renderCourse() when neighbours are too close */
+  .course .empty{color:var(--muted); font-size:13px; padding:8px 2px 14px}
+  /* ---------- controls ---------- */
+  .controls{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:8px 0 12px}
+  .controls input[type=search],.controls select{font-family:var(--body); font-size:14px; padding:7px 10px; border:1px solid var(--rule-strong); border-radius:2px; background:var(--panel); color:var(--ink)}
+  .controls input[type=search]{min-width:200px; flex:1 1 200px}
+  .seg{display:inline-flex; border:1px solid var(--rule-strong); border-radius:2px; overflow:hidden}
+  .seg button{font-family:var(--body); font-size:13px; padding:7px 13px; background:var(--panel); color:var(--muted); border:none; cursor:pointer; border-right:1px solid var(--rule)}
+  .seg button:last-child{border-right:none}
+  .seg button.on{background:var(--ink); color:var(--paper); font-weight:500}
+  /* ---------- table ---------- */
+  table{width:100%; border-collapse:collapse; font-size:14px}
+  thead th{font-family:var(--display); text-transform:uppercase; letter-spacing:.06em; font-weight:600; font-size:12px; color:var(--muted); text-align:left; padding:6px 10px 8px; white-space:nowrap; cursor:pointer; user-select:none; position:sticky; top:0; z-index:3; background:var(--paper); box-shadow:inset 0 -1.5px 0 var(--ink)}
+  thead th.num{text-align:right}
+  thead th .arrow{opacity:.35; font-size:10px}
+  thead th.sorted .arrow{opacity:1; color:var(--ink)}
+  tbody tr{border-bottom:1px solid var(--rule); cursor:pointer}
+  tbody tr:hover{background:rgba(77,163,255,.06)}
+  tbody tr.selected, tbody tr.selected:hover{background:rgba(245,197,24,.16)}   /* matches the yellow map dot */
+  tbody td{padding:8px 10px; vertical-align:baseline}
+  td.num,th.num{text-align:right; font-family:var(--mono); font-feature-settings:"tnum"; font-variant-numeric:tabular-nums}
+  td.bib{font-family:var(--mono); color:var(--muted); font-size:12.5px}
+  td.name{font-weight:500}
+  td.place{font-family:var(--display); font-weight:700; font-size:16px; width:1%; white-space:nowrap}
+  .star{border:none;background:none;cursor:pointer;font-size:15px;line-height:1;color:var(--rule-strong);padding:0 6px 0 0;vertical-align:middle}
+  .star.on{color:var(--trail)}
+  .tag{font-family:var(--mono); font-size:10.5px; text-transform:uppercase; letter-spacing:.04em; padding:1px 6px; border-radius:99px; border:1px solid currentColor; white-space:nowrap}
+  .tag.dnf{color:var(--drop)} .tag.fin{color:var(--good)} .tag.run{color:var(--water)}
+  .lastseen{color:var(--ink); font-size:13px}
+  .mini{color:var(--muted); font-size:11.5px; font-family:var(--mono)}
+  .rowinfo{display:none}   /* mobile-only progress summary under the runner name */
+  .sa-m{display:none}      /* mobile-only sex/age (a column of its own on desktop) */
+  .distsub{display:none}   /* mobile-only last reported distance under the time */
+  .showmore{display:block; width:100%; margin:10px 0 0; padding:10px; font-family:var(--body); font-size:13px; border:1px solid var(--rule-strong); background:var(--panel); color:var(--ink); border-radius:2px; cursor:pointer}
+  /* expanded detail row — a readout of every column's data for one runner, plus splits */
+  tr.detail td{padding:0}
+  .splits{padding:12px 14px 16px; background:rgba(77,163,255,.05); border-bottom:1px solid var(--rule)}
+  .detailhead{font-family:var(--display); text-transform:uppercase; letter-spacing:.08em; font-size:12px; color:var(--muted)}
+  .detailgrid{display:grid; grid-template-columns:minmax(220px,1fr) minmax(0,2fr); gap:14px 28px; margin-top:8px}
+  .statlist{font-size:13px}
+  .statlist > div{display:flex; gap:12px; padding:5px 0; border-top:1px solid var(--rule)}
+  .statlist > div:first-child{border-top:none}
+  .statlist .s{color:var(--muted); flex:0 0 112px}
+  .statlist .t{font-weight:500}
+  table.passings{font-size:12.5px; width:100%}
+  table.passings th{position:static; box-shadow:none; border-bottom:1px solid var(--rule-strong); font-size:11px; padding:4px 8px 6px; cursor:default}
+  table.passings td{padding:4px 8px; border-bottom:1px solid var(--rule); font-family:var(--mono); font-size:12px; white-space:nowrap}
+  table.passings td.cp{font-family:var(--body); font-size:12.5px}
+  table.passings tr{cursor:default}
+  table.passings tr:hover{background:transparent}
+  table.passings tr.ahead td{color:var(--muted)}
+  table.passings tr.next td{color:var(--ink)}
+  table.passings .up{color:var(--good)} table.passings .down{color:var(--drop)}
+  .splits .loading{color:var(--muted); font-size:12.5px; padding:8px 0}
+  /* ---------- banners / states ---------- */
+  .banner{border:1px solid var(--rule-strong); border-left:3px solid var(--trail); background:var(--panel); border-radius:2px; padding:12px 14px; margin:14px 0; font-size:13.5px}
+  .banner b{font-weight:600}
+  .banner code{font-family:var(--mono); font-size:12px; background:rgba(0,0,0,.05); padding:1px 4px; border-radius:2px}
+  .empty-state{text-align:center; color:var(--muted); padding:48px 12px; font-size:14px}
+  /* ---------- debug ---------- */
+  details.debug{margin-top:34px; border-top:1px solid var(--rule); padding-top:14px}
+  details.debug>summary{font-family:var(--display); text-transform:uppercase; letter-spacing:.1em; font-size:12px; color:var(--muted); cursor:pointer}
+  .dbg-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:12px 0}
+  .dbg-grid label{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; display:block}
+  .dbg-grid input,.dbg-grid select{width:100%; font-family:var(--mono); font-size:12.5px; padding:6px 8px; border:1px solid var(--rule-strong); border-radius:2px; background:var(--panel); color:var(--ink); margin-top:3px}
+  .dbg-row{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:8px 0}
+  .dbg-row button{font-family:var(--body); font-size:13px; padding:7px 14px; border:1px solid var(--ink); background:var(--ink); color:var(--paper); border-radius:2px; cursor:pointer}
+  .dbg-row button.ghost{background:transparent; color:var(--ink)}
+  pre.raw{max-height:280px; overflow:auto; background:#05080a; color:#9fc6ec; border:1px solid var(--rule); font-family:var(--mono); font-size:11px; line-height:1.5; padding:12px; border-radius:2px; white-space:pre-wrap; word-break:break-word}
+  footer{margin-top:40px; padding-top:14px; border-top:1px solid var(--rule); font-size:11.5px; color:var(--muted); font-family:var(--mono)}
+  @media (max-width:600px){
+    .wrap{padding:14px 13px 56px}
+    thead th,tbody td{padding:8px 7px}
+    td.place{font-size:14px}
+    .livebox{align-items:flex-start; text-align:left}
+    table{font-size:13px}
+    .col-bib, .col-sa, .col-last, .col-est, .col-next, .eta{display:none}
+    .rowinfo{display:block; margin-top:3px; font-family:var(--mono); font-size:11px; color:var(--muted); line-height:1.4}
+    .sa-m{display:inline}
+    .distsub{display:block; font-family:var(--mono); font-size:11px; color:var(--muted); font-weight:400; margin-top:1px}
+    thead th.col-time::after{content:" / Dist"}   /* header reads "Time / Dist" on mobile */
+    .splits{padding:11px 13px 14px}
+    .detailgrid{grid-template-columns:1fr}
+    table.passings td, table.passings th{padding-left:5px; padding-right:5px}
+    table.passings .col-split, table.passings .col-tod{display:none}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="mast">
+    <div>
+      <h1 id="raceTitle">UTMB</h1>
+      <div class="sub" id="raceSub"><b>Chamonix → Chamonix</b> · 174 km · 10,000 m+ · one lap of Mont Blanc</div>
+    </div>
+    <div class="livebox" id="livebox"></div>
+  </header>
+
+  <div id="topBanner"></div>
+
+  <div class="eyebrow">On course <span class="hint" id="followHint">tap ★ on a runner to highlight them on the map</span></div>
+  <div id="map"></div>
+  <div class="maplegend">
+    <span><i style="background:#1f9e57"></i>leaders (first man &amp; first woman)</span>
+    <span><i style="background:conic-gradient(#dc2626 0 25%,#2563eb 0 50%,#f59e0b 0 75%,#7c3aed 0)"></i>tracked (★) — a color per runner</span>
+    <span><i style="background:#6e7681"></i>on course</span>
+    <span style="margin-left:auto">positions interpolated between each runner's last checkpoint and the timing system's predicted arrival at the next; GPS-tracked runners use their live fix</span>
+  </div>
+  <div class="course">
+    <div class="track" id="track"></div>
+    <div id="courseEmpty" class="empty">Star a runner below to highlight them on the map and plot them along the course profile here.</div>
+  </div>
+
+  <div class="eyebrow" style="margin-top:30px">Leaderboard
+    <span class="hint"><span id="hiddenNote"></span><span id="raceWrap"></span></span>
+  </div>
+  <div class="controls">
+    <input type="search" id="search" placeholder="Search name, bib, club or country…" autocomplete="off">
+    <div class="seg" id="sexSeg">
+      <button data-sex="" class="on">All</button>
+      <button data-sex="m">Men</button>
+      <button data-sex="f">Women</button>
+      <button data-sex="star" title="Followed runners">★</button>
+    </div>
+  </div>
+
+  <div id="tableHost">
+    <div class="empty-state" id="loadingState">Loading live results…</div>
+  </div>
+
+  <details class="debug" id="debug">
+    <summary>Data source</summary>
+    <p style="font-size:13px;color:var(--muted);max-width:66ch">This dashboard reads the same API that powers <a href="https://live.utmb.world/utmb/2026/utmb">live.utmb.world</a>. That API only answers cross-site requests from utmb.world, so the page routes calls through a small relay you host yourself (<code>proxy-worker.js</code> in this folder — one <code>npx wrangler deploy</code>). Set the relay URL here or with <code>?proxy=…</code> in the address bar. Changes apply on the next refresh.</p>
+    <div class="dbg-grid">
+      <div><label>API base</label><input id="cfgApi" value="https://utmblive-api.utmb.world"></div>
+      <div><label>Tenant (event_year)</label><input id="cfgTenant" value="utmb_2026"></div>
+      <div><label>Race ID</label><input id="cfgRace" value="utmb"></div>
+      <div><label>Relay / CORS proxy prefix</label><input id="cfgProxy"></div>
+      <div><label>Refresh (s)</label><input id="cfgRefresh" value="60"></div>
+    </div>
+    <div class="dbg-row">
+      <button id="applyBtn">Apply &amp; reload feed</button>
+      <button class="ghost" id="resetBtn">Reset to defaults</button>
+    </div>
+    <div id="colmap" class="mini" style="margin:8px 0"></div>
+    <div class="eyebrow" style="margin-top:14px;font-size:11px">Raw race summary</div>
+    <pre class="raw" id="rawConfig">—</pre>
+    <div class="eyebrow" style="margin-top:14px;font-size:11px">Raw ranking (first rows)</div>
+    <pre class="raw" id="rawList">—</pre>
+  </details>
+
+  <footer>
+    Unofficial tracker reading the public UTMB Live API. Times update on the timing system's schedule; positions between checkpoints are estimates. Official tracking: <a href="https://live.utmb.world/utmb/2026/utmb">live.utmb.world/utmb/2026/utmb</a>
+  </footer>
+</div>
+
+<script>
+/* Snapshot of /races/utmb/static + /races/utmb/map (2026-08-28) so the course renders instantly
+   and the page still works if those calls fail. The live static call replaces it when its hash changes. */
+const EMBEDDED={"hash":1383624660,"info":{"name":"UTMB®","distance":174,"elevationGain":10000,"startDate":"2026-08-28T17:45:00.000Z","startPlace":"Chamonix","eventTimezone":{"eventTimezone":"Europe/Paris","dataTimezone":"Europe/Paris"}},"points":[{"pointId":0,"isPublic":true,"isDisabled":false,"distance":0,"altitude":1035,"gainElevation":0,"name":"Chamonix","shortName":"Départ","longitude":6.86918,"latitude":45.92359,"cutoff":null},{"pointId":2,"isPublic":false,"isDisabled":true,"distance":9100,"altitude":1009,"gainElevation":220,"name":null,"shortName":null,"longitude":null,"latitude":null,"cutoff":null},{"pointId":4,"isPublic":true,"isDisabled":false,"distance":14452,"altitude":1663,"gainElevation":898,"name":"Col de Voza","shortName":"Col de Voza","longitude":6.76004,"latitude":45.8773,"cutoff":null},{"pointId":6,"isPublic":true,"isDisabled":false,"distance":22863,"altitude":809,"gainElevation":1040,"name":"Saint-Gervais","shortName":"St-Gervais","longitude":6.71139,"latitude":45.89292,"cutoff":"2026-08-29 00:00:00"},{"pointId":8,"isPublic":false,"isDisabled":false,"distance":30401,"altitude":1062,"gainElevation":1445,"name":null,"shortName":null,"longitude":null,"latitude":null,"cutoff":null},{"pointId":10,"isPublic":true,"isDisabled":false,"distance":32441,"altitude":1147,"gainElevation":1535,"name":"Les Contamines Montjoie","shortName":"Contamines","longitude":6.72619,"latitude":45.82212,"cutoff":"2026-08-29 02:00:00"},{"pointId":12,"isPublic":true,"isDisabled":false,"distance":41094,"altitude":1706,"gainElevation":2130,"name":"La Balme","shortName":"La Balme","longitude":6.7109,"latitude":45.75761,"cutoff":"2026-08-29 04:00:00"},{"pointId":14,"isPublic":true,"isDisabled":false,"distance":46929,"altitude":2448,"gainElevation":2924,"name":"Refuge de la Croix du Bonhomme","shortName":"Bonhomme","longitude":6.71757,"latitude":45.72219,"cutoff":null},{"pointId":16,"isPublic":true,"isDisabled":false,"distance":52156,"altitude":1546,"gainElevation":2924,"name":"Les Chapieux","shortName":"Chapieux","longitude":6.73354,"latitude":45.69567,"cutoff":"2026-08-29 07:15:00"},{"pointId":18,"isPublic":true,"isDisabled":false,"distance":62919,"altitude":2511,"gainElevation":3977,"name":"Col de la Seigne","shortName":"Col Seigne","longitude":6.80689,"latitude":45.75144,"cutoff":null},{"pointId":22,"isPublic":true,"isDisabled":false,"distance":67821,"altitude":1965,"gainElevation":3977,"name":"Lac Combal","shortName":"Lac Combal","longitude":6.85566,"latitude":45.77047,"cutoff":"2026-08-29 11:00:00"},{"pointId":24,"isPublic":true,"isDisabled":false,"distance":71822,"altitude":2410,"gainElevation":4441,"name":"Arête du Mont-Favre","shortName":"Mont-Favre","longitude":6.88999,"latitude":45.77229,"cutoff":null},{"pointId":26,"isPublic":true,"isDisabled":false,"distance":76384,"altitude":1961,"gainElevation":4455,"name":"Checrouit - Maison Vieille","shortName":"Checrouit ","longitude":6.93091,"latitude":45.79056,"cutoff":null},{"pointId":28,"isPublic":true,"isDisabled":false,"distance":81280,"altitude":1194,"gainElevation":4475,"name":"Courmayeur Sport Center Entrée","shortName":"Courmayeur","longitude":6.96427,"latitude":45.79472,"cutoff":null},{"pointId":30,"isPublic":true,"isDisabled":false,"distance":81320,"altitude":1194,"gainElevation":4475,"name":"Courmayeur Sport Center Sortie","shortName":"Courmayeur","longitude":6.96459,"latitude":45.79444,"cutoff":"2026-08-29 14:15:00"},{"pointId":32,"isPublic":false,"isDisabled":false,"distance":82258,"altitude":1223,"gainElevation":4520,"name":null,"shortName":null,"longitude":null,"latitude":null,"cutoff":null},{"pointId":36,"isPublic":true,"isDisabled":false,"distance":86619,"altitude":1979,"gainElevation":5288,"name":"Refuge Bertone","shortName":"Bertone","longitude":6.97861,"latitude":45.80914,"cutoff":null},{"pointId":38,"isPublic":true,"isDisabled":false,"distance":94199,"altitude":2025,"gainElevation":5600,"name":"Refuge Bonatti","shortName":"Bonatti","longitude":7.03323,"latitude":45.84678,"cutoff":null},{"pointId":40,"isPublic":true,"isDisabled":false,"distance":99436,"altitude":1779,"gainElevation":5727,"name":"Arnouvaz","shortName":"Arnouvaz","longitude":7.05389,"latitude":45.87111,"cutoff":"2026-08-29 19:15:00"},{"pointId":42,"isPublic":false,"isDisabled":true,"distance":101747,"altitude":2071,"gainElevation":6030,"name":null,"shortName":null,"longitude":null,"latitude":null,"cutoff":null},{"pointId":44,"isPublic":true,"isDisabled":false,"distance":104036,"altitude":2527,"gainElevation":6487,"name":"Grand Col Ferret","shortName":"Col Ferret","longitude":7.07786,"latitude":45.88896,"cutoff":null},{"pointId":46,"isPublic":false,"isDisabled":false,"distance":107651,"altitude":2078,"gainElevation":6490,"name":null,"shortName":null,"longitude":null,"latitude":null,"cutoff":null},{"pointId":48,"isPublic":true,"isDisabled":false,"distance":113981,"altitude":1604,"gainElevation":6574,"name":"La Fouly","shortName":"La Fouly","longitude":7.09843,"latitude":45.93559,"cutoff":"2026-08-29 23:45:00"},{"pointId":50,"isPublic":false,"isDisabled":false,"distance":121710,"altitude":1155,"gainElevation":6606,"name":null,"shortName":null,"longitude":null,"latitude":null,"cutoff":null},{"pointId":51,"isPublic":true,"isDisabled":false,"distance":127450,"altitude":1472,"gainElevation":7086,"name":"Champex-Lac entrée","shortName":"Champex-Lac","longitude":7.12248,"latitude":46.02556,"cutoff":null},{"pointId":52,"isPublic":true,"isDisabled":false,"distance":127455,"altitude":1472,"gainElevation":7086,"name":"Champex-Lac sortie","shortName":"Champex-Lac","longitude":7.12248,"latitude":46.02561,"cutoff":"2026-08-30 03:30:00"},{"pointId":54,"isPublic":true,"isDisabled":true,"distance":132371,"altitude":1340,"gainElevation":7165,"name":"Plan de l'Au","shortName":"Plan de l'Au","longitude":7.07962,"latitude":46.04986,"cutoff":"2026-08-30 04:45:00"},{"pointId":56,"isPublic":true,"isDisabled":false,"distance":138941,"altitude":1885,"gainElevation":7880,"name":"La Giète","shortName":"La Giète","longitude":7.03367,"latitude":46.05502,"cutoff":null},{"pointId":58,"isPublic":true,"isDisabled":false,"distance":143975,"altitude":1303,"gainElevation":7943,"name":"Trient","shortName":"Trient","longitude":6.99486,"latitude":46.05583,"cutoff":"2026-08-30 09:00:00"},{"pointId":60,"isPublic":true,"isDisabled":false,"distance":147983,"altitude":1936,"gainElevation":8590,"name":"Les Tseppes","shortName":"Tseppes","longitude":6.97968,"latitude":46.04741,"cutoff":null},{"pointId":62,"isPublic":true,"isDisabled":false,"distance":155278,"altitude":1260,"gainElevation":8734,"name":"Vallorcine Entrée","shortName":"Vallorcine","longitude":6.93236,"latitude":46.03249,"cutoff":null},{"pointId":64,"isPublic":true,"isDisabled":false,"distance":155278,"altitude":1260,"gainElevation":8734,"name":"Vallorcine Sortie","shortName":"Vallorcine","longitude":6.93236,"latitude":46.03249,"cutoff":"2026-08-30 12:15:00"},{"pointId":66,"isPublic":false,"isDisabled":false,"distance":159755,"altitude":1431,"gainElevation":8935,"name":null,"shortName":null,"longitude":null,"latitude":null,"cutoff":null},{"pointId":80,"isPublic":false,"isDisabled":true,"distance":161655,"altitude":1703,"gainElevation":9224,"name":null,"shortName":null,"longitude":null,"latitude":null,"cutoff":null},{"pointId":82,"isPublic":true,"isDisabled":false,"distance":166563,"altitude":1883,"gainElevation":9687,"name":"La Flégère","shortName":"La Flégère","longitude":6.88718,"latitude":45.96089,"cutoff":"2026-08-30 15:45:00"},{"pointId":196,"isPublic":false,"isDisabled":false,"distance":172950,"altitude":1037,"gainElevation":9697,"name":null,"shortName":null,"longitude":null,"latitude":null,"cutoff":null},{"pointId":198,"isPublic":false,"isDisabled":false,"distance":173554,"altitude":1036,"gainElevation":9700,"name":null,"shortName":null,"longitude":null,"latitude":null,"cutoff":null},{"pointId":200,"isPublic":true,"isDisabled":false,"distance":173599,"altitude":1036,"gainElevation":9700,"name":"Chamonix","shortName":"Chamonix","longitude":6.86912,"latitude":45.9236,"cutoff":"2026-08-30 17:30:00"}],"profile":{"raceId":"utmb","profile":[[0,1035],[527,1035],[1072,1030],[1706,1022],[2257,1019],[2811,1022],[3339,1009],[3886,1000],[4475,1014],[5128,1030],[5676,1019],[6243,1067],[6621,1116],[7081,1125],[7517,1189],[8049,1122],[8602,1035],[9148,1008],[9794,995],[10217,1049],[10489,1088],[10747,1129],[11180,1163],[11508,1205],[11884,1257],[12132,1317],[12425,1356],[12731,1420],[12971,1470],[13278,1539],[13584,1577],[14029,1631],[14377,1665],[14764,1705],[15101,1758],[15660,1796],[16264,1806],[16783,1774],[17190,1665],[17710,1558],[18135,1497],[18445,1440],[18759,1382],[19102,1308],[19566,1287],[19976,1215],[20474,1123],[20854,1050],[21134,986],[21451,914],[21866,879],[22269,841],[22733,811],[23109,815],[23631,816],[24083,836],[24599,825],[25053,838],[25545,865],[25839,911],[26148,964],[26612,972],[27145,933],[27739,942],[28227,1005],[28681,1007],[29178,1021],[29610,1020],[30046,1066],[30499,1056],[31043,1056],[31605,1092],[32292,1130],[32509,1148],[32900,1153],[33470,1159],[33994,1190],[34547,1167],[35100,1176],[35642,1177],[36273,1190],[36802,1203],[37212,1275],[37568,1315],[37950,1362],[38361,1416],[38683,1464],[39049,1516],[39533,1552],[40081,1569],[40575,1613],[40874,1670],[41101,1702],[41344,1748],[41686,1800],[41879,1850],[42038,1889],[42406,1919],[42785,1944],[43066,1983],[43250,2026],[43487,2070],[43877,2106],[44091,2137],[44291,2188],[44433,2220],[44657,2266],[44933,2329],[45227,2366],[45521,2397],[45806,2418],[46089,2422],[46360,2436],[46573,2469],[46882,2467],[47215,2415],[47477,2363],[47875,2330],[48163,2274],[48485,2211],[48702,2148],[48958,2092],[49284,2038],[49699,1982],[50048,1909],[50383,1836],[50809,1770],[51213,1710],[51619,1650],[51919,1586],[52207,1547],[52584,1549],[53102,1570],[53516,1610],[54047,1640],[54383,1660],[54765,1645],[55305,1665],[55683,1712],[56049,1764],[56316,1809],[56659,1822],[57090,1806],[57499,1790],[57851,1822],[58268,1859],[58621,1871],[58880,1903],[59224,1952],[59552,1998],[59748,2032],[60055,2078],[60322,2130],[60643,2146],[60855,2174],[61107,2222],[61292,2255],[61638,2307],[61893,2353],[62288,2419],[62650,2475],[63065,2511],[63420,2452],[63813,2368],[64159,2301],[64523,2284],[65076,2223],[65647,2165],[66187,2150],[66624,2119],[67045,2040],[67491,1973],[68041,1964],[68635,1964],[69200,1977],[69488,2015],[69768,2059],[70014,2106],[70274,2169],[70452,2203],[70653,2241],[70900,2281],[71174,2333],[71484,2366],[71774,2411],[71998,2411],[72246,2378],[72634,2333],[73041,2340],[73500,2303],[73864,2275],[74261,2227],[74576,2184],[75125,2169],[75625,2113],[76046,2025],[76489,1961],[76887,1948],[77353,1891],[77713,1841],[78201,1728],[78670,1684],[79237,1508],[79594,1418],[79930,1311],[80422,1235],[80957,1206],[81381,1194],[81815,1176],[82173,1201],[82541,1240],[83056,1275],[83575,1349],[83927,1401],[84300,1447],[84582,1498],[84783,1549],[84986,1587],[85230,1652],[85486,1716],[85732,1754],[85898,1803],[86067,1840],[86272,1878],[86503,1923],[86735,1975],[86934,1998],[87112,2034],[87556,2010],[88039,1986],[88593,1969],[89180,1948],[89607,1975],[90014,1987],[90384,1953],[90931,1948],[91167,1963],[91635,1985],[92030,2013],[92366,2001],[92736,1992],[93259,1936],[93653,1944],[94024,1958],[94220,1986],[94472,2034],[94835,2034],[95199,2009],[95547,2047],[95894,2054],[96341,2048],[96704,2062],[97109,2057],[97543,2045],[97875,2031],[98321,2001],[98709,1949],[99070,1893],[99559,1785],[100000,1789],[100279,1850],[100533,1909],[100782,1946],[101095,1965],[101470,1999],[101664,2023],[101932,2071],[102204,2116],[102435,2168],[102664,2206],[102817,2252],[102993,2280],[103187,2312],[103342,2351],[103503,2397],[103702,2431],[103928,2493],[104214,2527],[104604,2496],[104980,2461],[105361,2411],[105833,2351],[106269,2290],[106660,2261],[107109,2206],[107515,2134],[107892,2077],[108339,2029],[108728,1983],[109092,1965],[109434,2000],[109872,1982],[110252,1935],[110609,1876],[110972,1790],[111250,1735],[111648,1685],[112037,1676],[112555,1645],[113111,1632],[113688,1613],[114263,1601],[114649,1574],[115087,1547],[115627,1531],[116075,1506],[116422,1489],[116980,1445],[117463,1419],[117997,1384],[118520,1379],[119085,1337],[119633,1283],[120231,1257],[120816,1222],[121350,1194],[121855,1153],[122412,1128],[122961,1129],[123479,1091],[123983,1062],[124309,1102],[124581,1130],[124868,1206],[125176,1256],[125553,1266],[125860,1322],[126161,1345],[126479,1387],[126773,1415],[127130,1414],[127447,1456],[127751,1475],[128263,1476],[128886,1491],[129402,1502],[129898,1486],[130392,1449],[130974,1413],[131462,1398],[131924,1374],[132331,1344],[132693,1350],[133197,1359],[133705,1401],[134091,1439],[134327,1483],[134595,1542],[134774,1585],[134954,1613],[135205,1619],[135464,1649],[135659,1710],[135892,1753],[136117,1813],[136326,1856],[136680,1892],[137102,1936],[137499,1981],[137814,2003],[138094,2037],[138489,2016],[138910,1926],[139253,1880],[139714,1848],[140124,1769],[140650,1711],[141090,1653],[141464,1610],[141816,1560],[142258,1532],[142701,1532],[143083,1498],[143314,1441],[143539,1370],[143977,1309],[144410,1304],[144912,1300],[145461,1319],[145947,1339],[146253,1380],[146473,1430],[146635,1491],[146777,1540],[146951,1583],[147117,1643],[147285,1679],[147439,1722],[147628,1788],[147856,1834],[148045,1885],[148211,1911],[148491,1963],[148762,2003],[149206,2029],[149688,2062],[150015,2038],[150373,1993],[150716,1935],[151072,1869],[151341,1815],[151697,1784],[152165,1755],[152590,1680],[153048,1629],[153468,1575],[153967,1499],[154421,1396],[154845,1315],[155331,1254],[155656,1260],[156205,1274],[156572,1302],[157102,1310],[157639,1341],[158160,1366],[158620,1405],[159123,1435],[159557,1461],[160077,1434],[160494,1421],[160767,1466],[160976,1505],[161196,1543],[161364,1577],[161598,1634],[161794,1674],[162042,1703],[162356,1669],[162563,1614],[162857,1544],[163119,1476],[163478,1468],[163815,1518],[164217,1506],[164530,1541],[164832,1568],[165230,1581],[165460,1634],[165685,1687],[165936,1725],[166185,1765],[166482,1822],[166830,1876],[167220,1858],[167840,1752],[168251,1711],[168552,1654],[168912,1595],[169279,1538],[169447,1496],[169654,1433],[170032,1394],[170412,1358],[170836,1332],[171147,1284],[171527,1209],[172027,1166],[172543,1117],[172935,1056],[173222,1039],[173816,1039],[174037,1036]],"distance":174037,"maxElevation":2529,"minElevation":805},"polyline":"mmhwGks|h@?FZaB?E`@IF?FBTXVVFRh@r@RZzAlB^b@nF~E`@^rArAZZX\\h@h@h@h@RXTXJDLNBVNDHLTj@^p@`@n@\\t@Xh@Zj@L`@L`@J`@Jb@Jb@Jb@Ll@Ln@t@|CPr@^rBHd@d@dDJv@f@~CLt@XrBFf@H|@H|@TxBFh@@hA@hAOtDCz@@x@RbDFt@C`DAt@?v@Bn@TdCFj@Lx@Lz@Tx@\\n@FFF^JX`@v@@ZBDF\\Z|@Jn@Jp@BV@`@FZZv@ZVbBbA`@VnAz@XR\\?\\@pAJZB\\P^Rl@DZPXRFR`@f@PP`@n@`@n@PRf@^Xd@Tn@Vb@Vb@N\\Vd@NRVf@Xf@Vl@Xj@Xr@DRN`@N`@FVDh@?Z@HZlANXBLHjALx@p@fCPl@Vf@d@\\R\\T^Ll@Ll@J~@Kl@MhBHt@LZ\\^b@Z\\^DNXp@Z`@\\ZNRHj@Jj@Dt@BnAFNXPZRTb@`@b@fA^b@XAAR]Xc@Xa@NMzAcB\\a@`@]`@]Os@JO?M\\U`@c@b@a@R_@T_@f@q@^o@^a@n@g@NSDTAr@?v@@x@TbCJt@Tx@Rf@Rf@zEhL^z@^`@^b@~ArA^ZhAx@VR`BxAVPhAp@j@k@V\\V^XVXXVLX@RXCTBXLh@Vd@Rh@Rj@jA~BXh@N^N^Ld@Lf@Lv@Lx@PjCDl@Ch@Ax@Ax@AfD?v@Hn@Hp@RhAHdA`@A`@ArA]ZIhAs@VOp@U~@O`@FnAr@XPFp@Hr@^r@^r@Tj@JJNFh@Fl@P^h@LJL@JGBGfAIFERBNDRTJDJGDMHAFTN\\TLVV@ZZnB?RJGVGRCRJNVH\\Tl@Tn@\\j@HPBLDh@Lh@Nh@f@x@P\\RZPDNRVJH?VLjAx@RTBR?TGl@Gl@Ct@Ct@DVFtCAJBCTNVd@LHRZDVNTZP\\Nf@d@LRj@j@ZRXDJNLJL^DZR^PTLFF?PNFNBh@JXRRHTF\\Pj@LJBb@Ex@Ez@L|AETKF]A]?o@Fm@Fe@Le@N_BpA_@Z_ApAUZ[f@q@dBO`@cA|BUh@aBpC_@p@kAnC[l@Qb@Qb@e@vAINSVUNc@RWN_AhAUXGNI\\g@|@Od@Kj@Il@Ql@Ol@Ox@Wt@g@~@UZGF]L[NR^P`@HFFJLJRJjCl@l@Nj@Vb@Xd@`@d@b@JNJTn@~@Xn@PdADn@VxGBf@QzCEr@@n@@n@TnG?v@Cz@C|@E`AE`AM~@gA|FA@h@\\N@\\NC\\[HQVIr@Gt@Cj@@^H`@@JANBPRPVDF?`@RLJNDLHPRZr@RZTZHFHJTJRFBBHT?VCHORKFMBSCOES?MDS?KFEFGP@\\FHF@NMNEJDDLBVALCHO\\OVUNG?MFGFGLMr@?JDBR_@HIFENCN?FBDJEHUTGJENCZ?l@APIPK\\AF@RBJHFH?RQJEJ?B@BJ?LCh@IRMd@Mf@Qb@MPUb@EPBNf@h@Vl@DLH|@Gb@Yl@AFCr@H`@CXGHo@Do@JUJMLQj@S~AC`@Kh@CV@LHRHDDAt@s@NS^YVFJVRTFN?Be@l@Q`@ANB?PGNHH@HAR@JBFDH@HA^@JT?d@Qn@?X@DHJNF\\VD^Il@Op@?FP\\ZXJNDLTd@HfBAVCJEHEPUp@AN@^@LDJT@LEVCN?F@Z?LDN@LAPKNC^AJCJIB?\\H@BFDHR?HCNELILQD?@KDG?SHKHCDCF?JBHBDFD?@LHB?NFz@d@LJDFBHPt@PRNJHJFX?TMr@?j@BHDZJVZ^DPARABEB]D_@?c@Jc@JQ?UGIEI?GDCF@XDJDVHz@GROPCHFPDBN?FDBL?PGRMJOj@MX?FBLDDZDRTDf@Ad@?f@CR@^ADBPCPCBAD?TDL?HDNDDHPHJBTCXKTEDIBEAO@CF@RF\\@@@LAREV?`@ABJf@VZP^HDTf@HJ\\ZFHDJB@TXBHHJb@f@B@HLNJNXLHHPDTFFDHDDHBXRXHFDRFd@VN?PDBAJ?FBDFBHDd@FR@JBHBBAD?\\INER?\\Hb@BFDZ?NDr@PhATj@VXTZLHTHPBTHNBZA\\?^BRHh@^TZVZ`@`@d@\\LN\\HJ@ZQHKL]Je@Re@PMRGb@IJG\\Mb@]DAP?ZBr@NDD^NF@BBRDFF@FANOL?@ONGNAHDRDDH@DBX@LD\\FpBPd@D^A`@AZEb@Ob@Mb@ED@BFBLALGP[f@WROHMDK?g@H[PIBs@D[D[AS@QDSHABWTi@bAYd@IFGHEN?NDLJLRNDJ?RGRS^Wn@GHWTIN?F@FBDRNTBHD\\DVFLJLTFd@ATMb@MZ@XVh@Vj@JPZ`@Zv@Xf@PRLRXp@Hx@Jz@A`A@b@FXVb@DLB^Cv@Cv@C\\BbAPdCDl@R~BD`ATrBFd@ZlBHb@Tz@Nr@Fb@Pp@Rh@Tb@V|@Jl@Vt@v@bAFPNn@Dx@N`APd@Rb@Tp@Bf@Dh@Af@Af@Kv@Sr@_@f@c@\\o@^]J]Jk@JKFMRQh@[`@i@Dq@Qa@?c@D_@@[D[D[@[@a@Fa@Be@De@FMDs@b@m@RYFi@@G@MHON[TGBQNYZe@VKLEP?RDRJJJNRPZRBDf@d@LRTn@DDFNb@j@^\\RBR?FA^@LDXLTVVVTL\\Fn@Cd@Id@ITA`@@d@HLFBFDNAVI\\Yj@Kb@Kb@Wp@Ur@MX[j@Qd@KPGPc@v@[x@QVg@\\q@l@CD_@V]Xa@Py@B]Fg@^YLKHKJITAPD`@?HA^Gj@Op@GPKLYL]FWRWRU^EBCDk@^E?]LeAv@MNSFYTSJc@F[^INKJKRDDZBJNJVDDLDZAH@LDLHDNBTATEP@XHHLBJ?PBRTVHD?DBL@FBD?PDJ?^ENBNNT\\XPFL@JBBNH\\FLDL@ZN\\DHHD@Z?ZIJMN]HMJINAz@\\d@\\\\DL?VDTAJLTFJ@XCHBXBV?F@LAD@FAV?jAF\\EHHHBL?LCZMTGFB@DGJKJOJCFUTe@ZC?_@L[@UFWPWP_@`@]TMFODq@Jq@Pa@Za@^EDU`@]VMRG\\Wt@Kf@GNKN]T]NSP]`@o@b@KLCNHFh@[z@M\\IL?DF?FKTEDaAn@KJGLEf@INKHm@ZSPc@j@KJMHWZWRe@ZWTKDa@Za@TOFo@`@QVWRa@V_@Ve@b@SNGBWXWXOTUTKNWXMJ[LO@a@SMAO@_@Hk@P[Fq@RSHOBG?WFSHWDEF@LFLJHr@VJF@JEHKF[B_@@]@k@Ai@?m@Hu@FUDMDYTOB[CIL@NVZPF\\FJAPBDFABE@KHm@VKJQFE?_@QWGE@Y`@KTSPCH@BB@VB@BAJKL?N@BJC?PQ\\CLDBJQHCFB@F?^CVCNIVAPBNNLBDDPA^GPQL[@c@IWBWAm@QOCG?WT[RMDO@WAM@YLQVSl@SZMFSFw@FOBS?WDc@@c@B]B[DEL?P@FPP`@L`@L\\HLFV\\Pp@N`@PNt@^f@LV?\\IVOXGDB@FAFEFm@^WJg@Jo@FW?e@Ag@Em@AU@IHAH@HJJZBLD?FINSVIXD^Bt@F\\Fx@Hr@?^CZEFGDQAOMUYUWOEg@HO`@CTA`@E`@?HIt@Ip@Qr@W^_@Rq@Xc@L[BYB_@?]?OHGR?H@HHTFBTBl@MFC\\[@DADRCl@ALJDFl@HL?`@WDK@KA]Ku@Ce@@a@Dk@F[Ds@Fq@Hw@@GVQLCRDJFX`@Z`@\\Z`@LPEHM^Gl@En@Ef@A`@?b@?TBp@A\\Bj@RTAj@@t@Pd@Ah@GXOZMTG\\E\\CREZMZ[Z[HKP]FIFEFFBHBBJ?\\O^EVQ\\[XJZ^NTj@d@LRh@zAb@d@X?f@Bb@^^Vb@Vd@VJ@DA\\Qf@ML@ZZNr@^f@\\X^TVFd@BJ?`@KLMVa@VYVSXQVSVSj@i@f@a@VCTHPd@Hl@?FJb@ZZl@^P@d@KPIFGBGDWJy@\\a@f@YPMLMb@[f@c@b@WFA^QLMXk@\\a@HSf@iBFMBW?U@GLU^Kp@Aj@IJ?j@K`@@b@BTDh@BJDLVJ?TKFIRQf@[POFIZi@Xq@?ERg@LQj@]VY^Wf@Mb@OTQTWf@q@DMHKFOFWTe@LO?GRo@?EHUDG?C^e@f@QTYVYF@@B?PABARBF@?BEBAD@JEVSXMNMB@?FCFE\\EN?LCH?ZEXA`@?R@B@?La@DYPo@HWHOXQTQJMNKBE?C`@s@^OL?\\Gb@Sb@{@d@u@V]ZSFINMFM^g@X[FMJM^Yz@Yl@Kf@DZA\\@XENBZAb@GTHHAV?PMJEXCPEZc@RSl@a@h@{@JITEX?HGZi@Xk@XSd@QXkBJ[v@gAX]b@Qb@ENCDCh@i@j@i@NSXW`@g@VYXYL{@TaATaARgA`@k@`@e@`@OXCZMZKx@a@PGRSp@M^_@^]Po@Ro@j@cBL_@b@i@n@Yf@[h@[VWVUj@[RGBVFLNJL?vAeANGXEZE`AU^Cf@@B@TCj@Fp@@r@JR@JDTB\\LRDh@T@B\\VXXVZJFVHH@DB`@^^h@NNRL\\Z`@XHDJB^B^Db@?d@@LAZMXG\\G\\EPA|@@`@A`@Fh@BPCR?p@Sb@@PVLZNRN@JBhA@THd@?JA^DZ?HRA^FJX@\\A\\?ZDZD\\C\\CZJj@J^Bl@Lp@RZNb@HZDZDZPVh@BBFERm@PUR?h@N`@ZVHJJRXLHDFJFVBb@Cd@Ah@]LMLGNC\\@d@C`@QCFORERBTDLHHHNB@\\^PLJDJ@VG^F\\^\\b@f@Tf@NLHZFJDJ?j@Hj@H\\Jn@^ZB`@Fd@AHC`@AF@XLXLVNXLNJ\\\\^Dd@Bd@G^_@`@UD?PFPXDZCp@DdABPDLFDFGP}@VcALY\\[p@EVGNDDDBFFXJZVPL@XA`@O`@MnAUXGXEZEvCs@p@O^G`@Gd@?F@`@L`@Tb@CXQ\\K^K\\W\\Ub@Qd@O`@{B@Sd@Df@d@j@\\VBVKX@Z@LD^TRPVHb@?b@?d@If@G`@?`@@f@Gf@GXKXIp@T\\C\\AVSVQl@Ln@NX\\X^bAz@p@Fd@UtAFZ@p@Ir@Gl@Ul@U~BWh@Gp@Lp@Nl@Vl@XZDZN^Il@?^Cf@IF?FAXMPC^DJ?j@KZAHCFEDGBOBGJMDMCGCAI@_@X_@BIM?CD?@AAEA@@??BAA?C@??B@CHBXQZQXWFKGOo@DKECC@[BGVKTAHCZETIn@]DEv@_@d@MXCZA`@DV@j@Gh@Md@W\\WNOf@]ZWZWb@S\\Kp@IT@VDfBd@`@Jj@^l@f@Zf@Pl@ABJLLQXNZLb@Jd@Jl@HjAJf@Gd@I^MXM@MHQd@e@Zg@JKHCzB@h@@v@CHEVa@L]Ha@A}@IeAGeAXAZ?ZK^g@Cw@Au@@WJUFCVFj@Vb@\\b@\\\\Z?@LL`@TbCdAj@VVLXN^^x@`B?Bb@h@\\z@bDdDVV\\N\\PZTb@Vh@F^c@`@KlAPV@~DfAZHFn@YRc@?_@JYXMb@BL`@NTRf@Tf@Tf@Lh@N\\F^B^D^?^?P@n@NrA|@VHn@S\\Y\\Qf@Jh@Jb@BZDAJDDHb@Ed@Kt@Cf@H\\`@\\^L\\N\\`@Pn@B\\CNN^`@H`@Jn@\\d@Nd@P\\^TZ\\n@\\`@\\Z^Zn@XPLZd@h@j@^TzA`@b@PJHl@\\f@P`@T\\V\\Rb@j@b@Vl@RVDJ?^D^^Zf@LLzAj@\\Nj@XPJ^XD@`@d@Al@Wb@?n@TLb@Ld@L`@N`@N^L`@LXN|Ap@^Nn@Pb@NdA[F@`@Ob@MRNPb@HJTJLPRHRLXJBDVTTDXVNPFBDF\\RVHLHHNHHXJX@JHTJt@j@PHX@\\LFD^DVHDHd@V@BPHHJPHFFHD`@FPFTNRPNDLHLDPLJD^DHFPR\\HHDTDJDD?FBN?RGXCj@Zj@@f@FZJ\\JN?PEVCPIB?LIF?JGX]BA@ELIfAWZW^q@Ra@Rg@Zk@Ni@Ng@b@a@PSXi@DCPCJAF@ZENELGJAd@STQHC\\SRCR@RFLNRH^RRBJDXB`@HZB\\HV@NDPFLHH@HHJPJFLDDA`@]d@Ub@?JAVFHATBDAL?JBFDTF@BFBLPR^R`@`@BHDR?d@QFETCTILINELKZc@JKHCd@?TCN@^EPG@CFE\\ORARKNQHWJSj@g@RWHAJEHAd@@VF\\?N@`@ETIRMTG`@A^DXABAN?n@L^Nb@HLD^F`@?~@GXEf@?f@D\\LX^BHTJb@Dh@B\\J^JNJj@XXV^R\\Dl@B`@Db@DHDZFZHZJZJl@Zn@X^J^LZPVRXVXXXTh@\\XVXVZF\\FTHf@FRHh@Hj@Jn@TZDZJNBH?p@TXNh@Db@Fp@Zb@ND?TPF@FDr@Jf@PRBNDPHLJJB^Rd@Nj@TLB\\?^?ZH`@B`@VHFFHRLLBN?BAJ?TC^OP?FARKB?FGB?PGFAJ@FDH@XJPNNH?@NL`@TV^\\NJHZLF@DABCDKV]NANIDEJARDBBNDTARIBCBI?UAA?GA@?AVSDIA??@JDr@j@d@h@FDB?RHTVTVJZBBBAH?B@BFAJDTDHFFDNJPF`@A?@FFLALBFB@HXBDB@?FNb@FLDDb@r@\\b@b@b@XRHJLE@CPOJCDDFBD@HAB@LLHPB?HGZK^WTUVg@LK^WT@Tg@z@u@PBJKR[HGBAF?FB?HFLLJ?EA?BKF?HEH?DCDMDCCM@CNFBHB@@CAEJD@A@@D?DB@BPB@E@?BBH@FJAN@B?L@?BIJMJUFGJBJM?@DC@GFERADCFD?DBETEFC?ATA@@BE@GJOFEL@NEB@DAr@o@^c@XOD@ZKZ[Pm@N[JOLq@Lq@Re@Tc@Lg@PY\\YNc@Jq@Lo@Nc@FWXa@bAiBZg@TSRIb@If@Sb@ULSHSDCDI@IEIC?CMPE?AHALQNIXKFEJMFOB_@FOBOHUBSRm@BQ@k@Jc@PU@IFODe@DMNKBO?KG[?YG[A?AO@UCI?SFIBALb@NLJDNb@FFHB@HHFBFD@LVRTBFPJ?@L@JDA?B?DBFHHBH@FEBH@EL?BE@BLF@HDDAVJDFPF@BFLN@DRPFVHNFXLPLF@AJA?@L@Z?Z@LDBALFHLTPFJLFL@FD?@HBL@PDh@BTAXJVP\\LLVDRLTNJh@l@HDNL^Hb@j@TPNVp@b@PNL?NNNA^NLNFBRTNJ?@JHH^HLLDVTLPPDFATJJJLDJRLJDLBTDJ@LB@?@VBFBDPCFEBEAEBCDBLB@H?FDD?HN@?DFLFFJFRJPBLBB@HBBJ\\DBFH@F@?DJRVDJHb@DLR`@BLB@BD?DFP?HDHB@DN@JHFPOF?DDFV?DK@C@?@JHDHJ@BD?R@DDBBAHB?JA@@D@?DGB?BF@PCH@BD@HADL@?HNB?FFHPTRBLCNMFIHGREFKHS@IDMX?JPZFFJZJBFGHCPDBDRNBDPNLATIFEh@AFALG^HRLPBDFB@BHLJPDJLLJ?BTTBLDDBFLJJDTNLDXPHAJDL@\\GjBcBHKFOFm@F[FMPU@IB?BBHADc@JSXUJGJCNKJAFC@EJALKHCRF?AD@?@b@LRZb@CNLBAb@LHHD@b@KB@DFN@JKZEJ?d@EP@NF?ALEPORI`@DN?FCDGDQ@?DQ@KAE@EFEDILMFAJKLAHBJAXQXMFWFIDBTAROJm@NQHGBGJo@JYPINAZ?\\BPCRBBBJILCH?VFH?NDNGFGNET@FE@IBe@AO@MBGd@_@`@INGBODGD?RI\\IZEXWCK?IHOJ]L[R_@Pe@FBH?FMNEZNBCJW@a@DIn@OJKFKDO?KCK@GDQHGHS?[AE@EBC?INY?CBE@UCO?q@BSAGBS?M@EJCLMCuA@CCQKYCUEEAQ?KBQ?MCC@IFMAM@QBI?@AO@@BADFFDLBHKDMDYVm@HYDCN?HCHGLATIBCD@VAj@]X[PIJAb@?JBXLPBf@C\\EPBNA^KPAVI\\Q`@_@FIHGLEDEJ[@G?QAOCGEYG{@GMEQ@OBEZQn@WJIJMHOLa@@QGq@BEFYJUDEJ?FE?MESBKFGBIFGD?ZIZEFK?EQ]AM@OJ]DWTQREJHFJJBDWEq@?ODOBERIVQZw@RUVUTc@NM@IMUIIIEEGDETMPUPu@Rs@VOXY^WN[Pu@Pu@@K?c@Lg@BQ@SIg@@EDCt@?VIZSf@MPYFa@B?JXNTFRB@FABEBO@i@DA?DHFBGBQAMDI^VHHFRJH\\F^FTATBJDTDLANE`AIHCb@FD@DRMn@@DF@ZOf@QHCJ?D@BBHN@FPb@H@Fc@DMB?DBHRPNNVHBXCNWF@DBLLFCBMAG@GF@JFB?BGDEDBJCF@LFJBH?JCE\\@TDLJPBJ?VBAHKF?AB?FOl@DHD@PQRMZs@HGF@HHBFn@l@H@JGHKDOAQEW@KBARHPDNCNMJWLM@EJM@G?SBKJBD?@SDQDBH?`@Kp@_Ab@u@RUFMHIT_@X]FMJGNOFMNe@FKb@CXIPW\\a@ZKVMpAgAXMj@E^L`@LNI`@_@\\k@HGD?VINOZe@TWJCJ@HHFVBZAT@L@?BMFONUPa@P_@Hc@DgAJq@HKXb@Rf@Rh@FEFQFGJAV?FGRMRI\\IHB@NDLFA@GBAH?@B?VJbAD@BMFKD?@TJPHCHWF}@Ha@N[HINIXEHEJAJBJ?NYHIHCJ?NBh@Gj@E`@Fb@HBBH?TJRLJ@J?DAx@?TBl@LNJb@Jb@LJARBLJPZ\\Hd@NXXXZRb@Vb@HLXZb@t@Zb@BHDFFZ@^E^CF@b@NDF?JBJ?JEH?NOb@UX]\\[L?`@JJAHEN?L@TLVV\\j@Zv@N?DS@UAUIc@Qm@Qm@QeAGg@Se@M_@G[KWGYBEFFPZP\\TTVRn@hA`@^P?JEFKTQTWN]Hi@?SBc@DQNa@Nw@Iq@?OCMCe@S_BAYDIH@X?RC\\FDEBG?OEMGISg@OOMo@?WBE@KAG?W^q@TUBIEKOKIK?MDCFAh@JF?HADOAOOYIK]WCOFIR?JBPHRNHAHBN?@@D?HI@QMg@AQLUXG?@`@MRAZNHFHTEJJHTJBIAGOMUYWUGCKAUD]J]JOJ]FQEQIe@]CEO]AGMUK_@Ic@Gm@Ig@S_@[q@Yo@Uk@Sm@[k@[i@MQIS[]Wc@Ya@g@Ye@Yo@e@_@m@]o@Yu@EU?w@Gc@UWW_@Ua@EAWSMEOMWY_@QWSQSUa@M_@G]K_AGkA?WGq@?OGUCQIOEUGO?C[iASk@Ga@Em@Ig@?KOi@IMAEa@c@_@m@MMEAYQYOQS[SQSi@g@MQc@{@]c@I[[}@Ug@UWS_@Qg@Ss@_@u@_@s@]c@c@UWWQ_@O]Yc@MMa@Oa@Ua@SC?QGMYQi@Ok@Wm@Sy@W_@WUGKK]Ee@GKCAY[DCF?IBWCQW?EIWWGIIQGAEIKAE_@]]UE?QE?GMSQ_@QU]U]e@UWACBCASOa@MKK_@EGUSGIOgA?OFUNY?GIc@U_@Sg@Qm@O[WYYOIGMOUG]Q{@_Aa@YeAe@CCc@Me@QSQYG]D_@CYQYU[_@Y_@Wk@UU]QYCQIQk@]Um@Wm@Eq@YWCMDQNGPEDKECGBS?[ACC_@Bq@CWISGAYY]e@WWOCM]a@s@QUOOUQGCSQWYa@Y[W[WKMIQOe@SMKHG?GCQ]Ye@CA?CQWEWQ]ESO][YYY]o@MMQWg@_@OOQUSg@KMEMQBEEO]SYIQKMSq@GKAGCE?EIU@QF]AG@MAa@WaACU?_@EYKc@AMEOGKEWMGKQ?c@@EA?CKM@IEKIACWEMI][KEQWC?QOGQCUGYIMe@Yc@YMC[Wk@SOKAM@UH{@?UDm@AY@E?OGMSAI@K?EAO@]T[BMHMBQ@a@JWLUI[Qo@B[OUUYa@SUk@[KIk@BMAS@MAe@?y@FMDQ?WBMBEBa@DKFYXKFSFe@?GCs@M[IOGk@Gm@SYUMCM?E@[AM@[PMDYA[WYYUYOYGCOB[AQISSOIK?SEk@YYg@We@AG[i@QKQOEGGEKOCAIKQa@OWa@]KUC[Be@COAU@iAIe@MQKSEM?EGOCAMOYa@IGAC]WW[Wi@Ui@QWOYM]CCMYQUk@]OE}@c@MMU]S_@CAS]Q]I_@CWMWOSIUYe@Yc@WUS]O]SSQIIC]CQK[M[KGAO?GCGKUUWQYOe@a@KGGY@g@EOCAADGB]SOPITKL[FQASEE_@CCEYIMGEEM?EESKMEMCe@G[@QBG@?XRFBJ@LCPFPJP?NHHA@OEASWMu@ISEUSWMMKGIMCI@_@EUKY]_@Wi@Wg@OOKQ?G@GZBPCJ@TJN@V?JATF\\DFBZAJ@`@PF@V?JCPOEISEGIc@]a@]?A[YKOSSIUAOBAFJVTNB`@@TCf@?NGL?L@LHHBN@CKKIAIBAD@BAB@F?@CEIUQAE@CL@BEAIEGSI_@A@AWGCCBEZINWNGB@FAIIOEMBGHQGa@[UYCE?CSU_@w@AMAA?QGUE[?QK_@]a@GAE@IHIBIAIGQe@KASMQEINYESWCMECS?SIYQ]OGIIEKUAOCKCEC?MGEECOEEOIMAWUMGa@MKGMCQKGGB]MCOISSAIOW?CGEGA?AIGQ[@A@a@AM@U@C?SCMS[COMYSm@Ke@@YBOI_@MWKa@Ms@Ei@Oa@UCKXY^O@UGGEE@OLABE?GCEGEAE@CF?FEHE@I?CMKSOGUAC@c@SGUMOIOCKQ_@?EGMCO@o@CIAMOg@Ii@EICSCEC[MWCAGOGYCU@UCGGCE@CC?q@AUCOA?GIEKGGYQCIIKOGC?OKYq@EEK@GIGEG?IBGHIAEa@GOEEMCGGOII?AAC@AFEDEBG?GBCF@JAD@DCNi@FOXQl@CVMr@KLC@ILKHCDi@^IBMHM@ABKBUVYFKAODMRIHKDIAYOIAKEg@EOUa@a@EMCUAW@G?UAA?GCM?SCS?KG[IWAMGSCCCU?]CMCEAQEUYi@Oa@Oa@EUASESAWGUKw@GUKYMQWk@?CUg@Sm@CSEOAQKe@Uu@KWCSM]IOAGQ[O_@GIQGEGOIOSSw@Qc@Qc@Eu@GY?GGUEm@GUAOCK[s@CMC_@CKEKIK_@cBUw@?EK_@G]K[Ck@?e@ESQc@CQ?MGQMm@AOCEU{@CEMi@QWEKKc@]}@KS[_Aa@{@OSC]AAGm@]{@CKKSEEIUGGKSQw@CEGUIu@CIEEB{@Ju@?OZs@AI?[N_@A]Bw@CEESGKM]EWC_@Bi@I_@A_@D_@DM?QEKKOMg@Kg@CUBIAq@Eq@Eo@Gc@KQ?]EMDQFOX[FK@k@AOKm@CW?OGy@@EEIESGO?_@IWGIKq@Wo@Ki@c@u@Ym@Oq@Ku@SMEKHa@FKHCDGIi@@MSk@?QJeACOCi@Fw@GCAUHU?GQy@@MAMEOGEQDYIOOMEMAQHMPEB?AOKOY[a@Ya@Qc@GUGA[JQc@AIFM?OYo@AUKU?QBc@?s@C[?ODw@Im@?SF[?c@GKIGCM?k@AQCKQ]YaAUSQo@Ym@Um@OUUw@Uu@E_@Qo@[aAYaASMKMKYIKo@eBOa@g@q@Ug@_@i@KIYEMKc@o@M][g@Ka@[o@Kc@Se@Qe@MWMQYUKQW{@U{@Kk@Uo@E[EMaAiBMOy@sBQe@Me@Mc@eAuBWg@c@q@a@q@Ue@_@}@MUUOa@e@i@g@Q]UO]QYUY[YYYg@Ue@Se@u@gAi@a@a@q@e@m@mAk@MCKGCI[U[UGO[c@Yc@GUIO]e@]c@g@Ug@SOK_@e@UO\\y@A?@AHs@Hs@Dm@Dk@T_AHQFm@D?DEFSAm@CKGIIGKYKMGe@Ee@YoAEk@BWz@qAPk@Mk@Ma@EUQe@Qs@GIO_@UYEMGKGIMKEK]g@ISKe@MSGO?EEMKy@Ma@Se@c@s@CKMUIWSYMo@O]IWCOIOWmAO]Gg@Ia@AWEQSUCAU?SIW]Qq@Io@GOEEKYS[Q]c@cCUq@[q@[q@Ii@KYWWS]Q[Oi@Yq@Ge@Kk@CGKo@Km@S{@Q{@Ko@Io@Ok@Mi@MeAc@qBKe@_@{BIi@Mq@Mq@Oo@Mm@W{@}@iDSw@Wq@Uo@GYk@kBMc@O]e@u@Mc@K}@Cg@Ae@?i@?g@@w@@w@?s@AUOm@Qi@My@Iu@Qg@Qe@_@[e@Qc@QYWSa@Mi@Ga@Ci@Ci@HsAC[K_@Um@U{@Sa@c@m@GMMe@Oc@Wg@g@oAOo@Os@O_Ac@kBCCC[?UESI{@CM@M?YEOE[@e@EU@QEKAUCM@MBGFC@CJCP@PIJI^q@Fe@Pk@@]@A@WDWAK@GAE?MBk@Dk@DSJUFe@He@DM@UFUDGB]FMB[A]Ec@?]IYIQIG?AUMCCCIMKCY?c@IYAMMSMa@AMBMNOBKVINHJNNL?BDFZFBBB?DBLH?@D?As@DM?YB]?ODEB?DFD@HSH?LPTABGLKBSACAU@SJQLIDA?CDGXYFMPOJWFY?EDI?OCI@IFOPcAJ]ROJGB?BE?MKYI?EG?C@?LQFCF?DGTODSBAFIBI?EFA?ALEBGDC@MFSJKBGPQHC?CDGBK?S@CBAFDJBFLB?N[f@_@@c@DKNM@GFI?IDE@GFK?EDGNEJIHCFIPK@C^YRKTAJ@\\MDIZY@?HKHC\\U@QFQDCFIHQFGJEDGZMDGVILHD??AT?B@@ACM@KBAL@?AFEJEFILGH?BC@ICIQO?CL[FGBGBSLKFUDIDWRy@Ry@AUBY?OF]JYb@g@HO@?BMXy@DGXkAFOBSAIC?CDKFG?CBE?OFa@AGCKMQIOQA?a@L]X]@IHk@AYJOMSgA[_AGc@Uo@KKCMMKQYE@EEAEa@_@MGOMO[ECEGCKKKEOSe@GGGMGGA@OGO?IEI?KCO@GAGEI?OGO?ACIC?AECIAACGEO?SEUQKQQOEQMYAG@SHa@?ELYJ]HKLIFMAAE?KII?EBCDMAGBG?UCGGEM?MBENEJGD?PIZi@N_@ACBABGHIB?HE`@_@\\_@JGNEX[P_@VYHS@KP]BSDMDEBGLe@ReAA]@YBIHEJYDq@Jo@C]?QB]?]Fi@@WPwA@]Am@Ms@Aa@KYSUAUw@{BI_@O_@ECS{@Em@Oe@AM@GAACYDW?GG]Sk@EECi@OSQo@EGG[Oi@EIq@Q]GQYEOIOEMG]IQKOWI]}@Ge@C_@@k@QOM]WQ[e@UWUU]c@KQKCq@R[?_@Um@W][YM[SYa@EU@a@ASQmAKa@@OAc@O_@W@OBO?u@KU?SMWAOISSWg@W[[SSQACSGEAM?MGc@MQ@EDUDO@]GQASIIGEAYUOWYY[OIKGMIWKSIKKGOQW_@K_@IQKc@Oc@Me@MYOQUs@Yi@Yg@O_@GWAK@E?W@ICc@Ke@M[ESBYDM?ETq@BO@]EOGIUI[c@EWK_@MWOCQ?_@CKBUAWSAW@WBGFy@H]@QCk@Kg@Ie@Og@[sAQg@_@k@]m@EMc@g@c@e@]Wc@O]W_@S]e@[m@_@i@GUKSAc@k@q@Ua@Qs@Qs@Ig@Ie@Oa@Ma@EW?e@Gg@Q]U]SKSWKQW{@YSYa@M]Kc@UWWe@K[Sa@m@g@WOGKEKO{@CEU}@M_AK_AQo@Wm@KQOg@Oe@SYC?CHCCI[GKCKGGOa@O_@Ma@Ma@OSQ_@GSKo@EIk@s@Ya@Uk@Sm@Y[KS{@oAMUWk@Q}@Oa@IMSe@S_@Q_@g@{@IKEMIOUo@So@OaAKWM}@Ek@AGCEK}@Wk@Mi@KQECCESECCOa@g@e@EBMh@SFQCKSI[GMIYWUK_@YWOUCYDDP@HIPKBs@Ds@CQ?m@Eg@?[XH?o@HOBk@OyBEg@MeAGYGQQWe@QKIe@m@Yg@EEGCMAWGKGu@o@_@Wa@_@a@[U_@S_@O_@_@mAOo@AM?YBUDQVk@X@\\KNOTa@BIZC\\AFKB??z@@FCZBVBJAF?R@FFJHAt@mAJGJg@@MCcAGcAJADG?SN}@JKVmAHi@BGBACm@Eg@Cs@Cs@@{AAcAGg@Cs@Cq@Z^Z`@Ia@ZTAYTFDc@FWEm@CEEe@DaAF{@Fy@@i@AeD?w@IcAIo@IY?INUZu@EaADe@DEUWOIUEUg@Ug@RCI_@Fc@AIJEFTLJAURBMI@C?QUiBEg@AkA?kAAy@Aw@C}@Gy@Ey@Ag@?e@HcADYCARGAs@X[X[Hs@TWR[Bt@PKRg@?e@KaA^VDIEO?YNMA]NMFWRHJODWOQ`@KDOADe@]KKGOIEa@Ia@G_@Ok@MGGCI?MBOT[@GEU[[?GBGDE^IfAc@d@GLI?KHBICBm@GGG?KGW[UO?OFGJEJAFCBGAKo@[?E@KTWTWPKLOf@{@LOZQ\\ONWZ]XOb@Ej@?^JN@x@?`@FDg@?m@BUFUEmA@{@Lw@?WCUOk@QgAGq@My@Kw@m@iBYo@GGICGGSuAQs@Wm@Um@EOEGKGe@Oe@Be@Bq@Eq@Ea@LK@a@N_@PkAr@WPq@XYR}Av@g@\\WD[ACBi@EYGSUGe@EOKWIEEAK@q@Gm@MKEK_@NwBDg@ECAFO^U\\CNFJNDNJZ_@Z_@t@iALORO^S^SVCD@TU?e@AQ@WN_@DA\\Ah@B^EXI`@WHIJa@AOI[Wc@Wm@Ie@Ge@Eu@JaAVa@NQFEZe@P_@FETa@LONIDEJCHG\\KJGLONKFOB[^u@JIPALKDIJ]@YA[CKW[Wm@g@wBAK?UCg@I{@EW?QBAFKNa@BIAQBGYRYTI?OGIMKKIAQJMBy@CMCc@SUOQQw@k@[YUOw@a@k@a@[OYM[Q[Qg@Sa@M_@MSMi@e@OKw@Ya@IYMg@Wi@c@QK[Mc@GSIEGQO]Om@Sg@[[g@KWW_@Wk@Uk@a@m@KSi@o@QY_@[UWc@k@c@i@S_@GQ?CKSMg@KM[SKQQe@Oe@UWQ_@Q]MOg@_@M_@KQ[]WQMOIQCKC[?Y@KAYCYCGAOEQAQCKAU?i@Lc@Lc@`@_AF_@Em@?o@AYCGCUYu@CO?]Qu@GSOYQUE?YXEb@@ZANIJIDQ@GAO@GEMk@EEKEACOw@Mw@M_@Wm@Gw@Mg@KSCCGAEBI|@ITC@MAOOIOCYBo@?g@Ey@Kk@MQCIC@?@DJ?LGNKLMDCBa@l@CNIJE@ILEBEAEEAGCE?ECAAKII@NCNMZG@O_AAFCBCHIBWOIWMMEAG?EH@\\CHC?CEKEIGGK?GEMEGECALCBC?AB@?ANKR@ZCNBR?LDHBJ?FJ\\?NE\\?J@@?FFZAHMVCNIRB\\GTCVA?ADG\\MXAJEJG^C^CBKMQk@AK]q@E[EG?GGKGSKUCAEF?NA@G?GOAIEGAG?P@F?x@QZCXGTAJAl@A@I?IKKUMIEGICACKGGMC?B`@AT@VDNCDE@QKKMDR@\\AL@HCDCAGMMGCECMGMA@@DAXFd@R`@R`@HR@FR\\FNDR?N@BANMh@BVEBICGQGGEKKKKYEBDNAJABA?CCGAGG?CGIMKUMC@@ZGADJAHDP?JCJ@@ABI?ECBR?VA?BXAJ@B?\\CHBDAN@FADDBABDFBLN\\A@?HAB@VDVBD@F?NAF@DCDECAEGA?\\FT?NMA@D@`@BJ?z@@D?PHZBP@RCRBJAB@?E?OUA@@PH\\CHE?EB?FBF?NCH?VCNIPAJCFEC?CIW@MAQACCAGR?JCJILGVA?ABE@MiA?[IYA?GXW^ETIR?DFL@L@?BL?PBNEL@BCL?JIPC@E?SSGEC?OMYIIEGWCEGq@EOIq@GGWI?CGEGAA@OCIECMCc@AAALGPCVEBM[ECGBGGAC?K?@DEDQ?EEMCe@CEKIEBIJIUCACDAF?XADGDCCCEOaA?OB]ACCAIBECAC?ICICCKAIEIY?OCA?AC?OFGACGEEICE?KP?LCB?FCDGBOXcAISHURY^QPKb@ITIHMRGNWZMJa@P_@P[H[@s@@]GW@QRCFORIBWAQBQ?k@Ii@Ai@?[Ic@Gi@AODIV?`@I\\WBa@?s@Q]MWCSIIGQIYUYUKMMK_@MYOa@[a@YQGKGk@g@i@e@]SUGe@Se@QQMy@{@[Ya@Uc@QUa@U_@WYS]Qa@Og@Wo@@EW{@Sa@Wa@Ue@[_@[_@O]UYOYO[_@oA[u@_@o@m@s@]i@USe@q@Si@K_@Ki@]w@_@g@GMc@i@cA{AY_@]{@S[QSMK_@k@M]_@u@AGM[Ka@_@w@Iu@Is@EaAEaAMo@CCOcAK]EII_@Wi@EQUc@I_@Ck@Ig@Qm@Mi@Mg@[{@MUQo@Ei@@GAA?GEWBk@Bi@Om@KSU_AEY@OCSAg@I]G}@CMMW?MQg@WMOWGQOOMIGKEOG_@EIG_@IS?EI[CEI}@Ic@CGCiAGk@Mk@Mi@Ks@Kq@Oi@Yo@Wm@Og@Mg@OWGUOUKYG_@C[Aw@EUS_@IEWk@KOKCMQGUGME?SMOOISGIc@[EDMD[A_@SGGSy@_@{@[k@M]i@USEYUYUSKE?MGYWa@i@a@i@OIW[GKOg@Qc@UUe@_@]a@S[i@m@_@{@]y@e@s@QM[[AI@WDEBAJNJBFE@??@D??EAABE@GGKCQAWG]GEUYQIEGO[CKUk@U_@EUGKECU[UYEIGUOa@QUOWIYKeAGa@Ei@Aa@HcAJaAC@AAQ?SEMQKWS_@Si@Me@Kc@Ky@?MGi@Kk@Gk@S}@WUa@{@[aAI_@Yq@GWKWMe@AMCAGMMa@GM?CK[I_@?YCc@@]BU?m@HUJOZu@DAVc@Rg@P{@JWV_@LKDK?STo@To@AKBk@Bk@G[Mc@FaACKBi@Hc@EQI?EEC@ELIBIAGBc@p@Q^YVIIEAGIIBS?KIOEIGEACIKI[M[KIQOOOEWMKC[DSJMBg@@i@K[@OCSDa@Cm@KYCUI]SSWICKBAAGBYGUKQUWUOGk@g@g@o@OMQ]QWUWYe@g@q@g@q@e@u@g@i@MKg@A_@I_@GY@UG][QYGSGGKQOOm@kAQYQAk@[_@q@MIOG_@[WQq@MWOUWO[Oo@MCIGMQCIEGQq@KKSMY]W[EY?KEIKIUGMIOSISa@o@_@q@UYMIIKYW]g@]e@EUS[SY?EMIQ[KUGIGWOSK]IMIAG@QIYm@AQKg@@??KCOSYSYMYEQBS@CBAN@XGDBNCL@F?BAHBRNLBPLF?DAAU@CBDB@DAJ@HEAEEACKAIBGH@PG@C@GGWEGAW@KDWFSP]@?@EA_@@O@CHA?AJIDGDK?GJONg@Bc@Cq@EUVq@@]@C?UJUBK?YJo@Po@D_AAUGY@YDQBg@Aa@QG_@GE@QAc@MSA[G?ICKEk@G_@IMc@LK@OKS_@SWIYSe@CCQEMR[Lg@Z_@VWTWd@{A|Ba@TQEOGGQBg@?_@AGIOCAG@GAOGKKKG?CGEO@KCEESKg@]QUSIAC}@WUEOIYKYIM?OEO?QEo@Wm@KSIKAS@MEE?MGQAKCO?WIG?AAMAQIQEWCOIQGWAM@m@QMAGCG?ICG@GDQEMAOBUI]Wo@eA[q@WYU[S_@IMIGYg@GE[e@GICAIY[o@_@o@OSKa@Ek@I_@ASGc@EaAKQWeAK[OQK]Mk@a@cACW_@s@]s@QSSGKMM_@KAOGIIOYYOQ[MOSOQ]QSUGYUYUGODg@Aa@I?CBI@MKIMg@Q[SOEy@k@YOCEQKe@e@e@c@U[ECMQWUQUWOCESQS_@IEeAeAUW[a@QYO[GUC[IWEUEKGa@Kc@GMOi@G]CGCWMg@Ke@KWKc@c@o@G[E_@O_@U[UYm@gCMk@A_@BYFUBk@Dk@CEMkBGc@KIAQEMGo@Eo@@IAO@KCYIWMUE?WUCEQCOII[?[AKKK@UEUCAQJWF]ASWi@NUCSOy@wAIAQb@CNMVc@BWD[GWQ]KSKm@?a@BUAC@QE{@kAk@i@IEOAa@Kc@Wa@UQO]Sm@Ua@IMGMC[WC@AB?JDVFLTNHHNT^Px@tAR\\JZNXLJNb@FJHT?XBV?b@@TBJHRb@r@XPZ\\JN^t@DRHLDP?JOEKAGDAF?NPj@@LC?CGMEUEI?ICKIm@Yi@GECg@GIE]Ye@QGE]YY]EA_@AOOc@[c@ISK?FG?`@r@Lt@FRGFg@BIFh@`AN~@UC_@Oe@_@i@m@YYYYEb@N^[BGFDNn@jAHh@]`@QGDd@Pd@YFMQg@e@c@W_@TS\\Xn@JPDV?t@?u@EWKQYo@_@UIWW]G_@Uc@I_@UUSCGKAOIDGAIMOIOSYu@MQWQ?AZO?CKSOICGGcAMw@IMCS@IGKMCSFIAECK?CEHKAIIGEMe@KEECWWCK@CFGF[?QUCAMO]UOSSMMQOMGIAKFUIg@DCB@@A?EKWSWYMKMC?CEI?AICAOBABOCY@AKEACBCCMWOg@EIEAAI?YE?CGECE@EEEAOKGKOEYYQUIUMMKUm@]CGSIACKGEIAKEIIi@UEMGQUMKSCECKS?KCCEAI?UQOSAGAeAMUBCO?STM@a@_@_@]I?UEQYKc@MA[IM]OYGE]HIAUSGSCCk@i@s@k@Ig@KEMBCACQKISFKEe@Ic@Ia@UEIUS[MYc@MTEOICG??AECC?@AECEGGEIACEOG]WIKc@a@AECACBAT@FJR@FOEGBECYCMOUQC??ASMMYQECCGQ]SGISKKOCAEIKIMQA?QSCAMOo@gAKYOSOOAGMWEAGKMGCEECEKa@e@KUCKD[AUBEFc@REFEHC?@VUHATIL@VIFGT@PARKLHF@@Ad@?@AD?@@X?BALFR?B@BAAGQSIEAEYc@IKMIACVEPDJCL@FBNADC?CO_@CACIQ[GEEGECGAMQ[ME?EEEMCAEQGAMG?AIGOUGEKHKWEAEKB?NKD?DEFMNKHCHGb@K`@UROFINEJKFY@?BGAEECAIG?CAAGEGC@I?KGC@GEE?EC?IBI@QBGBUA]@KCM@IAC?MDM?IBSDO@?DM?U@EDIF@PCHW@UDKBO@?BI@MPKDGDM?IBG?a@FSAI@E@?FIBA@GMSAE@IFIBIDG@G@i@CM@CEK?E@AD?@@L@DCP_@D}@AIBOAGFWD_@AEGEDSFIBI?SA?CDI@CBG?AC@EA[ESEKA?CFA?CHGFG@CDCLQLKDEHCAC@?JGLGBKCGHKDG?AEIC?CCA?@?EA?B[HOAOBICG@k@E]IKCKEEAESBEBMGACCBAFKE?ACB?DCFAAG@CD?BGFIPKJ]HMF?BE@CBIB?AE?IBIFE@ABE?GDKBORQJE@QNOHABGDKTG?OHQACBY?GKCS?]@MAICAAC@CASAA@c@CCIa@CCESKUAIIM?GEWYg@AOEO?GGK?CKKOKKEI??AEAQ?]QMKSAOGMAQEI?e@O_@IOGMCC@SEG?MEE?OIk@D]CQ?MBW?OACCGBCAE@[KKGOCSa@KMEBU@I?ICO@a@A[H]D]Ek@B[ASMUSEAWUc@YUWUUGYE_@G[IaAUa@AEGGG}@Ka@M_@?Gc@{AKi@OUAECe@JSBW@k@Ba@?WC]CCE]ECMQE[@m@Oe@ESA{@D[FKBKGw@N]TGPOXQJKN_@Nk@JOHSPq@B[GOIIOYCCICGGEOAO@_@AGO]QaAOc@By@Gm@?i@CWCo@?WFiAK{AE[?aAEg@Ag@Ee@?ODSBg@Am@D]@w@Ma@EY@c@AaABa@?U@MJ[Dq@EoA?{@E]KY?s@E[Oa@Kq@[k@GUGAM[AMISKa@Gc@B]AWCMC{@K_@M[Ic@Sk@G[IUS{@Qi@Ki@Oe@Cg@Ce@Ie@Ge@MWGSEG_@UK[O]MQIQCS@SGi@S[Y[c@u@Ue@MQEKUYISWsAMa@Cc@CMGSKOUe@EYEKIg@Ie@CEOo@Mm@Qe@Oo@GQG}@Mm@Gi@Cs@As@Ge@Co@Ok@CEIq@Iq@CMMWG[Iq@Me@?MFO@WKeAEWCEI_@EKESCEKm@Y}@_@e@S]Om@Sa@S_@[g@]_@?GBBJ@\\CZ@NERQ?GSc@QWCAGIOWKYOWWSWQKEYQOMe@i@MKOUWUWUKGG?KCWS[I[EKI_@Sc@YCKJKf@QD@JARGT?b@DX?PCT?NMCSQGCB[@]c@SQWOMKWMk@ME?_@MWCa@IE@QGKBSCWFc@F[L[XiANk@FMAKE[Cg@A_@F[JYJCDEh@U^IVKRIJYf@q@TABMFKVO|@@NDLBTIZC@KXE^SLMOQKc@Ga@Pa@RKFSPQHc@BKAMJKROl@Qd@GJKLKHILMb@Kd@OLQ^GHGRQPKRKNEBQXCd@@h@Dr@D^ANGDU@QL[EUPKb@MZOPE@OCMBU?e@PONGXIJQ^EPS^?BKTOVCRCFGh@S\\CHKNE\\O^AHEJSZCb@@j@Bj@JN@r@Df@AXD`@@h@IZ[t@GTGh@Sn@MV[VMFSVSh@GZA`@Ef@Aj@Mn@Ad@CPe@PGFUHOXq@TMHYFM@GF_@@ODc@KKGK?}@Oa@MM@[AI@MLAFBFJh@Jh@@j@BJFh@FRRb@H^?VAFBh@Dj@Nl@F^?`@CFUX[XAD@LRn@Jf@ANM\\GJKB]OKHG?GCMQEMAQESGQUg@[c@Yg@IQAGGKMa@Mm@M_@Se@KOSg@GUQ_@Mo@Wy@IOM_@CMWk@GGQk@OWKKIWKCg@F]HIEGGOCKES?GAGICKSCGCa@YOECCMEOAGFIDKCi@YEAMQ?MHU@MEIEAE?IBEAAKJSHGLAPSHEBERGHIH]AWc@k@a@k@EKUaAC]GGG?QECCGSFAX[LSFGJ[@QE_@IYKKKFIHe@h@[NWBSFQNEFW|@GL]`@a@Rc@h@i@j@AFc@x@c@ZK^O^IJQd@GJIZKfAQPSB[H[HQASMMCK@U?IEw@RUNIHOX[b@_@\\ECBUFQPgAJc@Vw@Fk@?c@EOKGYCUDa@VOPYd@STUb@YPY?e@H]J]L_@D_@F]Li@^WVUPo@Zc@^}@jASXYXWXYh@}@pA[h@EB]l@a@b@gAr@k@d@a@`@_@b@YTWVe@Xk@TM@c@EOYUGa@NC?s@SMASGkANk@Bg@La@No@^[\\[^UZc@d@[Vq@No@AYM[K]YYa@Y_@[i@Yk@a@c@eAaAWUUWWUCGU[SYY[a@i@]q@Ug@Se@MEa@Ek@Dk@?k@?i@Da@@a@@c@Da@Fo@Bm@D_@B_@D}AB]@[CYA]A]?[BYBODm@FEDNJDRABEA?CBCCIIGCBGT?`@@DAt@@FM|@ARKp@?n@?p@EjB_@l@o@Xo@X_@XYLUUIMUWWMW?WD[NYPWAWQMCKA[?KCa@E[Rg@P[FSAg@GQGQK[KUC{@A[EWKKIU]U[w@a@]Ke@Fc@F_@He@@YHi@b@OF]E[Ck@Ba@GSMe@Oa@IEC_@KuAWa@MU_@UaAIe@Qe@S_@WWS[SYUYSWAe@AKEMU]e@g@IA]Q[a@KAWM[C[S[SAEYQ]CUEOIu@Is@Io@K]CQEKGYYIEY]W_@MKWKm@g@]e@OQIGKO]u@[_@[_@KGUSKCULG?OMIYAMO]M?KBSPULSEQ@CBE@CAI?SEc@YCESQSYo@a@m@a@IAk@BKBIDe@XQDg@?e@M[SOEg@[i@K_@CMCc@Og@Yc@_@}@_Ae@Wa@k@a@k@IIWa@ECi@o@U_@EMYa@US@ICO@SGa@?KPcAJ?Sk@R[VDFGYWU?g@Jm@?]Ge@Wk@Ua@Mc@Wi@WQYa@MUMc@[YBUg@U_AU_AKe@Ke@CYKi@Ig@g@_AO]m@U[G[GwAB[@]J?@QIo@Se@SWa@Uc@Sg@QSKEs@Mc@Oc@O]I[I_@Ag@G]Bq@?OCKMEKk@Ds@?g@Qm@Ok@Me@Wa@_@m@o@Sa@Ka@C]@{AE}@IUKMMIK?WBQPQ`@Sr@GLGHUNQBSEa@Ya@WyBcAg@USO]g@i@g@k@_@k@_@MC[MQS]k@UQk@Oe@Uc@Y[]Y]g@[c@c@c@a@[c@Ya@S_@S_@QKe@Qc@QOU[]Y[U_@M[GaAKk@UcAGMOQUK[KYKo@a@wAiA]WW?[D[D_@Gi@Ui@UYU_@a@[c@c@]s@{@UQ[OkBi@G@]s@[q@Y_@WW]UYa@i@aBQ[eB{Ba@i@e@a@e@_@e@[e@[]Se@S]S]Q_@a@_@_@i@o@g@o@MI_@Om@O_@MWCY@WFUHe@TSPOPDPVn@Xn@ILQp@MZc@n@i@d@c@Js@d@UT[L]XoE`A]Hi@f@u@fAWVYN_@N_@P]VUH?Bg@HMCe@SeAo@g@KE@kAr@_@@m@W_@]]e@Q]Ys@Ys@OSSQi@UQKQ[Ok@KW_@u@c@YaAQQGIGSUO[Qm@Ig@@]BOFSHQTy@XW^c@Hc@Dc@ASU]SS_@OcAWQGm@]UEc@@a@Fa@Ba@?q@G[GYEc@E[AsBFe@Bg@Dg@Fa@?_@Cq@Sy@g@UKcAQe@O_@[_@Yo@[OEQAKC[MW]c@Ua@Eq@?EAs@Ca@Ko@Aq@GQ@g@C[?CA]?[Dc@Tc@N[Qa@_@O\\Md@YJs@CM@i@?WEME[O[Oi@]YGM?g@Le@Nm@CE@_@V]`@i@Vg@XG@a@TEPEHa@Ha@PYTMNQLUJMBULOVKXG`A@ZKn@U^c@PE?WHOH]JwAp@]Ni@Xg@Zi@Xi@Xa@Va@\\QFSBSDKDM@ODKDOJW`@]XBDCv@Mj@KPGBI@AAGUEa@KSKKMCa@F_@FQLKTENEFQDK?GGCIIKCAIDQRCLGJIF]LU@c@Ic@Gg@Q[O[MGBABE@CB?AG?IKICWOMCCCE@OAGGUIUD?DHD?HDRAJBJEJ@?BFA@CR@BANGHQHIPCVAzBETWn@Ib@ANC@ELQZGPGHSdAEJERKVIHMFKLMHM@GBMAODGFIPMl@?TGl@?^F\\?`@C`@ERMZEFK\\EHEZI\\UZC?OMCGOu@K]Aa@AA?e@Ee@Cu@Km@Oe@YIa@D?@MB_@EI?KAa@QKCM@?AKCSYKIM[Y]OIMWSOWe@UUQYMKK@CP?LDHBP?Z@HATIZO\\OTKJCL?FENGDQ@SCI?]B[HG?YC]Y[?GCWAOCS@WDEBU?SF[?GFAPK^[ZOFKCK?GBQBSP_@Ng@LCB_@BQAWLUFOEACA?EGCAGIA?KYQUIGU[O_@EGQSUSIUGEIAOAM@Xb@PRPXPh@NXDRAd@BX@t@CBC?EGCIE@@D?~@AHKIM_@ESA?@LAD?LABAh@ELQ@ECIM?EGUEHALKD[Yk@OUSSg@WSMIYEUMOCU?WKSOG?]PKZ?LEFE@ICGKCKGIe@Q]YQSSGWBc@A[GW[W[QEI?IGS_@UYUY_@GSASBIEIKSGIGMQSQGMQO]MSC_@BGBMAKOMc@IGKCUA]GKKKQKk@MSM]Y?CBK@AAU@YJK@OFUXUZEDIBABWJSBI?WDEACC?Id@]Ze@BAJUH_@Ve@HS@QEm@GWIGI?KBIHCDIb@Ac@EKYMSAG@a@RMLKNINOd@]v@_@p@ORa@v@a@dAMVUX_@Re@DID]XIJUf@In@Cx@Az@Gv@ObAYh@g@d@a@X_@`@a@t@UZ_@Zc@RWN_@\\a@n@Wj@Wj@Mb@Md@Mf@Kf@g@lEMdAQp@Ov@Ef@G`@K\\Sd@Il@KVMp@Ix@QbAOdAM`A]vCIp@AVBr@Dh@Dj@C~@Id@C`@BR@Df@Vf@VLLF\\?Tm@bDQr@S\\]d@KH[d@Gh@M|BCh@EXC`@Aj@Gf@Ql@QZUTCHQTc@nAQ^m@Rk@RSJKJm@tAMR]hAI^EbAHh@H^Tv@H`@@R?|@Gd@Gx@?|@E\\IZSZKHUJ[FMHEFKVMj@Q\\STa@X_@X[\\_@Z_@\\MRg@j@c@n@Sj@Ql@Sb@KFi@Ri@To@Lo@Le@F[Li@b@]Rk@f@k@^k@f@m@d@]T]VYVCFk@\\k@XOPITGf@ARI`@O^MTWXUX]X]ZGNCdAM^MX]`@[b@AFYr@]v@_@l@Sb@QXADQVWZa@PUPUTUVELEZYt@]ZE@SCe@KE?]Pg@N[F]Zm@\\EN?^CTMZQPa@ZSXEJc@Xa@JWAUQEGIEU?]Ra@z@SZg@~@MNEPSd@Sr@Wf@m@n@W`@SNWE[Ca@NO@GBIJOHGHYL_@XWh@IJKHUVUXL\\HNNHDDDVBp@HDBFKj@Gx@Ut@KHWDi@Zi@Z[JOJWBCD@VIl@?REXWt@MPWVAFCRE`A?p@Bl@Bn@E`@IZM^CLA?ABYx@I^?B@?CDAJAt@C\\EPKVGFQf@In@Ur@Ur@U`@U`@aApAUZYp@Qr@Qr@KJa@h@S^ORSj@Sl@EZG|@Wl@GVCd@F`@NZLr@Dx@B`BFRT\\n@nAPXRVTXz@~@NTt@t@B@X`@Zn@PPb@\\PFXRZRRTJHHLXl@X`@Z^Xj@Xd@PNPZXZXZHLBHNLP\\FXBTJPh@l@R\\?TDVDLLTJ^?^H~@?HDXBDTFNLXLFFNVDXB?HXDFBZDB@ADLNDFRP\\JHDH@JLV@FFJDLBDFB@BFXFPBBDVHP@HHT@N?dANn@BPDLFh@NVFPB?BBN\\BB`@PHJVN@FLV@FLTHHDHDNHr@BFB?JFHJB@BFLFDNLJF?NBHDB?DHLIJKFIDK@@D?HJF@BDD@DD?FDRHTLf@LJDJ@N@@CB@LGFKB?DENMRCJDNLGD?BB?BDD@HMXSZ?HB@?LEJC@CFGDGHIVC@GN?HG\\EJA?GPIJCH?DHVB?BCFA@BF?DB@HFN?DDD@RIn@Gn@IHG?a@LIJ@PHPLND@ADMFKJg@^MVO`@C?QLYNWNOGKMCGUQK?_@HQAGDAAE?ECUAKGa@{@UWGACGECKEE?GCGEGKGAUMGMIGEKIEMEU@IGOG[IQB?AK?SFG??AA@Q@A@QAGGE?AAO?CAECCEYIOKA@E?KA?AA?KDE?OEEGMKGCIKGOIEWWOSWSKGOAc@QGIC@GAC@I?MHKBS?IF?DD?NFBJDDH@RL?D@?F\\Pd@LNFDPTLd@LLPJ@HDB?LSLK@ONG?OG@B?FBDDDFBAFQJG?CAAEEC@^BFLLHBBBH@@DF?HFB?FF?BADIHOHG@QROLOHAHPN@AF@BD@FERMJ?@YN]ASCKI[KCECAG?GEGAACQEI?KCCC}@IWGQ@]Ac@KSIWCg@Aa@GYUYSKEYEODc@Fc@@OBk@BOJWFMJe@Po@\\YHEDSFcALW@K?a@Iq@D[F[FSHa@FOHG@QHKNCP?PC`@?^Fr@AJBZAF?r@BhABjAFh@?JLx@@n@AL?d@CP?h@?h@BRN`@BR?j@BXHXD\\BZ?VBVHLFVD\\FRA`@N\\Bj@A@AL?`@ANEPQT@RAF?TBJCVHZBZNt@BP?RKVCb@@LATGv@Q`AKREDSHg@@EGQI?@MHOVQTYTWVAL@RA?GHQ\\OR[r@OVIDGFEJa@b@OFK@YJM@EB?@PDDF@FHDBNFDBD?HA@BPBJ@?Fb@?RKr@Un@UVGNCNBHBx@Ep@CFG^QV[r@EbA@B@b@AbA@b@\\t@\\v@JZ?DH\\@PAj@E^Kb@A`@EPCT@N?^CL?NEh@@N?jAEZ?l@Bj@AH?XCRAp@CN?j@@RHl@Tl@TVNFLJr@Rr@F^JFDNBLFPRb@^@FX`@JJFPFXDl@Fn@Sx@@RDDNBh@CTC\\KTCJ?DCF@DFDRORGIQN@DGVGHKDa@HQAUVMt@KXOFIJGLOj@Yj@Wx@ANKn@KTM`@U|@S~@Ud@Sd@[b@OJOFMRIHc@Za@V_@XYB]PSjAMhAMn@CFE^@t@Cp@CT?Z@JCX?b@Rf@PTFZPd@JNJ\\LTHn@HZBDHFXNVPD@JPPJNBPNLBVTd@Lf@NX?p@FZT\\h@LZJt@Jt@?rA@ZCl@It@?dAA`@Ij@Mf@Kh@Yz@K`@Q^Q`@SZUXQd@Kh@?TDNNT?LQTA`@CP]z@E@SPc@r@M`@Eb@?bC?j@BP@f@E^Ad@CPAX@hABb@?PJh@Vr@@FBb@Cl@Bf@NZNRDTAFCB]HIH_@x@G\\E|@Bj@EN?PFn@?d@@f@Hx@PZB^Af@DZCFCAGIA@BPCTBT?JIp@?d@APETGLIFOPSd@Sd@Kh@Gd@@T?vAAb@Dh@F^@VAF?PEL?RMZ@LAd@@`@DJBh@?f@?h@DN@j@Dh@b@lA@LChA@b@Dj@An@@n@BTH^@XAbALx@@Z@?E`@ILSJQXGXCh@BlAAXHb@?PG\\THTDn@ALFFHFTB`@I^?j@LXRN?CPALITUTARHLTn@Rd@`@d@b@`@H?Bh@?\\I^a@`@a@BA`@Gl@Df@?VAHCf@?f@Af@A\\G\\Et@WXAGBMPAFCBQ^?DN@VPVl@CD?DBBBHKFWBCFDFBHFDJBDJDZ@CC??@MFQLe@TIFKBOFCBJ@^N?FKNADHB^DKNBDAFEJEDV??DKXCNBHHBHJBC?FMb@@DLDHLJJFNED?FDJ@JCHG@ADBTABQLCD?B\\P?DCBe@NSEg@a@QEUAKBK?e@Jg@FY@q@FS?k@Nm@JO?WGG?IDKNKFQFi@LEBK@YHc@N_@D]D[?[CMBYNa@^Sb@Gd@?f@PXLENIB?NJNNBXPXXNRKFOX_@J?Mh@Kj@Dn@FHn@Bf@Ch@Ah@Ah@?BAVFICa@A_@?aBF]Di@I[IG?E@GF]f@QRE\\Nn@FNNT\\H\\Hj@BRBXJZJd@Fb@Ed@E\\@\\BHB\\?l@Ff@@n@Kn@Qd@E`@Bb@CXKX]h@WD@@HJLZ@`Ag@l@MhACj@?b@BhAT\\Bd@?ZAZA\\Bd@@D@b@E^Ar@?r@?RBf@ARG`@_@`@_@PKPGZGD?ZBZJt@L^?XMXY^GB@BJ@jAJp@Z@d@SVAJDl@LLFHh@HVHLLb@Ff@JPJJHRHFDPRPJVJj@AL@\\CLQNELCPS\\S\\KVMTa@j@AJFFLBLF?@FBFHB?@BHDNP@DJFBHJHFJB@HJA@NVCJIAQBS?IBSL@LZFBB@FCHKBY?YJINANA?GJCN@BDBDFF@DHAPC@CDAHDFDBBHLJBFABGB@FFJIJSJC?MJD@@BB?DLCDC??@G?C@ABDBBDFBBFADKBEAC@ONLJB?@B@HADO@EBHPDBBF@DADKDADA?ABIAEB?DGNCCICCEC?@@ABE@?@YFGDI@KGGAOFADJ@@DA?OPNDFPB?VNF@RNA@DDD^FFDPBBD?@DHFFV@JADEJGDUDGAEBADA?ABO?ADCBGAACGC@XCBCJBH@?BDHFHRBBLFD?BDF?BDF?BJ?@MJWd@EREJG@CBK@A@?HNDBAB@DAN?DCFBFA?@DBDN?F@@ANDBCDC@I?EDCFIHGJ?HCFGFEH@@F?@CJEDBCPD@DPEJB@BCNCDBHT?NM?C@A@?HJLANJ\\Hj@KCQ@FPAFC@ABQ?C@E?AAE@FHDL@AD@DD@TBJDHARDLBVBBBLBDNJJf@RP?FCFGDC?UOY@KCIGBDBLA@CCO?GGWOU?KD?@FBH@JJFd@BD?BDDDLHBFJHFEJQ@GBEF@@?AB?JFTV?A@L?AA@U@GDO@ULS@IDMLOHCHC@ECC?MBEBYGE@GA@J@?DJNJ@JIDI?IBGDCCK?GEK?AAMBACGECAI?EF?BJ\\BB@JHF@F@?BFHHF?NP?BCFe@Xc@r@IJA?MZ@@ABBAS^YZOBMJQ@WGOAi@J]RAFOLWBSCSHU?I@EDCFOLI?SFIFABQJO`@CN?ZC\\ET?NN^?HJ^LTBLAD@B@?HJb@n@HHHXDFFXHRNPVTXVHBHH\\p@^n@PTJFTZFTV^X\\JZRd@Rd@HVBTBHRd@HX\\j@dA|@\\TTXVZj@h@TPRBd@Nd@Nd@T^X\\ZPZR\\NRVb@JJDHf@b@XHXJb@BTAV@ZEZEXQZKb@a@H?VEDG@Gj@YLIJMLGLCF?JCLG\\GVP\\ZZPZRHF@BNBJ?Hb@Vh@FHd@^RTBTCb@@PDJHFFBD?ZLVDVKPODAROTGHE\\Gf@Bf@DDBD?HBFDAVOn@C\\?b@APIp@GJOHEE_@GGF_@l@UDST?v@FXBFXXVNFFJRJZH|@DPHRCLIBIEa@M[U[S[MK?AF@DTXLXTVJPLLLRPPFPU@MIMAIGWGOIICK?UFSLWJKPKJCJDLRVXTJPDRBZ?LEf@QhAITa@T_@A]?[EW[UIEBJRDNBN?FFZPh@CDMKIACNG?[[[YE@ADDXCFA?CAGIKEOWIEq@NUAAB@RCFWBIBSAQGC?IGKEe@@SBKDLLJT@NAb@BTRNLFf@HP?@@BTGVOb@Ob@@DBl@C`@Fj@?TAFOd@Yh@Uh@Sh@Ql@Ej@Ij@AVBLP`@PXDd@Tj@Jp@Hj@Af@F\\@N?Z@DCp@Jj@HbARdAJ`@BTTbAVdAABDd@Df@KGWUMESCGEGIBHCXQY?C]q@MA@^D^@^Jf@a@m@ODBXPr@Rf@@LRl@Pn@Nt@BTc@_@SCHb@HTD^@n@Pj@Cl@Cl@SJA`@Ib@?JKx@A`@N|@ATEH]V]XM^Ot@SZID_@^MHO\\Ax@E\\]v@@b@RPJBJTPz@DLEd@@r@BZ?j@CFCj@GNAd@?f@BPTt@DBJXADAGJFB?h@v@b@v@d@p@b@f@Xd@^VTRl@Rh@ZDHDDFBJNPPZb@A@g@Ma@Ea@Aa@GABGB@f@j@Zh@L^Nb@^d@^^N^NZb@HDZZZ\\b@t@FFLVZd@\\d@Pf@A?Y]MK}@k@[T`@n@^p@D@PZJ\\?NV~@SAK@[EYEWJPj@PRJPHRTXFP\\f@T`@T`@FBNVFTJLXTZVTJXX@FM@CFIDCFPLb@d@BF?DZ`@TTTVR^T^TXZVR`@TXNHJNd@\\h@RT`@Xx@D`@PXZNNDVTVTZl@f@b@Td@XTJLLXId@JVNPJPB`@@dANhADJZ`@`@Xd@l@JP?d@Iv@DJNNRB@JG`@BBPF^Tx@n@VXN`@`@d@V`@BJ@PJh@TXF?FC@IEK@ORUNCb@h@d@f@BAJQN]@KKSOKC?CE@?@BFCj@\\TOVN`@d@b@d@`@f@b@h@VXPNxA`B\\^\\h@DBZ^Z^Zb@TTb@p@ZZRXRZFDV\\Pp@Ht@Rf@JHHLTf@ZP\\H^@jACLEN@`@EBC@OQ?AAM@KE?AYMEGEQVe@RAPC@AX?XFTHb@HVHZRXTZRZRd@Nh@?RBf@Vf@VXJh@J`@TBBRb@N`@N~@h@nBP`@H\\@p@Ff@V^b@\\RLX^TFL@RHFLj@d@PRn@`@d@f@LHRTHBHJPN^X^Xd@`@d@b@d@d@RLZXVHb@X~@^d@VXHh@J`@DP?JFXd@RVTR`@X`@f@\\LVBLFl@NXA^GP@\\Ih@E\\@f@L^A`@APJh@`@LDN?b@KXKXMb@WLMZe@b@a@VYHQXWd@[`@Mb@Ij@BTBZAXM\\]Z_@TS`@S`@SfAu@d@U`@{@^}@FGBIP[R[LKB?HMBAX[REPAVFRBRC\\S\\Sb@Cl@Jf@ZTF^Fb@K`@Cb@?ZMZMRCNAL@d@Ch@@\\Jd@b@TFBB^Jh@Jd@NZP\\NTTh@n@^FH?LEN@RFNJ@BFBBAH?LD\\CZS\\SRg@Nk@L]Py@J]HOPI\\ANB\\J\\Ln@ZF@PHZRZRn@l@f@Vd@Hf@Af@G`@CX?l@HHBZ@h@Gf@ILE`@GF?j@Kp@En@Qn@ORAXEp@O`@CN@b@Dh@Hj@Jb@KPOFMHINGPEX?f@BHBZMRg@Nm@Tk@P_@DEPc@Xi@HSRQJ?ZDHC@ENSTUPMn@S^YXCLHNTTLJ@H?l@c@RILCb@BVFb@PH@LPFBVV^PPLDFPf@DDFNB@FLJZA@EA?HEC?BFRDBDN@PCDQLQRBh@BDJHJNFJDLB?BDDBDLPB@JIFCLL?JVDB@H?`@JLHPFFZPFTNJ?DB?BDHFBHPHB?\\PX\\HBLJFHRAV@LJNAHDADDHT@BB@DF@FDJTBH?HBFDBH@@HCFJLLBHD@LCBI@EDGB?DN@HFXj@B@F?JEDBH?NOD?DBB?@CNHDHDAB@BD@HF@BC@BDBRBDJF?DLEJ@JDH@LJFL@BB?BDH^GROH?@@@NNCCDXBJBLFFA^NJBHNNBHFT@JDLR@DBBB?HDHHAFGB?@BFD?DFCD?BH?FD@BA@@HDADDJCXJDFCF@D\\PDLLNVb@Z\\VLH\\HP@LDPBBLGJ?HDDDAVBJD?RFNHNPLB?DGLCNFJFRFBJ@NNZb@B@JLPLNKNSRQZ?TRZHXRPPb@VJBFAHIDARHJAPDNJ?@XDJDPARKLAd@TBAj@ENED?FEDKLCFF@DJNJ^DXHTH\\HP@YJU@GAGFS@MFQB[BAD@JH@A?EBCF?DABCD@PEHG@GLIDDH?BC\\ERPTF\\BFBLLJDNBVN\\`@DBPDZNLCZ[LEHATBNDRAFEFAEI@EFAFDPd@@CFC\\HHXHFX?B@T@RCRKJ@BJAL?h@@DHBHHXJDCTCT@PR@HB@?@LBRGF@HFFJNFDARDD?RCTKLAVBNFNBVGFDAZ@ZDJVPRXXl@H\\BDDXLj@\\fANt@Vj@Vl@FXBTFJDATPPZHT@NHXTZR\\Lr@LTRRD^P`@FBBADGH?JHBFLH@BPB@@@D@l@?l@DLBP\\VTL`@f@d@`@ZBVVFJ\\x@RHp@BJ@DBXXPb@Rd@N@PALN@FNZNLHDNRB@D^Vf@RZTZXXVHNVPRBHFFZJ\\Z`@NXNL\\EPAPBZFPHd@BZBDFDL@HCPWBAHDFA`@OH@Rd@?FFPHNBN@TDVRRD@TVHRBNDJ`@t@TTHD@FFBVR^T@DJJVd@B@FHBZJVNHTTNRFDNRBJJPABNRVPHHHNFHJHJPVLTPf@d@Zb@Zb@JHRTv@f@VRp@ZPFVNRXTXHDN@PD\\N^ZTJHR@FCHBBF\\ELMBIA?FLVDX@^BTDFL^Fd@DNFLHZFFHPJl@FJHVBBBABB@DDBBJ?BGNIFCAC@CCEACLDVDLTJPDJHJPHRGNS@AAABBDF\\ALC@G?QIM@ODe@?MEAE@FAPCEGAKKEAAHDH?LCBAJGDGHDLDBAD@DD@@AFFPl@Rl@Jb@N\\DNBRDLZLJJLRTXDXLTFTDV?FHPP@FBDLHB@HGLAJ@?DFFBJLDPBDFf@Ff@HVNTTj@P\\B`ABLAB@TAF@??PB^@B?l@Bb@BL@RLf@@RBNHX?PDVDp@@B?JBL?LFf@AH?`@AL@F@h@DP@LJZNR?BFJ`@PNVHPFRHp@NVVr@FJJ\\Tf@LNHVLRPDRCZI^BRHNJPRHR@?Jd@FL@LALB^?f@GZ?LKd@@JADBBB@f@_@R[T[RSTKh@MLU^e@LMVQd@QRD^BHAJEVYe@SMAJGb@KLD?A?@F@VRd@d@LPDVCdAAdABTVj@Z\\bAvATTn@Vp@VXPTZXl@Zj@Xl@Xl@r@pBPd@Pp@Rd@VVTXNXJ`@?bAKh@Ij@WrB?b@B@HIHOBQBi@Ti@Ti@J[FIJc@Lc@Rs@Ts@FMB_@?OGgA@k@BCOSCGC]@_@G_@AYEQUg@QgAAa@CWMUCMCECSB_ABMLCBFBR?^DRA??@VTLD`@ZLh@Lh@AO@WF_@EKEUOa@@GB?TPJDNDJ?BBFRAd@Af@L`@Hd@DD@EAEAi@B[FUN_@B@I~@J`@V^V^LZJh@Lh@@A@QCK@i@Bg@AQSi@CW@MEq@Be@Ak@Ea@A_@@WDYBD@b@DXVj@HZ@NFPLVd@d@NVZr@Tz@^VHHH\\DAD@@FB@BM?QBIFDHP@B?HDD@AJY@[D?DFH\\B?DM?PD?BEBABKC[BM@FB?@SBKBJ@?BGBMAOHSDCBK?YBCDFHFBFHr@FP@A@]BCDAD@NRHXB@FGBGAYBODCL?B@FHFBFCAW@IPCFDDHBTA\\G`@@b@BFDDD@\\Z\\\\HVFb@FbAP~@BTEz@@B?LFl@?\\BXHf@J^D^Db@?XB\\?^@@FBDAXP^XPHLPLDJ@PFR@NGPC^Q\\S^GLINSPc@Za@TSPEL@XHZLX^PNFh@Rl@JHZFZFRNPRHTNVHXB^C|@TPVBXRf@NRRTf@B@j@ETNPh@VVJDTPRTJHVJDJBVCV?VPr@NPD@LATKJAPBTNLNB@H@HGD?FBZBHDTVXFD?bAVF?PJH?l@VHDJJTZb@VJNB@VBd@LVDL@^CLBFHJd@CXI`@?T@JFTHLNNXLJ@NCJEJ?n@QXOFIPAf@PNJVDJJFJb@^fAt@VP\\N^T^d@`@b@DBZn@\\n@z@tAR\\d@b@HDf@l@h@l@h@RTDXBJC\\W^U\\CN@PABSEGMIYa@GKASBCXCRGl@@`@DNDh@Vj@Xb@`@XZLRVl@JPXPZPVLXJd@Zn@VlAv@\\HJA`@?`@@l@Gl@Gl@BHBd@?f@@\\ENEJ?XEZE\\?j@FR?`@GPAJ@XEP@PHHA?KAGSc@?a@NMPADK?EFYPUFYB[DQ@SCo@AA@A@BA@A??AN_@BDA??ED?DCZPZPTHPDh@?`@RHG@ONk@Z@f@FF?d@L^Nd@Hd@Jh@Vl@NVP\\H^LlCj@n@Nd@Fd@Hr@Pr@P^J`@Ld@D\\JH^Ch@g@dDDTZJ?GZDJ?dCEj@Ab@Cd@Ch@b@?DMr@Op@","raceSelector":[{"raceId":"ccc","name":"CCC®","color":"#79b935","category":"100k","status":"STARTED"},{"raceId":"utmb","name":"UTMB®","color":"#e41f25","category":"100m","status":"STARTED"},{"raceId":"ptl","name":"PTL®","color":"#831f82","category":"","status":"STARTED"},{"raceId":"occ","name":"OCC","color":"#f59e10","category":"50k","status":"FINISHED"},{"raceId":"tds","name":"TDS®","color":"#00ade9","category":"100m","status":"FINISHED"},{"raceId":"ycc2JE","name":"YCC Junior - The Revenge","color":"#e9148b","category":"","status":"FINISHED"},{"raceId":"ycc2M","name":"YCC Minime - The Revenge","color":"#e9148b","category":"","status":"FINISHED"},{"raceId":"ycc2C","name":"YCC Cadet - The Revenge","color":"#e9148b","category":"","status":"FINISHED"},{"raceId":"mcc","name":"MCC","color":"#0a663a","category":"50k","status":"FINISHED"},{"raceId":"etc","name":"ETC","color":"#e5e500","category":"20k","status":"FINISHED"},{"raceId":"ycc1JE","name":"YCC Junior","color":"#e9148b","category":"20k","status":"FINISHED"},{"raceId":"ycc1C","name":"YCC Cadet","color":"#e9148b","category":null,"status":"FINISHED"},{"raceId":"ycc1M","name":"YCC Minime","color":"#e9148b","category":"","status":"FINISHED"}]};
+</script>
+<script>
+"use strict";
+/* ------------------------------------------------------------------ *
+ * UTMB — live tracker
+ * Reads the UTMB Live API (the feed behind live.utmb.world), builds the
+ * course geometry from the race's own checkpoint + polyline data, and
+ * renders the same adaptive leaderboard + map + course strip as /bay-100.
+ * No external libraries beyond Mapbox GL, no browser storage (follows
+ * live in the URL hash).
+ *
+ * The API requires an `X-Tenant: <event>_<year>` header and only allows
+ * cross-origin requests from utmb.world, so a browser on another site
+ * needs a relay that forwards that header. `proxy-worker.js` is a
+ * 40-line Cloudflare Worker that does exactly that; set its URL below.
+ * ------------------------------------------------------------------ */
+
+// The deployed relay (utmb/proxy-worker.js on Cloudflare). Override with ?proxy=… or
+// the Data source panel; on localhost the page uses dev-relay.py's /proxy instead.
+const PROXY_DEFAULT = "https://utmb-relay.caleb-krs.workers.dev/?url=";
+
+const DEFAULTS = {
+  api: "https://utmblive-api.utmb.world",
+  tenant: "utmb_2026",
+  race: "utmb",
+  proxy: PROXY_DEFAULT,
+  refresh: 60
+};
+const cfg = { ...DEFAULTS };
+// URL overrides: ?proxy=<encoded prefix>&race=ccc&tenant=utmb_2026
+{
+  const q = new URLSearchParams(location.search);
+  if (q.get("proxy") != null) cfg.proxy = q.get("proxy");
+  if (q.get("race")) cfg.race = q.get("race");
+  if (q.get("tenant")) cfg.tenant = q.get("tenant");
+  if (q.get("api")) cfg.api = q.get("api");
+  // local development: `python3 utmb/dev-relay.py` serves this folder AND a relay at /proxy
+  if (q.get("proxy") == null && /^(localhost|127\.0\.0\.1)$/.test(location.hostname)) cfg.proxy = location.origin + "/proxy?url=";
+}
+
+const TZ = "Europe/Paris";           // race clock — times shown in Chamonix time
+const MAPBOX_TOKEN = "pk.eyJ1IjoiY2xrcnVzZSIsImEiOiJjaXIxY2M2dGcwMnNiZnZtZzN0Znk3MXRuIn0.MyKHSjxjG-ZcI2BkRUSGJA";
+
+const state = {
+  rows: [],
+  race: null,        // /races/{id} summary payload
+  geo: null,         // built course geometry (see buildGeometry)
+  geoHash: null,
+  followed: new Set(loadFollows()),
+  sort: { key: "place", dir: 1 },
+  filterSex: "",
+  query: "",
+  showAll: false,
+  selectedBib: null,
+  detailCache: new Map(),   // bib -> { at, data }
+  lastOk: 0,
+  timer: null
+};
+const ROW_LIMIT = 300;
+// One color per followed runner, reused on the strip, the map dot + label, and their ★.
+// Assigned once (least-used color first) and kept for the session, so unfollowing
+// someone doesn't recolor everyone else.
+const PALETTE = ["#dc2626","#2563eb","#f59e0b","#7c3aed","#0f7d92","#db2777","#65a30d","#9a3412","#0891b2","#4d7c0f"];
+const followColors = new Map();
+function colorFor(bib){
+  if (followColors.has(bib)) return followColors.get(bib);
+  const used = new Map(PALETTE.map(c => [c, 0]));
+  for (const [b, c] of followColors) if (state.followed.has(b)) used.set(c, used.get(c) + 1);
+  const pick = PALETTE.reduce((best, c) => used.get(c) < used.get(best) ? c : best, PALETTE[0]);
+  followColors.set(bib, pick);
+  return pick;
+}
+
+/* ---------- tiny helpers ---------- */
+const $ = (s, r=document) => r.querySelector(s);
+const el = (tag, attrs={}, kids=[]) => {
+  const n = document.createElement(tag);
+  for (const k in attrs){
+    if (k === "class") n.className = attrs[k];
+    else if (k === "html") n.innerHTML = attrs[k];
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), attrs[k]);
+    else if (attrs[k] !== null && attrs[k] !== undefined) n.setAttribute(k, attrs[k]);
+  }
+  (Array.isArray(kids)?kids:[kids]).forEach(c => c!=null && n.append(c.nodeType?c:document.createTextNode(c)));
+  return n;
+};
+const timeToSec = (s) => {
+  if (!s) return null;
+  const m = String(s).trim().match(/^(?:(\d+):)?(\d{1,2}):(\d{2})(?:\.\d+)?$/);
+  if (!m) return null;
+  return (+(m[1]||0))*3600 + (+m[2])*60 + (+m[3]);
+};
+const ms = (iso) => { const t = iso ? Date.parse(iso) : NaN; return isNaN(t) ? null : t; };
+const clamp = (x, a, b) => Math.max(a, Math.min(b, x));
+const fmtNum = (n) => Number(n).toLocaleString("en-US");
+function fmtDur(sec){
+  sec = Math.max(0, Math.round(sec));
+  const h=Math.floor(sec/3600), m=Math.floor((sec%3600)/60), s=sec%60;
+  return h?`${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`:`${m}:${String(s).padStart(2,"0")}`;
+}
+// compact "1h12m" / "8m" duration label
+function fmtEta(sec){
+  if (sec == null || !isFinite(sec)) return "—";
+  const m = Math.round(sec/60);
+  return m >= 60 ? `${Math.floor(m/60)}h${String(m%60).padStart(2,"0")}m` : `${m}m`;
+}
+const _tod = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, weekday:"short", hour:"2-digit", minute:"2-digit" });
+const _todS = new Intl.DateTimeFormat("en-GB", { timeZone: TZ, hour:"2-digit", minute:"2-digit" });
+const fmtLocal = (t) => t == null ? "—" : _tod.format(new Date(t)).replace(",", "");        // "Fri 23:24"
+const fmtLocalShort = (t) => t == null ? "—" : _todS.format(new Date(t));                    // "23:24"
+const fmtKm = (km, d=1) => `${(+km).toFixed(d)} km`;
+// "Ben DHIMAN" -> "Ben Dhiman" (the feed shouts surnames)
+function properName(s){
+  return String(s||"").trim().replace(/[A-ZÀ-ÝŒ][A-ZÀ-ÝŒ'’-]{1,}/g, w =>
+    w.toLowerCase().replace(/(^|[-'’ ])([a-zà-ýœ])/g, (m,p,c) => p + c.toUpperCase()));
+}
+function flagEmoji(cc){
+  if (!cc || !/^[A-Za-z]{2}$/.test(cc)) return "";
+  return String.fromCodePoint(...[...cc.toUpperCase()].map(c => 0x1F1E6 + c.charCodeAt(0) - 65));
+}
+function ord(n){ n=+n; const s=["th","st","nd","rd"], v=n%100; return s[(v-20)%10]||s[v]||s[0]; }
+
+/* ---------- follows persisted in URL hash (no storage API) ---------- */
+function loadFollows(){
+  const m = location.hash.match(/follow=([\d,]+)/);
+  return m ? m[1].split(",").filter(Boolean) : [];
+}
+function saveFollows(){
+  location.replace("#follow=" + [...state.followed].join(","));
+}
+
+/* ------------------------------------------------------------------ *
+ * Course geometry.
+ * The API's checkpoint list carries official (3D) race km + coordinates,
+ * and /map carries a Google-encoded polyline of the route. The polyline
+ * passes exactly through every checkpoint, so we project each checkpoint
+ * onto it and rescale the polyline's 2D distance segment-by-segment so a
+ * runner at official km X lands at the right spot on the map.
+ * ------------------------------------------------------------------ */
+function decodePolyline(str){
+  const out = []; let i = 0, lat = 0, lng = 0;
+  while (i < str.length){
+    for (let w = 0; w < 2; w++){
+      let shift = 0, result = 0, b;
+      do { b = str.charCodeAt(i++) - 63; result |= (b & 0x1f) << shift; shift += 5; } while (b >= 0x20);
+      const d = (result & 1) ? ~(result >> 1) : (result >> 1);
+      if (w === 0) lat += d; else lng += d;
+    }
+    out.push([lng / 1e5, lat / 1e5]);
+  }
+  return out;
+}
+const R_EARTH = 6371.0088;
+function haversineKm(a, b){
+  const toR = Math.PI/180;
+  const dLat = (b[1]-a[1])*toR, dLon = (b[0]-a[0])*toR;
+  const h = Math.sin(dLat/2)**2 + Math.cos(a[1]*toR)*Math.cos(b[1]*toR)*Math.sin(dLon/2)**2;
+  return 2*R_EARTH*Math.asin(Math.sqrt(h));
+}
+function buildGeometry(st, polylineStr){
+  const pts = (st.points || []).slice().sort((a,b) => a.distance - b.distance);
+  const course = pts.map(p => ({
+    id: p.pointId, name: (p.name || "").trim(), short: (p.shortName || p.name || "").trim(),
+    km: p.distance/1000, alt: p.altitude, gain: p.gainElevation,
+    lon: p.longitude ?? null, lat: p.latitude ?? null,
+    public: !!p.isPublic && !p.isDisabled,
+    cutoff: p.cutoff ? ms(p.cutoff.replace(" ", "T") + "+02:00") : null   // feed gives naive local time
+  }));
+  const totalKm = course.length ? course[course.length-1].km : (st.info?.distance || 0);
+
+  // polyline → cumulative 2D km
+  const poly = polylineStr ? decodePolyline(polylineStr) : [];
+  const cum = [0];
+  for (let i = 1; i < poly.length; i++) cum.push(cum[i-1] + haversineKm(poly[i-1], poly[i]));
+
+  // project located checkpoints onto the polyline, monotonically
+  const anchors = [];   // [polyIdx, officialKm]
+  let from = 0;
+  course.forEach(c => {
+    if (c.lon == null || !poly.length) return;
+    let best = Infinity, bi = from;
+    for (let i = from; i < poly.length; i++){
+      const d = haversineKm([c.lon, c.lat], poly[i]);
+      if (d < best){ best = d; bi = i; }
+      if (best < 0.2 && d > best + 5) break;    // found it and we've moved well past — stop early
+    }
+    if (best < 1.0){ anchors.push([bi, c.km]); from = bi; }
+  });
+  if (anchors.length < 2 && poly.length){ anchors.length = 0; anchors.push([0, 0], [poly.length-1, totalKm]); }
+
+  // rescale each segment so anchors land on their official km
+  const off = new Array(poly.length).fill(0);
+  for (let a = 0; a + 1 < anchors.length; a++){
+    const [i0, k0] = anchors[a], [i1, k1] = anchors[a+1];
+    const span = (cum[i1] - cum[i0]) || 1e-9;
+    for (let i = i0; i <= i1; i++) off[i] = k0 + (cum[i]-cum[i0])/span*(k1-k0);
+  }
+  // decimate (keep anchors) so per-frame interpolation stays cheap
+  const keep = new Set([0, poly.length-1, ...anchors.map(a => a[0])]);
+  const ks = [...keep].sort((a,b)=>a-b);
+  for (let s = 0; s + 1 < ks.length; s++) rdp(poly, ks[s], ks[s+1], 0.006, keep);
+  const track = [...keep].sort((a,b)=>a-b).map(i => [poly[i][0], poly[i][1], off[i]]);
+
+  // merged aid-station list for the map (in/out points share coordinates)
+  const aid = [];
+  course.forEach((c, i) => {
+    if (!c.public || c.lon == null) return;
+    const isEnd = i === 0 || i === course.length-1;
+    const near = aid.find(a => haversineKm([a.lon,a.lat],[c.lon,c.lat]) < 0.15);
+    if (near) near.kms.push(c.km); else aid.push({ name: isEnd ? (c.name || c.short) : c.short, lon: c.lon, lat: c.lat, kms:[c.km], alt: c.alt });
+  });
+
+  // elevation profile for the course strip: [km, alt]
+  const profile = (st.profile?.profile || []).map(([d,a]) => [d/1000, a]);
+  const alts = profile.map(p => p[1]);
+  const bounds = poly.length
+    ? [[Math.min(...poly.map(p=>p[0])), Math.min(...poly.map(p=>p[1]))],[Math.max(...poly.map(p=>p[0])), Math.max(...poly.map(p=>p[1]))]]
+    : [[6.70, 45.69],[7.13, 46.06]];
+  return { course, totalKm, track, aid, profile,
+    minAlt: alts.length ? Math.min(...alts) : 800, maxAlt: alts.length ? Math.max(...alts) : 2600,
+    bounds, info: st.info || {}, idxOf: new Map(course.map((c,i) => [c.id, i])) };
+}
+// Douglas-Peucker between two kept indices (tolerance in km); adds kept indices to `keep`
+function rdp(poly, a, b, tol, keep){
+  const stack = [[a,b]];
+  while (stack.length){
+    const [i0, i1] = stack.pop();
+    if (i1 <= i0 + 1) continue;
+    const [ax, ay] = poly[i0], [bx, by] = poly[i1];
+    const my = 111.32, mx = 111.32*Math.cos((ay+by)/2*Math.PI/180);   // deg → km
+    const dx = (bx-ax)*mx, dy = (by-ay)*my, L = Math.hypot(dx,dy) || 1e-9;
+    let best = -1, bi = -1;
+    for (let i = i0+1; i < i1; i++){
+      const px = (poly[i][0]-ax)*mx, py = (poly[i][1]-ay)*my;
+      const d = Math.abs(dx*py - dy*px)/L;
+      if (d > best){ best = d; bi = i; }
+    }
+    if (best > tol){ keep.add(bi); stack.push([i0,bi],[bi,i1]); }
+  }
+}
+// [lon,lat] on the route at a given official km
+function positionAtKm(km){
+  const T = state.geo.track;
+  if (!T.length) return [6.869, 45.9236];
+  if (km <= T[0][2]) return [T[0][0], T[0][1]];
+  const last = T[T.length-1];
+  if (km >= last[2]) return [last[0], last[1]];
+  let lo = 0, hi = T.length-1;
+  while (lo < hi-1){ const mid=(lo+hi)>>1; if (T[mid][2] < km) lo=mid; else hi=mid; }
+  const a = T[lo], b = T[hi];
+  const span = b[2]-a[2] || 1, t = (km-a[2])/span;
+  return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t];
+}
+// official km of the route point nearest a GPS fix, searched only between kLo and kHi.
+// Returns null if the fix is more than ~400 m off the route (tracker noise / off course).
+function kmAtLatLon(lon, lat, kLo, kHi){
+  const T = state.geo.track;
+  let best = Infinity, bk = null;
+  for (let i = 0; i < T.length; i++){
+    const k = T[i][2];
+    if (k < kLo - 0.5 || k > kHi + 0.5) continue;
+    const d = haversineKm([lon,lat], T[i]);
+    if (d < best){ best = d; bk = k; }
+  }
+  return best < 0.4 ? bk : null;
+}
+
+/* ---------- network ---------- */
+async function api(path, query){
+  const qs = query ? "?" + Object.entries(query).filter(([,v]) => v != null && v !== "").map(([k,v]) => `${encodeURIComponent(k)}=${encodeURIComponent(v)}`).join("&") : "";
+  const url = cfg.api.replace(/\/$/,"") + path + qs;
+  const u = cfg.proxy ? cfg.proxy + encodeURIComponent(url) : url;
+  let res;
+  try { res = await fetch(u, { headers: { "X-Tenant": cfg.tenant, "Accept": "application/json" } }); }
+  catch (e){ throw new Error("network/CORS error reaching " + (cfg.proxy ? "the relay" : "the UTMB API directly")); }
+  if (!res.ok) throw new Error("HTTP " + res.status + " from " + path);
+  const txt = await res.text();
+  try { return JSON.parse(txt); }
+  catch { throw new Error("Feed did not return JSON (got " + txt.slice(0,40) + "…)"); }
+}
+
+/* ---------- geometry load: live first, embedded snapshot as fallback ---------- */
+function applyGeometry(st, polyline, hash){
+  state.geo = buildGeometry(st, polyline);
+  state.geoHash = hash ?? null;
+  renderMasthead();
+  renderRacePicker(st.raceSelector || (typeof EMBEDDED !== "undefined" ? EMBEDDED.raceSelector : []));
+  syncMapCourse();
+  if (state.rows.length) render(); else renderCourse();
+}
+function applyEmbedded(){
+  if (typeof EMBEDDED === "undefined") return;
+  if (cfg.race !== EMBEDDED_RACE || cfg.tenant !== EMBEDDED_TENANT) return;   // snapshot is UTMB-only
+  applyGeometry(EMBEDDED, EMBEDDED.polyline, EMBEDDED.hash);
+}
+const EMBEDDED_RACE = "utmb", EMBEDDED_TENANT = "utmb_2026";
+async function loadStatic(force){
+  const [st, mp] = await Promise.all([ api(`/races/${cfg.race}/static`), api(`/races/${cfg.race}/map`).catch(() => null) ]);
+  const hash = st && st.hash;
+  if (!force && state.geo && hash != null && hash === state.geoHash) return;   // unchanged course
+  applyGeometry(st, mp && mp.polyline && mp.polyline.polyline, hash);
+}
+
+/* ---------- parse the progressive ranking ---------- */
+function parseRunners(payload){
+  const G = state.geo;
+  const LAST = G.course.length - 1;
+  const list = payload.runners || [];
+  const rows = list.map(x => {
+    const info = x.info || {}, rk = x.ranking || {}, pr = x.prediction || {};
+    const o = {
+      bib: String(x.bib),
+      name: properName(info.fullname || ""),
+      country: info.countryCode || "", flag: flagEmoji(info.countryCode),
+      club: info.club || "", age: info.age ?? "", cat: info.category || "",
+      sex: info.sex === "F" ? "f" : (info.sex ? "m" : ""),
+      place: rk.scratch != null ? String(rk.scratch) : "",            // overall — used for sorting + draw order
+      placeSex: rk.sex != null ? String(rk.sex) : "",                   // within their sex — what the table shows
+      sexRank: rk.sex, catRank: rk.category,
+      status: x.status || "",
+      dnf: x.status === "a", otl: x.status === "hd",         // abandon / hors délai (missed a cutoff)
+      finished: !!x.isFinisher,
+      startMs: ms(x.start), timeRaw: x.raceTime || "", timeSec: timeToSec(x.raceTime),
+      lastPointId: pr.lastPointId ?? 0, lastPassMs: ms(pr.lastPassing),
+      nextPointId: pr.nextPointId ?? null, nextPredMs: ms(pr.nextPointPrediction), finishPredMs: ms(pr.finishPrediction),
+      gps: x.lastLocation && x.lastLocation.lat != null
+        ? { lon: x.lastLocation.lon, lat: x.lastLocation.lat, ms: ms(x.lastLocation.dt), origin: x.lastLocation.origin } : null,
+      _raw: x
+    };
+    o.out = o.dnf || o.otl;
+    o.stationIdx = G.idxOf.get(o.lastPointId) ?? 0;
+    if (o.finished) o.stationIdx = LAST;
+    o.km = G.course[o.stationIdx].km;
+    o.nextIdx = o.nextPointId != null ? (G.idxOf.get(o.nextPointId) ?? null) : null;
+    o.lastStation = o.stationIdx > 0 ? (G.course[o.stationIdx].short || G.course[o.stationIdx].name) : (o.startMs ? "Start" : "Not started");
+    o.progress = o.km / G.totalKm;
+    o.paceSec = (o.timeSec && o.km > 0) ? o.timeSec / o.km : null;   // sec per km, average so far
+    o.projFinishSec = (o.finishPredMs && o.startMs && !o.finished && !o.out) ? (o.finishPredMs - o.startMs)/1000 : null;
+    if (o.out){ o.place = ""; o.placeSex = ""; }     // out of the race: keep them listed, but not ranked
+    o.lead = o.placeSex === "1" && !o.out;            // first man / first woman
+    return o;
+  });
+  return rows.filter(o => o.bib || o.name);
+}
+
+/* ---------- load cycle ---------- */
+let loading = false;
+async function load(){
+  if (loading) return; loading = true;
+  try {
+    if (!state.geo) { try { await loadStatic(true); } catch(e){ /* fall through to embedded */ } }
+    if (!state.geo) applyEmbedded();
+    if (!state.geo) throw new Error("Couldn't load the course definition (" + cfg.race + ").");
+
+    const [race, prog] = await Promise.all([
+      api(`/races/${cfg.race}`).catch(() => null),
+      api(`/races/${cfg.race}/progressive`, { type: "PROGRESSIVE_RANKING", page: 0, limit: 5000 })
+    ]);
+    state.race = race;
+    if (race && race.hash != null && race.hash !== state.geoHash) loadStatic().catch(()=>{});   // course changed mid-race → refresh geometry
+
+    state.rows = parseRunners(prog);
+    state.lastOk = Date.now();
+    $("#rawConfig").textContent = JSON.stringify(race, null, 1).slice(0, 4000);
+    $("#rawList").textContent = JSON.stringify({ ...prog, runners: (prog.runners||[]).slice(0,3) }, null, 1).slice(0, 4000);
+    $("#colmap").textContent = `race: ${cfg.race} · tenant: ${cfg.tenant} · rows: ${state.rows.length}` + (cfg.proxy ? " · via relay" : " · direct");
+    render();
+    clearBanner();
+    // keep an open detail card fresh
+    if (state.selectedBib) refreshDetail(state.selectedBib);
+  } catch (err){
+    showError(err.message);
+    if (!state.rows.length){
+      $("#tableHost").innerHTML = "";
+      $("#tableHost").append(el("div",{class:"empty-state"}, "Couldn't load the live feed yet. " + err.message));
+    }
+  } finally { loading = false; }
+}
+
+function showError(msg){
+  const b = $("#topBanner");
+  b.innerHTML = "";
+  const corsish = /network|CORS/i.test(msg) && !cfg.proxy;
+  b.append(el("div",{class:"banner"},[
+    el("b",{},"Feed issue. "), msg + " ",
+    corsish ? el("span",{html:` The UTMB API refuses cross-site requests from other domains, so this page needs a relay: deploy <code>proxy-worker.js</code> from this folder (<code>npx wrangler deploy utmb/proxy-worker.js --name utmb-relay</code>), then paste its URL with <code>?url=</code> appended into the <b>Data source</b> panel below, or open this page with <code>?proxy=</code>&lt;that url&gt;.`}) : null
+  ]));
+}
+function clearBanner(){ $("#topBanner").innerHTML = ""; }
+
+/* ---------- masthead ---------- */
+function renderMasthead(){
+  const G = state.geo; if (!G) return;
+  const info = G.info || {};
+  const name = (info.name || "UTMB").replace(/®/g,"").trim();
+  document.title = `${name} · Live Tracking`;
+  $("#raceTitle").textContent = name;
+  const startPlace = info.startPlace || "Chamonix";
+  const finish = G.course.length ? (G.course[G.course.length-1].name || startPlace) : startPlace;
+  const km = Math.round(info.distance || G.totalKm), mi = Math.round(km * 0.621371);
+  const gain = info.elevationGain ? `${fmtNum(info.elevationGain)} m+ / ${fmtNum(Math.round(info.elevationGain*3.28084))} ft` : "";
+  const gun = ms(info.startDate);
+  $("#raceSub").innerHTML = `<b>${startPlace} → ${finish}</b> · ${km} km / ${mi} mi` + (gain ? ` · ${gain}` : "")
+    + (gun ? ` · start ${fmtLocal(gun)} Chamonix time` : "");
+}
+function renderLivebox(){
+  const box = $("#livebox"); box.innerHTML = "";
+  const r = state.race; if (!r) return;
+  const st = r.statistic || {};
+  const gun = ms(r.effectiveStartDate) || ms(state.geo?.info?.startDate);
+  if (gun) box.append(el("div",{}, ["race clock ", el("b",{}, fmtDur((Date.now()-gun)/1000)), " · ", fmtLocal(Date.now()), " local"]));
+  const parts = [];
+  if (st.totalStarter != null) parts.push(el("span",{}, [el("b",{}, fmtNum(st.totalStarter)), " starters"]));
+  if (st.totalFinisher) parts.push(el("span",{class:"fin"}, [" · ", el("b",{}, fmtNum(st.totalFinisher)), " finished"]));
+  if (st.totalDnf) parts.push(el("span",{class:"dnf"}, [" · ", el("b",{}, fmtNum(st.totalDnf)), " out"]));
+  if (parts.length) box.append(el("div",{}, parts));
+  const lead = (r.homeScratch || [])[0];
+  if (lead && lead.prediction){
+    const G = state.geo, i = G.idxOf.get(lead.prediction.lastPointId);
+    const where = i != null ? (G.course[i].short || G.course[i].name) : "";
+    const w = r.leaderWeather;
+    box.append(el("div",{}, [`leader ${properName(lead.info?.fullname||"")} · ${where}`, w && w.temp != null ? ` · ${w.temp}°C ${String(w.main||"").toLowerCase()}` : ""]));
+  }
+}
+
+/* ---------- race picker (other races of the same event) ---------- */
+function renderRacePicker(sel){
+  const wrap = $("#raceWrap"); wrap.innerHTML = "";
+  if (!sel || sel.length < 2) return;
+  const s = el("select",{ onchange:(e)=>{ switchRace(e.target.value); } });
+  sel.forEach(r => {
+    const o = el("option",{value:r.raceId}, `${r.name.replace(/®/g,"")}${r.status==="STARTED"?" · live":r.status==="FINISHED"?" · finished":""}`);
+    if (r.raceId === cfg.race) o.selected = true;
+    s.append(o);
+  });
+  wrap.append(s);
+}
+function switchRace(id){
+  if (!id || id === cfg.race) return;
+  cfg.race = id; $("#cfgRace").value = id;
+  state.rows = []; state.geo = null; state.geoHash = null; state.race = null; state.selectedBib = null; state.detailCache.clear();
+  $("#tableHost").innerHTML = ""; $("#tableHost").append(el("div",{class:"empty-state"},"Loading live results…"));
+  load();
+}
+
+/* ---------- live position estimate ---------- */
+// Estimate a runner's CURRENT km. Between checkpoints we interpolate on the
+// timing system's own prediction (last passing → predicted next arrival),
+// held just short of the next checkpoint if they're running late — the same
+// "never project past a station that would have reported them" rule as
+// /bay-100. Runners carrying a GPS tracker use their latest fix when it's
+// fresher than their last split. Display only — ranking is the feed's.
+function estimatedKm(r, nowMs){
+  const G = state.geo;
+  if (!r) return 0;
+  if (r.finished) return G.totalKm;
+  if (r.out || !r.startMs) return r.km;
+  const t0 = r.lastPassMs || r.startMs, k0 = r.km;
+  const k1 = r.nextIdx != null ? G.course[r.nextIdx].km : G.totalKm;
+  const hold = Math.max(k0, k1 - Math.min(0.15, (k1-k0)*0.02));
+  if (r.gps && r.gps.ms && r.gps.ms > t0 && nowMs - r.gps.ms < 30*60e3){
+    const k = kmAtLatLon(r.gps.lon, r.gps.lat, k0, k1);
+    if (k != null) return clamp(k, k0, hold);
+  }
+  if (r.nextPredMs && r.nextPredMs > t0){
+    const frac = clamp((nowMs - t0)/(r.nextPredMs - t0), 0, 1);
+    return Math.min(k0 + frac*(k1-k0), hold);
+  }
+  if (r.paceSec){
+    const since = (nowMs - t0)/1000;
+    return since > 0 ? Math.min(k0 + since/r.paceSec, hold) : k0;
+  }
+  return k0;
+}
+function usingGps(r, nowMs){
+  return !!(r.gps && r.gps.ms && r.gps.ms > (r.lastPassMs || r.startMs || 0) && nowMs - r.gps.ms < 30*60e3 && !r.out && !r.finished);
+}
+// The next public checkpoint ahead of a runner's ESTIMATED position, with
+// remaining distance and an ETA (the feed's prediction when it has one).
+function nextAidFor(r, nowMs){
+  const G = state.geo;
+  if (r.finished || r.out) return null;
+  const est = estimatedKm(r, nowMs);
+  for (let i = r.stationIdx + 1; i < G.course.length; i++){
+    const c = G.course[i];
+    if (!c.public) continue;
+    if (c.km > est - 0.06){
+      const dist = Math.max(0, +(c.km - est).toFixed(1));
+      let eta = null, etaAt = null;
+      if (r.nextPointId === c.id && r.nextPredMs){ etaAt = r.nextPredMs; eta = (r.nextPredMs - nowMs)/1000; }
+      else if (r.paceSec){ eta = dist * r.paceSec; etaAt = nowMs + eta*1000; }
+      return { next: c, dist, eta, etaAt };
+    }
+  }
+  return null;
+}
+
+/* ---------- course strip: elevation profile with checkpoint ticks ---------- */
+function altToTop(alt){
+  const G = state.geo, span = (G.maxAlt - G.minAlt) || 1;
+  return 4 + (1 - (alt - G.minAlt)/span) * 90;    // percent from top; 4–94% keeps dots inside
+}
+function altAtKm(km){
+  const P = state.geo.profile; if (!P.length) return state.geo.minAlt;
+  let lo = 0, hi = P.length-1;
+  if (km <= P[0][0]) return P[0][1];
+  if (km >= P[hi][0]) return P[hi][1];
+  while (lo < hi-1){ const mid=(lo+hi)>>1; if (P[mid][0] < km) lo=mid; else hi=mid; }
+  const t = (km-P[lo][0])/((P[hi][0]-P[lo][0])||1);
+  return P[lo][1] + (P[hi][1]-P[lo][1])*t;
+}
+function renderCourse(){
+  const G = state.geo; const track = $("#track"); track.innerHTML = "";
+  if (!G) return;
+  // profile
+  const W = 1000, H = 100;
+  const pts = G.profile.map(([k,a]) => [k/G.totalKm*W, altToTop(a)/100*H]);
+  if (pts.length){
+    const d = "M" + pts.map(p => p[0].toFixed(1)+","+p[1].toFixed(1)).join("L");
+    const svg = document.createElementNS("http://www.w3.org/2000/svg","svg");
+    svg.setAttribute("class","prof"); svg.setAttribute("viewBox",`0 0 ${W} ${H}`); svg.setAttribute("preserveAspectRatio","none");
+    const fill = document.createElementNS("http://www.w3.org/2000/svg","path");
+    fill.setAttribute("class","fill"); fill.setAttribute("d", d + `L${W},${H}L0,${H}Z`);
+    const line = document.createElementNS("http://www.w3.org/2000/svg","path");
+    line.setAttribute("class","line"); line.setAttribute("d", d);
+    svg.append(fill, line); track.append(svg);
+  }
+  // a line at each public checkpoint, spaced by true km; merge in/out pairs
+  const entries = [];
+  let lastKm = -1;
+  G.course.forEach((c,i) => {
+    if (!c.public) return;
+    const isEnd = i === 0 || i === G.course.length-1;
+    if (!isEnd && c.km - lastKm < 0.3) return;   // same station (entrée/sortie)
+    lastKm = c.km;
+    entries.push({ c, i, isEnd, left: (c.km / G.totalKm) * 100 });
+  });
+  // Labels angle up from the top of their line, so two lines closer than ~22px
+  // would overprint. Keep start + finish, then greedily keep every label that
+  // clears the previous kept one (and the finish) by that much at this width.
+  const PX = track.clientWidth || 1000, MIN_GAP = 22;
+  let lastX = -Infinity;
+  entries.forEach(e => {
+    const x = e.left/100*PX;
+    e.showLab = e.isEnd || (x - lastX >= MIN_GAP && PX - x >= MIN_GAP);
+    if (e.showLab) lastX = x;
+  });
+  entries.forEach(({c, i, isEnd, left, showLab}) => {
+    const s = el("div",{class:"station"+(i===0?" start":"")+(i===G.course.length-1?" finish":""), style:`left:${left}%`, title:`${c.name} · ${fmtKm(c.km)} · ${c.alt} m`+(c.cutoff?` · cutoff ${fmtLocal(c.cutoff)}`:"")});
+    s.append(el("div",{class:"guide"}));
+    const label = i === 0 ? "Start" : (c.short || c.name);
+    const lab = el("div",{class:"lab"}, label.length>15?label.slice(0,14)+"…":label);
+    const km = el("div",{class:"km"}, String(Math.round(c.km)));
+    if (!showLab){ lab.classList.add("lab-alt"); km.classList.add("lab-alt"); }
+    s.append(lab, km); track.append(s);
+  });
+
+  // followed runners, further narrowed by the Men / Women / ★ segment like the map and table
+  const allFollowed = state.rows.filter(r => state.followed.has(r.bib));
+  const followed = allFollowed.filter(passesFilter);
+  $("#courseEmpty").style.display = followed.length ? "none" : "block";
+  $("#courseEmpty").textContent = allFollowed.length && !followed.length
+    ? "None of your followed runners match the current filter."
+    : "Star a runner below to highlight them on the map and plot them along the course profile here.";
+  $("#followHint").textContent = allFollowed.length
+    ? `${followed.length}${followed.length !== allFollowed.length ? ` of ${allFollowed.length}` : ""} followed`
+    : "tap ★ on a runner to highlight them on the map";
+
+  const now = Date.now();
+  followed.forEach(r => {
+    const estKm = estimatedKm(r, now);
+    const left = clamp(estKm / G.totalKm * 100, 0, 100);
+    const m = el("div",{class:"runner-mark",
+      style:`left:${left}%; top:${altToTop(altAtKm(estKm))}%; background:${colorFor(r.bib)}; z-index:${/^\d+$/.test(r.place) ? 1e6 - parseInt(r.place,10) : 2}`, "data-bib":r.bib,
+      onclick:(e)=>{ e.stopPropagation(); document.querySelectorAll(".runner-mark.show").forEach(x=>x.classList.remove("show")); e.currentTarget.classList.add("show"); }});
+    const nm = (r.name||r.bib).split(" ")[0];
+    m.append(el("div",{class:"tip"}, `${nm} · ~${fmtKm(estKm)} · last: ${r.lastStation}${r.timeRaw?" "+r.timeRaw:""}`));
+    track.append(m);
+  });
+}
+// advance dot positions between feed refreshes without rebuilding the DOM
+function updateLivePositions(){
+  if (!state.rows.length) return;
+  renderMap();
+  renderLivebox();
+  const now = Date.now(), G = state.geo;
+  document.querySelectorAll(".runner-mark[data-bib]").forEach(node => {
+    const r = state.rows.find(x => x.bib === node.getAttribute("data-bib"));
+    if (!r) return;
+    const estKm = estimatedKm(r, now);
+    node.style.left = clamp(estKm / G.totalKm * 100, 0, 100) + "%";
+    node.style.top = altToTop(altAtKm(estKm)) + "%";
+  });
+  document.querySelectorAll("td.estdist[data-est]").forEach(node => {
+    const r = state.rows.find(x => x.bib === node.getAttribute("data-est"));
+    if (r) node.textContent = estDistText(r);
+  });
+  document.querySelectorAll("td.nextaid[data-next]").forEach(node => {
+    const r = state.rows.find(x => x.bib === node.getAttribute("data-next"));
+    if (r){ node.innerHTML = ""; node.append(nextCell(r)); }
+  });
+  document.querySelectorAll(".rowinfo[data-info]").forEach(node => {
+    const r = state.rows.find(x => x.bib === node.getAttribute("data-info"));
+    if (r) node.textContent = rowInfoText(r);
+  });
+}
+setInterval(updateLivePositions, 5000);
+// label thinning depends on the strip's pixel width — redo it when the window resizes
+let resizeT = null;
+window.addEventListener("resize", () => { clearTimeout(resizeT); resizeT = setTimeout(renderCourse, 150); });
+
+/* ---------- live geographic map (Mapbox GL) ---------- */
+let map = null, mapReady = false, mapFailed = false;
+const MAP_FIT = { padding: 40 };
+const MAP_MAX_ZOOM = 14;
+function mapBounds(){
+  const b = state.geo ? state.geo.bounds : [[6.70,45.69],[7.13,46.06]];
+  const padLon = (b[1][0]-b[0][0])*0.06, padLat = (b[1][1]-b[0][1])*0.06;
+  return [[b[0][0]-padLon, b[0][1]-padLat],[b[1][0]+padLon, b[1][1]+padLat]];
+}
+function mapMaxBounds(){
+  const b = mapBounds();
+  const w = b[1][0]-b[0][0], h = b[1][1]-b[0][1];
+  return [[b[0][0]-w*0.9, b[0][1]-h*0.6],[b[1][0]+w*0.9, b[1][1]+h*0.6]];
+}
+function lockMinZoom(){
+  if (!map) return;
+  let z;
+  try { const cam = map.cameraForBounds(mapBounds(), MAP_FIT); z = cam && cam.zoom; } catch(e){}
+  if (z == null) z = map.getZoom();
+  map.setMinZoom(Math.max(0, z - 0.05));
+}
+function buildRunnerFC(){
+  const now = Date.now();
+  const feats = [];
+  state.rows.forEach(r => {
+    if (r.out || (r.stationIdx === 0 && !r.startMs)) return;
+    if (!passesFilter(r)) return;                                   // Men / Women / ★ apply to the map too
+    if (r.stationIdx === 0 && !usingGps(r, now) && !(r.nextPredMs)) return;   // not yet on the clock
+    const estKm = estimatedKm(r, now);
+    const [lon,lat] = positionAtKm(estKm);
+    feats.push({ type:"Feature", geometry:{ type:"Point", coordinates:[lon,lat] },
+      properties:{
+        name: r.name || ("Bib "+r.bib), bib: String(r.bib),
+        place: r.placeSex || "", sexWord: r.sex === "f" ? "woman" : "man", km: estKm.toFixed(1), station: r.lastStation,
+        time: r.timeRaw || "", gps: usingGps(r, now) ? 1 : 0,
+        followed: state.followed.has(r.bib) ? 1 : 0,
+        color: state.followed.has(r.bib) ? colorFor(r.bib) : "#6e7681",
+        z: /^\d+$/.test(r.place) ? 1e6 - parseInt(r.place,10) : 0,   // draw order = race order
+        selected: r.bib === state.selectedBib ? 1 : 0,
+        state: r.finished ? "done" : (r.lead ? "lead" : "run")
+      }});
+  });
+  // Draw order follows the race: 1st place on top of everyone, regardless of
+  // follow/selection state. circle-sort-key does this in the renderer; ordering
+  // the features the same way is the fallback for anything that ignores it.
+  feats.sort((a,b) => a.properties.z - b.properties.z);
+  return { type:"FeatureCollection", features:feats };
+}
+function routeFC(){
+  return { type:"Feature", geometry:{ type:"LineString", coordinates: state.geo ? state.geo.track.map(t => [t[0],t[1]]) : [] } };
+}
+function aidFC(){
+  return { type:"FeatureCollection", features: (state.geo ? state.geo.aid : []).map(a => ({
+    type:"Feature", geometry:{ type:"Point", coordinates:[a.lon,a.lat] },
+    properties:{ name:a.name, label:`${a.name} · km ${a.kms.map(k=>k.toFixed(1)).join(" / ")} · ${a.alt} m` } })) };
+}
+function syncMapCourse(){
+  if (!map || !mapReady || !state.geo) return;
+  const rs = map.getSource("route"); if (rs) rs.setData(routeFC());
+  const as = map.getSource("aid"); if (as) as.setData(aidFC());
+  map.setMaxBounds(mapMaxBounds());
+  map.fitBounds(mapBounds(), { ...MAP_FIT, duration: 0 });
+  lockMinZoom();
+}
+function initMap(){
+  // The map is an enhancement — never let it block the leaderboard if WebGL /
+  // Mapbox is unavailable.
+  if (map || mapFailed || typeof mapboxgl === "undefined" || !MAPBOX_TOKEN) return;
+  try {
+    mapboxgl.accessToken = MAPBOX_TOKEN;
+    map = new mapboxgl.Map({
+      container: "map",
+      style: "mapbox://styles/mapbox/light-v11",
+      bounds: mapBounds(),
+      fitBoundsOptions: MAP_FIT,
+      maxBounds: mapMaxBounds(),
+      maxZoom: MAP_MAX_ZOOM,
+      pitch: 0, maxPitch: 0,
+      dragRotate: false,
+      attributionControl: true
+    });
+  } catch(e){
+    mapFailed = true; map = null;
+    const host = $("#map"); if (host) host.style.display = "none";
+    const lg = document.querySelector(".maplegend"); if (lg) lg.style.display = "none";
+    return;
+  }
+  map.on("error", () => {});
+  map.addControl(new mapboxgl.NavigationControl({ showCompass:false }), "top-right");
+  lockMinZoom();
+  map.on("resize", lockMinZoom);
+  map.on("load", () => {
+    lockMinZoom();
+    // shaded relief beneath the labels — this is a race around a 4,800 m massif
+    try {
+      if (!map.getSource("dem")) map.addSource("dem", { type:"raster-dem", url:"mapbox://mapbox.mapbox-terrain-dem-v1", tileSize:512, maxzoom:14 });
+      let firstSym;
+      for (const L of map.getStyle().layers){ if (L.type === "symbol"){ firstSym = L.id; break; } }
+      map.addLayer({ id:"hillshade", type:"hillshade", source:"dem",
+        paint:{ "hillshade-exaggeration":0.5, "hillshade-shadow-color":"#6b7480", "hillshade-highlight-color":"#ffffff" } }, firstSym);
+    } catch(e){ /* relief is optional */ }
+
+    map.addSource("route", { type:"geojson", data: routeFC() });
+    map.addLayer({ id:"route-line", type:"line", source:"route",
+      layout:{ "line-join":"round", "line-cap":"round" },
+      paint:{ "line-color":"#dc2626", "line-width":2.5, "line-opacity":.6 } });
+
+    map.addSource("aid", { type:"geojson", data: aidFC() });
+    map.addLayer({ id:"aid-dot", type:"circle", source:"aid",
+      paint:{ "circle-radius":4, "circle-color":"#ffffff", "circle-pitch-scale":"viewport",
+        "circle-stroke-color":"#374151", "circle-stroke-width":1.5 } });
+    map.addLayer({ id:"aid-label", type:"symbol", source:"aid",
+      layout:{ "text-field":["get","name"], "text-size":11, "text-offset":[0,1.1],
+        "text-anchor":"top", "text-font":["DIN Pro Medium","Arial Unicode MS Regular"],
+        "text-optional":true, "text-allow-overlap":false },
+      paint:{ "text-color":"#374151", "text-halo-color":"#ffffff", "text-halo-width":1.4 } });
+
+    map.addSource("runners", { type:"geojson", data: buildRunnerFC() });
+    map.addLayer({ id:"runner-dot", type:"circle", source:"runners",
+      layout:{ "circle-sort-key": ["get","z"] },   // higher key = drawn on top → leader over the pack
+      paint:{
+        "circle-radius": ["case", ["==",["get","selected"],1], 6.5, ["==",["get","followed"],1], 5, 3.5],
+        "circle-pitch-scale":"viewport",
+        "circle-color": ["case",
+          ["==",["get","selected"],1], "#f5c518",
+          ["==",["get","followed"],1], ["get","color"],
+          ["==",["get","state"],"lead"], "#1f9e57",
+          ["==",["get","state"],"done"], "#1f9e57",
+          "#6e7681"],
+        "circle-opacity": ["case", ["any",["==",["get","selected"],1],["==",["get","followed"],1],["==",["get","state"],"lead"]], 1, 0.75],
+        "circle-stroke-color": ["case", ["==",["get","selected"],1], "#1a1d21", "#ffffff"],
+        "circle-stroke-width": ["case", ["==",["get","selected"],1], 2, ["==",["get","followed"],1], 1.5, 0.8]
+      } });
+    map.addLayer({ id:"runner-label", type:"symbol", source:"runners",
+      filter:["any", ["==",["get","followed"],1], ["==",["get","selected"],1]],
+      layout:{
+        "text-field":["get","name"], "text-size":11,
+        // Fixed placement: a label is ALWAYS immediately right of its own dot. Labels
+        // never jump around to dodge each other (that made a trailing runner's name
+        // land beside the runner ahead); when two would overlap, the lower-placed one
+        // hides instead — the dot keeps its color, and the strip/table still show them.
+        "text-anchor":"left", "text-offset":[0.9, 0], "text-justify":"left", "text-padding":2,
+        "symbol-sort-key":["case", ["==",["get","selected"],1], 0, ["==",["get","place"],""], 99999, ["to-number",["get","place"]]],
+        "text-font":["DIN Pro Medium","Arial Unicode MS Regular"],
+        "text-allow-overlap":false },
+      paint:{ "text-color": ["case", ["==",["get","selected"],1], "#7a5c00", ["get","color"]],
+        "text-halo-color":"#ffffff", "text-halo-width":1.6 } });
+
+    const pop = new mapboxgl.Popup({ closeButton:false, closeOnClick:false, offset:10 });
+    const showPop = (e, html) => { map.getCanvas().style.cursor="pointer";
+      pop.setLngLat(e.features[0].geometry.coordinates.slice()).setHTML(html).addTo(map); };
+    map.on("mouseenter","runner-dot", e => { const p=e.features[0].properties;
+      showPop(e, `<b>${p.name}</b>${p.place?` · ${p.place}${ord(p.place)} ${p.sexWord}`:""}<br>~km ${p.km} (${p.gps==1?"GPS":"est"}) · last: ${p.station}${p.time?" "+p.time:""}`); });
+    map.on("mouseleave","runner-dot", () => { map.getCanvas().style.cursor=""; pop.remove(); });
+    map.on("click","runner-dot", e => { const bib = e.features[0].properties.bib; const tr = document.querySelector(`tr[data-bib="${bib}"]`); const r = state.rows.find(x => x.bib === bib); if (tr && r){ toggleDetail(tr, r); tr.scrollIntoView({ block:"center", behavior:"smooth" }); } });
+    map.on("mouseenter","aid-dot", e => showPop(e, `<b>${e.features[0].properties.label}</b>`));
+    map.on("mouseleave","aid-dot", () => { map.getCanvas().style.cursor=""; pop.remove(); });
+
+    mapReady = true;
+    syncMapCourse();
+    renderMap();
+  });
+}
+function renderMap(){
+  if (!map || !mapReady) return;
+  const src = map.getSource("runners");
+  if (src) src.setData(buildRunnerFC());
+}
+
+/* ---------- leaderboard table ---------- */
+function sortRows(rows){
+  const { key, dir } = state.sort;
+  const val = (r) => {
+    if (key==="place"){ const n=parseInt(r.place,10); return isNaN(n)?1e9:n; }
+    if (key==="time"){ return r.timeSec==null?1e9:r.timeSec; }
+    if (key==="progress"){ return -r.progress; }
+    if (key==="name"){ return (r.name||"").toLowerCase(); }
+    if (key==="bib"){ const n=parseInt(r.bib,10); return isNaN(n)?r.bib:n; }
+    return r[key]||"";
+  };
+  return rows.slice().sort((a,b)=>{ const x=val(a),y=val(b); return x<y?-dir:x>y?dir:0; });
+}
+// the Men / Women / ★ segment — applied to the leaderboard AND the map dots
+function passesFilter(r){
+  if (state.filterSex === "star") return state.followed.has(r.bib);
+  if (state.filterSex) return r.sex === state.filterSex;
+  return true;
+}
+function filtered(){
+  const q = state.query.toLowerCase().trim();
+  return state.rows.filter(r => {
+    if (!passesFilter(r)) return false;
+    if (q && !((r.name||"").toLowerCase().includes(q) || String(r.bib) === q || (r.club||"").toLowerCase().includes(q) || (r.country||"").toLowerCase() === q)) return false;
+    return true;
+  });
+}
+function renderHiddenNote(){
+  const note = $("#hiddenNote"); if (!note) return;
+  const out = state.rows.filter(r => r.out);
+  if (!out.length){ note.textContent = ""; return; }
+  const dnf = out.filter(r => r.dnf).length, otl = out.filter(r => r.otl).length;
+  const parts = [];
+  if (dnf) parts.push(`${dnf} DNF`);
+  if (otl) parts.push(`${otl} over cutoff`);
+  note.textContent = parts.join(" · ") + " · ";
+}
+function statusTag(r){
+  if (r.dnf) return el("span",{class:"tag dnf"},"DNF");
+  if (r.otl) return el("span",{class:"tag dnf"},"Cut off");
+  if (r.finished) return el("span",{class:"tag fin"},"Finished");
+  if (r.stationIdx === 0 && !r.startMs) return el("span",{class:"tag",style:"color:var(--muted)"},"Entered");
+  return el("span",{class:"tag run"},"Running");
+}
+function estDistText(r){
+  if (r.out || (!r.startMs && r.stationIdx === 0)) return "—";
+  return fmtKm(estimatedKm(r, Date.now()));
+}
+const sexAge = (r) => [r.sex && r.sex.toUpperCase(), r.age].filter(Boolean).join(" ");
+function rowInfoText(r){
+  if (r.dnf) return "DNF · last seen " + r.lastStation;
+  if (r.otl) return "Over cutoff · last seen " + r.lastStation;
+  if (r.finished) return "Finished" + (r.timeRaw ? " · " + r.timeRaw : "");
+  if (!r.startMs) return "not started";
+  const now = Date.now();
+  const est = estimatedKm(r, now);
+  const na = nextAidFor(r, now);
+  return `~${fmtKm(est)} · ${r.lastStation}`
+       + (na ? ` → ${na.next.short || na.next.name}` + (na.dist >= 0.1 ? ` ${na.dist} km` : "") : "");
+}
+function nextCell(r){
+  if (r.finished) return el("span",{style:"color:var(--good)"},"—");
+  if (r.out) return el("span",{style:"color:var(--muted)"},"—");
+  if (!r.startMs) return el("span",{style:"color:var(--muted)"},"not started");
+  const na = nextAidFor(r, Date.now());
+  if (!na) return el("span",{style:"color:var(--muted)"},"—");
+  return el("div",{}, [
+    el("span",{class:"lbl-full"}, na.next.short || na.next.name),
+    el("div",{class:"mini"}, na.dist < 0.1 ? "arriving" : [
+      `${na.dist} km`,
+      na.eta!=null ? el("span",{class:"eta"}, na.eta > 0 ? ` · ~${fmtEta(na.eta)}` : " · due") : null
+    ])
+  ]);
+}
+
+function render(){
+  renderCourse();
+  initMap();
+  renderMap();
+  renderLivebox();
+  renderHiddenNote();
+  const all = sortRows(filtered());
+  const rows = state.showAll || state.query || state.filterSex === "star" ? all : all.slice(0, ROW_LIMIT);
+  const host = $("#tableHost"); host.innerHTML = "";
+
+  const th = (label, key, num=false, extra="") => {
+    const sorted = state.sort.key===key;
+    return el("th",{class:(num?"num ":"")+(sorted?"sorted ":"")+extra, onclick:()=>{
+      if (state.sort.key===key) state.sort.dir*=-1; else { state.sort.key=key; state.sort.dir=1; }
+      render();
+    }}, [ label, sorted ? el("span",{class:"arrow"}, state.sort.dir>0?" ▲":" ▼") : null ]);
+  };
+
+  const table = el("table");
+  const head = el("tr",{},[
+    el("th",{class:"col-star"},""),
+    th("Pl","place", false, "col-pl"),
+    el("th",{class:"col-bib"},"Bib"),
+    th("Runner","name", false, "col-runner"),
+    el("th",{class:"col-sa"},"Sex/Age"),
+    th("Last seen","progress", false, "col-last"),
+    th("Dist","progress", true, "col-est"),
+    el("th",{class:"col-next"},"Next aid"),
+    th("Time","time", true, "col-time")
+  ]);
+  table.append(el("thead",{},head));
+  const tb = el("tbody");
+  let selectedTr = null, selectedRow = null;
+
+  rows.forEach(r => {
+    const tr = el("tr",{ class: r.bib===state.selectedBib ? "selected" : "", "data-bib": r.bib,
+      onclick:(e)=>{ if(e.target.closest(".star"))return; toggleDetail(tr,r); } });
+    if (r.bib === state.selectedBib){ selectedTr = tr; selectedRow = r; }
+    const star = el("button",{class:"star"+(state.followed.has(r.bib)?" on":""), title:"Follow on course",
+      style: state.followed.has(r.bib) ? `color:${colorFor(r.bib)}` : null,
+      onclick:(e)=>{ e.stopPropagation();
+        if (state.followed.has(r.bib)) state.followed.delete(r.bib); else state.followed.add(r.bib);
+        saveFollows(); render();
+      }}, state.followed.has(r.bib)?"★":"☆");
+    tr.append(el("td",{class:"col-star"},star));
+    tr.append(el("td",{class:"place col-pl"}, r.placeSex ? r.placeSex : "·"));
+    tr.append(el("td",{class:"bib col-bib"}, r.bib));
+    tr.append(el("td",{class:"name col-runner"}, [
+      r.name || "—",
+      r.out || r.finished ? el("span",{style:"margin-left:8px"}, statusTag(r)) : null,
+      el("div",{style:"font-weight:400;color:var(--muted);font-size:12px"}, [
+        r.club || null,
+        el("span",{class:"sa-m"}, (r.club?" · ":"")+sexAge(r))
+      ]),
+      el("div",{class:"rowinfo","data-info":r.bib}, rowInfoText(r))
+    ]));
+    tr.append(el("td",{class:"col-sa"}, [
+      r.sex ? r.sex.toUpperCase() : "",
+      r.age ? el("span",{style:"color:var(--muted)"}, (r.sex?" · ":"")+r.age) : null
+    ]));
+    tr.append(el("td",{class:"lastseen col-last"}, [
+      el("span",{class:"lbl-full"}, r.lastStation),
+      el("div",{class:"mini"}, r.stationIdx>0 ? fmtKm(r.km) + (r.lastPassMs ? " · " + fmtLocalShort(r.lastPassMs) : "") : "—")
+    ]));
+    tr.append(el("td",{class:"num estdist col-est", "data-est":r.bib}, estDistText(r)));
+    tr.append(el("td",{class:"lastseen nextaid col-next", "data-next":r.bib}, nextCell(r)));
+    tr.append(el("td",{class:"num col-time"}, [
+      r.timeRaw || "—",
+      el("div",{class:"distsub"}, r.stationIdx>0 ? fmtKm(r.km) : "—")
+    ]));
+    tb.append(tr);
+  });
+  table.append(tb);
+  host.append(table);
+  if (selectedTr && selectedRow) openDetail(selectedTr, selectedRow);
+  if (!rows.length) host.append(el("div",{class:"empty-state"},"No runners match that filter."));
+  if (rows.length < all.length){
+    host.append(el("button",{class:"showmore", onclick:()=>{ state.showAll = true; render(); }},
+      `Show all ${fmtNum(all.length)} runners (${fmtNum(all.length - rows.length)} more)`));
+  }
+}
+
+function toggleDetail(tr, r){
+  const next = tr.nextElementSibling;
+  if (next && next.classList.contains("detail")){
+    next.remove();
+    tr.classList.remove("selected");
+    state.selectedBib = null;
+    renderMap();
+    return;
+  }
+  document.querySelectorAll("tr.detail").forEach(x=>x.remove());
+  document.querySelectorAll("tbody tr.selected").forEach(x=>x.classList.remove("selected"));
+  tr.classList.add("selected");
+  state.selectedBib = r.bib;
+  renderMap();
+  openDetail(tr, r);
+}
+// build + insert the expanded detail row after tr — a readout of every column
+// plus the runner's full split sheet (fetched lazily from /runners/{bib})
+function openDetail(tr, r){
+  const td = el("td",{colspan:9});
+  const wrap = el("div",{class:"splits"});
+  const head = [r.name || "Runner "+r.bib];
+  if (r.placeSex) head.push(r.placeSex + ord(r.placeSex) + (r.sex === "f" ? " woman" : " man"));
+  if (r.place) head.push(r.place + ord(r.place) + " overall");
+  if (r.club) head.push(r.club);
+  if (r.country) head.push(r.country);
+  wrap.append(el("div",{class:"detailhead"}, head.join(" · ")));
+
+  const now = Date.now();
+  const na = nextAidFor(r, now);
+  const cells = [
+    ["Bib", r.bib || "—"],
+    ["Sex / Age", [sexAge(r), r.cat].filter(Boolean).join(" · ") || "—"],
+  ];
+  if (r.place) cells.push(["Ranking", (r.placeSex ? `${r.placeSex} ${r.sex==="f"?"W":"M"} · ` : "") + `${r.place} overall` + (r.catRank ? ` · ${r.catRank} in ${r.cat}` : "")]);
+  cells.push(["Status", r.dnf ? "DNF" : r.otl ? "Over cutoff" : r.finished ? "Finished" : r.startMs ? "Running" : "Not started"]);
+  if (r.startMs) cells.push(["Started", fmtLocal(r.startMs)]);
+  cells.push(["Last seen", r.stationIdx>0 ? `${r.lastStation} · ${fmtKm(r.km)}` + (r.lastPassMs ? ` · ${fmtLocal(r.lastPassMs)}` : "") : "—"]);
+  if (!r.finished && !r.out && r.startMs){
+    cells.push(["Est. distance", `~${fmtKm(estimatedKm(r, now))}` + (usingGps(r, now) ? ` · GPS ${fmtLocalShort(r.gps.ms)}` : "")]);
+    cells.push(["Next checkpoint", na ? `${na.next.short || na.next.name}${na.dist>=0.1?` · ${na.dist} km`:""}${na.etaAt?` · ETA ${fmtLocal(na.etaAt)}`:""}` : "—"]);
+    if (na && na.next.cutoff) cells.push(["Cutoff there", fmtLocal(na.next.cutoff)]);
+  }
+  cells.push(["Race time", r.timeRaw || "—"]);
+  if (r.paceSec && r.km>0) cells.push(["Avg pace", `${fmtDur(r.paceSec)}/km · ${(3600/r.paceSec).toFixed(1)} km/h`]);
+  if (r.projFinishSec) cells.push(["Proj. finish", `~${fmtDur(r.projFinishSec)} · ${fmtLocal(r.finishPredMs)}`]);
+  if (r.finished && r.finishPredMs == null && r.timeRaw) cells.push(["Finish", r.timeRaw]);
+
+  const list = el("div",{class:"statlist"});
+  cells.forEach(([k,v]) => list.append(el("div",{}, [ el("div",{class:"s"}, k), el("div",{class:"t"}, v) ])));
+  const passHost = el("div",{class:"passhost"}, el("div",{class:"loading"},"Loading splits…"));
+  wrap.append(el("div",{class:"detailgrid"}, [list, passHost]));
+  td.append(wrap);
+  tr.after(el("tr",{class:"detail"}, td));
+  fillPassings(r, passHost);
+}
+async function fetchDetail(bib, maxAge){
+  const c = state.detailCache.get(bib);
+  if (c && Date.now() - c.at < maxAge) return c.data;
+  const data = await api(`/runners/${encodeURIComponent(bib)}`);
+  state.detailCache.set(bib, { at: Date.now(), data });
+  return data;
+}
+async function fillPassings(r, host){
+  let data;
+  try { data = await fetchDetail(r.bib, 45e3); }
+  catch(e){ host.innerHTML = ""; host.append(el("div",{class:"loading"}, "Splits unavailable (" + e.message + ")")); return; }
+  if (!host.isConnected) return;
+  const G = state.geo;
+  const passings = (data.detail && data.detail.passings) || [];
+  const byId = new Map(passings.map(p => [p.pointId, p]));
+  const t = el("table",{class:"passings"});
+  t.append(el("thead",{}, el("tr",{}, [
+    el("th",{},"Checkpoint"), el("th",{class:"num"},"km"), el("th",{class:"num col-tod"},"Clock"), el("th",{class:"num"},"Race time"),
+    el("th",{class:"num col-split"},"Split"), el("th",{class:"num"},"Rank")
+  ])));
+  const tb = el("tbody");
+  let firstAhead = true;
+  G.course.forEach((c, i) => {
+    if (!c.public) return;
+    const p = byId.get(c.id);
+    if (p && (p.datetimeIn || p.datetimeOut)){
+      const at = ms(p.datetimeIn) || ms(p.datetimeOut);
+      const rank = p.rank != null ? String(p.rank) : "";
+      const diff = p.rankDiff;
+      tb.append(el("tr",{}, [
+        el("td",{class:"cp"}, i === 0 ? "Start" : (c.short || c.name)),
+        el("td",{class:"num"}, c.km.toFixed(1)),
+        el("td",{class:"num col-tod"}, fmtLocal(at)),
+        el("td",{class:"num"}, i === 0 ? "0:00:00" : (p.cumulatedTime || "—")),
+        el("td",{class:"num col-split"}, i === 0 ? "" : (p.time || "—")),
+        el("td",{class:"num"}, [ rank, diff ? el("span",{class: diff < 0 ? "up" : "down"}, ` ${diff < 0 ? "▲" : "▼"}${Math.abs(diff)}`) : null ])
+      ]));
+    } else if (!r.out && !r.finished && i > r.stationIdx){
+      // still ahead: show the cutoff, and the feed's ETA for the very next one
+      const isNext = firstAhead; firstAhead = false;
+      const eta = isNext && r.nextPointId === c.id && r.nextPredMs ? r.nextPredMs : null;
+      tb.append(el("tr",{class: isNext ? "next" : "ahead"}, [
+        el("td",{class:"cp"}, c.short || c.name),
+        el("td",{class:"num"}, c.km.toFixed(1)),
+        el("td",{class:"num col-tod"}, eta ? `ETA ${fmtLocal(eta)}` : (c.cutoff ? `cutoff ${fmtLocal(c.cutoff)}` : "")),
+        el("td",{class:"num"}, eta && r.startMs ? "~" + fmtDur((eta - r.startMs)/1000) : ""),
+        el("td",{class:"num col-split"}, ""),
+        el("td",{class:"num"}, eta && c.cutoff ? (eta < c.cutoff ? "" : el("span",{class:"down"},"past cutoff")) : "")
+      ]));
+    }
+  });
+  t.append(tb);
+  host.innerHTML = "";
+  host.append(t);
+  if (!passings.length) host.append(el("div",{class:"loading"},"No splits recorded yet."));
+}
+function refreshDetail(bib){
+  const tr = document.querySelector(`tr[data-bib="${bib}"]`);
+  const host = tr && tr.nextElementSibling && tr.nextElementSibling.querySelector(".passhost");
+  const r = state.rows.find(x => x.bib === bib);
+  if (host && r) fillPassings(r, host);
+}
+
+/* ---------- wiring ---------- */
+$("#search").addEventListener("input", e => { state.query = e.target.value; render(); });
+$("#sexSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  [...e.currentTarget.children].forEach(x=>x.classList.remove("on")); b.classList.add("on");
+  state.filterSex = b.dataset.sex; render();
+});
+function syncPanel(){
+  $("#cfgApi").value = cfg.api; $("#cfgTenant").value = cfg.tenant; $("#cfgRace").value = cfg.race;
+  $("#cfgProxy").value = cfg.proxy; $("#cfgRefresh").value = cfg.refresh;
+}
+$("#applyBtn").addEventListener("click", () => {
+  const race = $("#cfgRace").value.trim() || cfg.race;
+  cfg.api = $("#cfgApi").value.trim() || DEFAULTS.api;
+  cfg.tenant = $("#cfgTenant").value.trim() || DEFAULTS.tenant;
+  cfg.proxy = $("#cfgProxy").value.trim();
+  cfg.refresh = Math.max(15, parseInt($("#cfgRefresh").value,10) || DEFAULTS.refresh);
+  if (race !== cfg.race) switchRace(race); else { state.geo = null; state.geoHash = null; load(); }
+  schedule();
+});
+$("#resetBtn").addEventListener("click", () => {
+  Object.assign(cfg, DEFAULTS); syncPanel();
+  state.geo = null; state.geoHash = null; state.rows = [];
+  load(); schedule();
+});
+function schedule(){
+  if (state.timer) clearInterval(state.timer);
+  if (cfg.refresh>0) state.timer = setInterval(load, cfg.refresh*1000);
+}
+
+/* go */
+syncPanel();
+applyEmbedded();     // course + map render immediately from the snapshot; live data replaces it
+load();
+schedule();
+</script>
+</body>
+</html>
