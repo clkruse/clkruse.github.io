@@ -32,9 +32,10 @@
   .mast .spacer{margin-left:auto}
   /* module */
   .mod{border:1px solid var(--rule); margin:9px 13px 0; background:var(--paper)}
-  .modhd{display:flex; justify-content:space-between; gap:10px; align-items:baseline; padding:6px 10px;
+  .modhd{display:flex; flex-wrap:wrap; justify-content:space-between; gap:2px 10px; align-items:baseline; padding:6px 10px;
     border-bottom:1px solid var(--rule); background:var(--tint);
     font-size:11px; font-weight:600; letter-spacing:.05em; text-transform:uppercase; color:var(--ink)}
+  .modhd>span:first-child{white-space:nowrap}
   .modhd .r{font-family:var(--mono); font-size:10.5px; font-weight:400; letter-spacing:0; text-transform:none; color:var(--muted)}
   /* layout */
   .layout{display:grid; grid-template-columns:1fr; gap:0}
@@ -71,12 +72,29 @@
   #charts svg text.num{font-family:var(--mono)}
   .panel{border-top:1px solid var(--rule)}
   .panel:first-child{border-top:none}
-  .pchart{position:relative; touch-action:none; user-select:none}
+  .pchart{position:relative; touch-action:pan-y; user-select:none; -webkit-user-select:none}
+  .pcap{font-size:10px; color:#8a9099; text-align:right; padding:0 10px 5px}
   .pchart svg{display:block; width:100%}
   #refsel{font:600 11.5px var(--mono); color:var(--ink); background:transparent; border:0; border-bottom:1px solid var(--rule2); padding:0 2px 1px; cursor:pointer; -webkit-appearance:none; appearance:none}
   #refsel:hover{border-color:var(--ink)}
   .yearchips b{cursor:pointer; padding:0 3px; opacity:.28; font-weight:600; font-family:var(--mono); text-decoration:line-through; user-select:none}
   .yearchips b.on{opacity:1; text-decoration:none}
+  /* phones: sticky scrub bar, bigger tap targets, sticky first column on the split table */
+  @media (max-width:919px){
+    .mast{padding:10px 13px 8px; gap:4px 12px}
+    .mast h1{flex-basis:100%; margin:0}
+    .mast .spacer{margin-left:0}
+    .yearchips b{padding:4px 5px; font-size:13px}
+    #refsel{font-size:13px}
+    .scrub{position:sticky; top:env(safe-area-inset-top,0px); z-index:5; background:var(--paper); box-shadow:0 2px 0 var(--paper)}
+    table.tel{font-size:11px}
+    #map{height:clamp(240px,40vh,360px)}
+    table.sect{font-size:11px}
+    table.sect th,table.sect td{padding:5px 7px}
+    table.sect th:first-child,table.sect td:first-child{position:sticky; left:0; z-index:1; background:var(--paper); box-shadow:1px 0 0 var(--rule)}
+    table.sect tr.tot td:first-child{background:var(--paper)}
+    table.sect .aux{display:none}   /* mile range + elevation change: secondary, make room for the years */
+  }
   /* sector matrix */
   #sectors{overflow-x:auto}
   table.sect{width:100%; border-collapse:collapse; font-size:11.5px}
@@ -227,7 +245,7 @@ function initMap(){
   try{
     mapboxgl.accessToken=MAPBOX_TOKEN;
     map=new mapboxgl.Map({container:"map", style:"mapbox://styles/mapbox/light-v11",
-      bounds:[lo,hi], fitBoundsOptions:{padding:46}, pitch:0, maxPitch:0, dragRotate:false, attributionControl:true});
+      bounds:[lo,hi], fitBoundsOptions:{padding:46}, pitch:0, maxPitch:0, dragRotate:false, attributionControl:true, cooperativeGestures:true});
   }catch(e){ $("#map").style.display="none"; return; }
   map.on("error",()=>{});
   map.addControl(new mapboxgl.NavigationControl({showCompass:false}),"top-right");
@@ -246,7 +264,8 @@ function initMap(){
 }
 
 /* ================= dense multi-panel charts · every channel at once ================= */
-let PGW=760; const PGL=54, PGR=14;          // shared plot geometry (px) across all panels
+let PGW=760, PGL=54, FS=1; const PGR=14;   // shared plot geometry (px) across all panels; FS scales chart type on phones
+const fs=v=>(v*FS).toFixed(1);
 const PHT=124, PTT=16, PBB=PHT-6;           // panel svg height / plot top / plot bottom
 function xOf(d){ return PGL + (d/TOTAL)*(PGW-PGL-PGR); }
 function xToDist(px){ return Math.max(0,Math.min(TOTAL,(px-PGL)/(PGW-PGL-PGR)*TOTAL)); }
@@ -276,7 +295,7 @@ function sectorShade(T,B){ let s=""; SECTORS.forEach((S,i)=>{ if(i>0){ const x=x
 function lineBody(p,T,B){
   let grid=""; for(let v=Math.ceil(p.lo()/p.step)*p.step; v<=p.hi(); v+=p.step){ const y=valueY(p,v,T,B).toFixed(1);
     grid+=`<line x1="${PGL}" y1="${y}" x2="${PGW-PGR}" y2="${y}" stroke="#edeff1"/>`
-      +`<text class="num" x="${PGL-3}" y="${(+y+3).toFixed(1)}" text-anchor="end" font-size="8" fill="#9aa0a6">${p.tick(v)}</text>`; }
+      +`<text class="num" x="${PGL-3}" y="${(+y+3).toFixed(1)}" text-anchor="end" font-size="${fs(8)}" fill="#9aa0a6">${p.tick(v)}</text>`; }
   const data=p.arr();
   const path=a=>{let s="";for(let i=0;i<N;i++){const v=a[i]; if(v==null)continue; s+=(s?"L":"M")+xOf(D[i]).toFixed(1)+" "+valueY(p,v,T,B).toFixed(1)+" ";}return s;};
   let ln=""; YEARS.forEach(y=>{ if(!data[y])return; ln+=`<path d="${path(data[y])}" fill="none" stroke="${COL[y]}" stroke-width="1.4" stroke-linejoin="round" opacity=".95"/>`;});
@@ -288,7 +307,7 @@ function lineBody(p,T,B){
 function deltaBody(p,T,B){
   let grid=""; [-gMax,0,gMax].forEach(g=>{ const y=valueY(p,g,T,B).toFixed(1), z=g===0;
     grid+=`<line x1="${PGL}" y1="${y}" x2="${PGW-PGR}" y2="${y}" stroke="${z?'#c2c7cd':'#edeff1'}"/>`
-      +`<text class="num" x="${PGL-3}" y="${(+y+3).toFixed(1)}" text-anchor="end" font-size="8" fill="#9aa0a6">${z?'0':(g<0?'−':'+')+Math.abs(Math.round(g))}</text>`; });
+      +`<text class="num" x="${PGL-3}" y="${(+y+3).toFixed(1)}" text-anchor="end" font-size="${fs(8)}" fill="#9aa0a6">${z?'0':(g<0?'−':'+')+Math.abs(Math.round(g))}</text>`; });
   const path=a=>{let s="";for(let i=0;i<N;i++) s+=(i?"L":"M")+xOf(D[i]).toFixed(1)+" "+valueY(p,a[i],T,B).toFixed(1)+" ";return s;};
   let ln=""; YEARS.forEach(y=> ln+=`<path d="${path(GAP[y])}" fill="none" stroke="${COL[y]}" stroke-width="${y===REF?2:1.4}" stroke-linejoin="round" opacity=".95"/>`);
   let dt="",gl=""; YEARS.forEach(y=>{
@@ -306,7 +325,7 @@ function cadBody(p,T,B){
       const x0=xOf(D[i]),x1=xOf(D[Math.min(j,N-1)]);
       lanes+=`<rect x="${x0.toFixed(1)}" y="${y0.toFixed(1)}" width="${Math.max(0.5,x1-x0).toFixed(1)}" height="${(y1-y0).toFixed(1)}" fill="${run?runFill:'#dfe3e8'}" opacity="${run?0.9:1}"/>`;
       i=j; }
-    lanes+=`<text class="num" x="${PGL-3}" y="${((y0+y1)/2+3).toFixed(1)}" text-anchor="end" font-size="8" fill="${COL[y]}">${y}</text>`; });
+    lanes+=`<text class="num" x="${PGL-3}" y="${((y0+y1)/2+3).toFixed(1)}" text-anchor="end" font-size="${fs(8)}" fill="${COL[y]}">${y}</text>`; });
   let dt="",gl=""; YEARS.forEach((y,k)=>{
     gl+=`<line id="pg_cad_${y}" x1="${xOf(0)}" y1="${T}" x2="${xOf(0)}" y2="${B}" stroke="${COL[y]}" stroke-width="1" opacity=".26" stroke-dasharray="3 2"/>`;
     dt+=`<circle id="pd_cad_${y}" r="3.1" fill="#fff" stroke="${COL[y]}" stroke-width="1.5" cx="${xOf(0)}" cy="${laneCenter(k)}"/>`;});
@@ -314,22 +333,27 @@ function cadBody(p,T,B){
 }
 function panelSVG(p){ const W=PGW,H=PHT,T=PTT,B=PBB;
   const body = p.k==="cad"?cadBody(p,T,B) : p.dir==="zero"?deltaBody(p,T,B) : lineBody(p,T,B);
-  const ttl=`<text x="${PGL+1}" y="${T-5}" font-size="9" font-weight="700" fill="#14171a">${typeof p.ttl==="function"?p.ttl():p.ttl}</text>`
-    +`<text x="${W-PGR}" y="${T-5}" text-anchor="end" font-size="8.5" fill="#8a9099">${p.unit}</text>`;
+  const title=typeof p.ttl==="function"?p.ttl():p.ttl;
+  const fits=(title.length*6.2+p.unit.length*5+30)*FS < W-PGL-PGR;   // rough text-width estimate
+  const ttl=`<text x="${PGL+1}" y="${T-5}" font-size="${fs(9)}" font-weight="700" fill="#14171a">${title}</text>`
+    +(fits?`<text x="${W-PGR}" y="${T-5}" text-anchor="end" font-size="${fs(8.5)}" fill="#8a9099">${p.unit}</text>`:"");
   return `<div class="pchart" data-k="${p.k}"><svg viewBox="0 0 ${W} ${H}" height="${H}" preserveAspectRatio="xMidYMid meet">`
-    +sectorShade(T,B)+(p.k==="cad"?"":`<path d="${backdrop(T,B)}" fill="#eaedf0"/>`)+ttl+body+`</svg></div>`;
+    +sectorShade(T,B)+(p.k==="cad"?"":`<path d="${backdrop(T,B)}" fill="#eaedf0"/>`)+ttl+body+`</svg>`
+    +(fits?"":`<div class="pcap">${p.unit}</div>`)+`</div>`;
 }
 function sectorRulerSVG(){ const W=PGW,H=20; let s=`<svg viewBox="0 0 ${W} ${H}" height="${H}" preserveAspectRatio="xMidYMid meet" style="display:block;width:100%">`;
   SECTORS.forEach((S,i)=>{ const x0=xOf(S.a),x1=xOf(S.b),cx=((x0+x1)/2).toFixed(1);
+    const lab = (x1-x0) > (S.s.length*5.4+8)*FS ? S.s : S.s.slice(0,1);   // arrow only when the name won't fit
     if(i>0) s+=`<line x1="${x0.toFixed(1)}" y1="0" x2="${x0.toFixed(1)}" y2="${H}" stroke="#e0e2df"/>`;
-    s+=`<text x="${cx}" y="13" text-anchor="middle" font-size="8.5" fill="#596069">${S.s}</text>`; });
+    s+=`<text x="${cx}" y="13" text-anchor="middle" font-size="${fs(8.5)}" fill="#596069">${lab}</text>`; });
   return `<div style="border-bottom:1px solid #d9dce0">`+s+`</svg></div>`; }
 function mileRulerSVG(){ const W=PGW,H=15, lab=TOTAL>15?2:1, minr=TOTAL>15?1:0.5; let s=`<svg viewBox="0 0 ${W} ${H}" height="${H}" preserveAspectRatio="xMidYMid meet" style="display:block;width:100%">`;
   for(let d=0;d<=TOTAL+1e-6;d+=minr){ const x=xOf(Math.min(d,TOTAL)).toFixed(1), maj=Math.abs(d/lab-Math.round(d/lab))<1e-6;
     s+=`<line x1="${x}" y1="0" x2="${x}" y2="${maj?5:3}" stroke="#a8aeb5"/>`;
-    if(maj) s+=`<text class="num" x="${x}" y="13" text-anchor="middle" font-size="8.5" fill="#596069">${Math.round(d)}</text>`; }
+    if(maj) s+=`<text class="num" x="${x}" y="13" text-anchor="middle" font-size="${fs(8.5)}" fill="#596069">${Math.round(d)}</text>`; }
   return `<div style="border-top:1px solid #d9dce0">`+s+`</svg></div>`; }
 function renderCharts(){ const wrap=$("#charts"); if(!wrap) return; PGW=wrap.clientWidth||760;
+  const narrow=PGW<560; FS=narrow?1.2:1; PGL=narrow?40:54;
   wrap.innerHTML = sectorRulerSVG() + PANELS.map(p=>`<div class="panel">${panelSVG(p)}</div>`).join("") + mileRulerSVG(); }
 function renderYearPick(){ const h=$("#yearpick"); if(h) h.innerHTML=ALL_YEARS.map(y=>`<b data-y="${y}" class="${YEARS.includes(y)?'on':''}" style="color:${COL[y]}">${(""+y).slice(2)}</b>`).join(""); }
 function toggleYear(y){
@@ -347,14 +371,14 @@ function renderSectors(){
   const rows=SECTORS.map(S=>{ const times=YEARS.map(y=>tAtDist(y,S.b)-tAtDist(y,S.a)); const best=Math.min(...times);
     return {S,times,best,by:YEARS[times.indexOf(best)]}; });
   const totals=YEARS.map(y=>DATA.finish[y]); const ideal=rows.reduce((s,r)=>s+r.best,0); const fastest=Math.min(...totals);
-  const head=`<tr><th>sector</th><th>mi</th><th>Δft</th>`+YEARS.map(y=>`<th style="color:${COL[y]}">${y}</th>`).join("")+`<th>best</th><th>spread</th></tr>`;
+  const head=`<tr><th>sector</th><th class="aux">mi</th><th class="aux">Δft</th>`+YEARS.map(y=>`<th style="color:${COL[y]}">${y}</th>`).join("")+`<th>best</th><th>spread</th></tr>`;
   const body=rows.map(r=>{ const i0=Math.round(r.S.a/STEP), i1=Math.min(N-1,Math.round(r.S.b/STEP)), dft=Math.round(ELE[i1]-ELE[i0]);
     const spread=Math.round(Math.max(...r.times)-Math.min(...r.times));
-    return `<tr><td class="sn">${r.S.n}</td><td class="mu">${r.S.a.toFixed(2)}–${r.S.b.toFixed(2)}</td><td class="mu">${dft>0?'+':''}${dft}</td>`
+    return `<tr><td class="sn">${r.S.n}</td><td class="mu aux">${r.S.a.toFixed(2)}–${r.S.b.toFixed(2)}</td><td class="mu aux">${dft>0?'+':''}${dft}</td>`
       +r.times.map((t,k)=>{ const y=YEARS[k], win=y===r.by;
         return `<td class="${win?'win':''}" style="${win?'color:'+COL[y]:''}">${fmtClock(t)}</td>`; }).join("")
       +`<td class="mu">${fmtClock(r.best)}</td><td class="mu">${spread<60?spread+"s":fmtClock(spread)}</td></tr>`; }).join("");
-  const foot=`<tr class="tot"><td>FINISH</td><td class="mu">0.00–${TOTAL.toFixed(2)}</td><td class="mu">+${Math.round(gain)}</td>`
+  const foot=`<tr class="tot"><td>FINISH</td><td class="mu aux">0.00–${TOTAL.toFixed(2)}</td><td class="mu aux">+${Math.round(gain)}</td>`
     +YEARS.map((y,k)=>{ const win=totals[k]===fastest; return `<td class="${win?'win':''}" style="${win?'color:'+COL[y]:''}">${fmtClock(totals[k])}</td>`; }).join("")
     +`<td class="mu">${fmtClock(ideal)}</td><td></td></tr>`;
   host.innerHTML=`<table class="sect"><thead>${head}</thead><tbody>${body}${foot}</tbody></table>`;
@@ -409,12 +433,22 @@ $("#yearpick") && $("#yearpick").addEventListener("click",e=>{ const b=e.target.
 $("#refsel") && $("#refsel").addEventListener("change",e=>{
   REF=+e.target.value; rebuildGap(); renderRef(); renderCharts(); renderSectors(); scrub(tNow); });
 const sc=$("#scrub"); sc.max=MAXFIN; sc.addEventListener("input", e=>scrub(+e.target.value));
-(function(){ const wrap=$("#charts"); if(!wrap) return; let down=false;
+// mouse: press-and-drag scrubs at once. touch: a vertical swipe scrolls the page (touch-action: pan-y),
+// a horizontal drag scrubs, and a tap jumps to that distance.
+(function(){ const wrap=$("#charts"); if(!wrap) return; let down=false, armed=false, sx=0, sy=0, pid=null;
   const go=e=>{ const pc=(e.target.closest&&e.target.closest(".pchart"))||wrap.querySelector(".pchart"); if(!pc)return;
-    scrub(xToTime(e.touches?e.touches[0].clientX:e.clientX, pc)); };
-  wrap.addEventListener("pointerdown",e=>{ if(!e.target.closest(".pchart"))return; down=true; try{wrap.setPointerCapture(e.pointerId);}catch(_){ } go(e); });
-  wrap.addEventListener("pointermove",e=>{ if(down)go(e); });
-  window.addEventListener("pointerup",()=>{down=false;});
+    scrub(xToTime(e.clientX, pc)); };
+  const arm=()=>{ armed=true; try{wrap.setPointerCapture(pid);}catch(_){ } };
+  wrap.addEventListener("pointerdown",e=>{ if(!e.target.closest(".pchart"))return;
+    down=true; armed=false; sx=e.clientX; sy=e.clientY; pid=e.pointerId;
+    if(e.pointerType==="mouse"){ arm(); go(e); } });
+  wrap.addEventListener("pointermove",e=>{ if(!down)return;
+    if(!armed){ const dx=Math.abs(e.clientX-sx), dy=Math.abs(e.clientY-sy);
+      if(dx<8&&dy<8) return; if(dy>dx){ down=false; return; } arm(); }
+    go(e); });
+  wrap.addEventListener("pointerup",e=>{ if(down&&!armed) go(e); down=false; armed=false; });
+  wrap.addEventListener("pointercancel",()=>{ down=false; armed=false; });
+  window.addEventListener("pointerup",()=>{ down=false; armed=false; });
 })();
 let rt; window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{renderCharts();scrub(tNow);if(mapReady&&map)map.resize();},150);});
 
