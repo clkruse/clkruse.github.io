@@ -55,14 +55,12 @@
   table.tel tr:last-child td{border-bottom:none}
   table.tel tr.lead td{background:#f7f7f3}
   table.tel .run{color:#15803d} table.tel .walk{color:var(--accent); font-weight:600}
-  .state{display:grid; grid-template-columns:1fr 1fr; gap:1px 14px; font-size:11px; color:var(--muted); padding:6px 10px; border-top:1px solid var(--rule)}
+  .state{display:grid; grid-template-columns:auto auto auto; justify-content:space-between; gap:1px 14px; font-size:11px; color:var(--muted); padding:6px 10px; border-top:1px solid var(--rule)}
   .state span{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .state b{font-family:var(--mono); color:var(--ink); font-weight:500}
   /* map */
   #map{height:clamp(260px,40vh,420px); overflow:hidden}
-  .maplegend{display:flex; gap:11px; flex-wrap:wrap; align-items:center; padding:6px 10px; font-size:10.5px; color:var(--muted); border-top:1px solid var(--rule)}
-  .maplegend i{display:inline-block; width:9px; height:9px; margin-right:5px; vertical-align:middle; border-radius:50%}
-  #trailtoggle{cursor:pointer; color:var(--muted); margin-left:auto; border-bottom:1px solid var(--rule2)}
+  #trailtoggle{cursor:pointer; border-bottom:1px solid var(--rule2)}
   #trailtoggle:hover{color:var(--ink)}
   /* chart panels — sans for labels, mono only for numeric axis ticks (text.num) */
   #charts svg{font-family:var(--sans)}
@@ -94,6 +92,12 @@
     table.sect tr.tot td:first-child{background:var(--paper)}
     table.sect .aux{display:none}   /* mile range + elevation change: secondary, make room for the years */
   }
+  .seg b{cursor:pointer; opacity:.45; font-weight:600; color:var(--ink)}
+  .seg b.on{opacity:1; text-decoration:underline}
+  .seg b+b{margin-left:7px}
+  table.sect td.ahead{color:#15803d}
+  table.sect th[data-y],table.sect td[data-y]{cursor:pointer}
+  table.tel tr[data-y]{cursor:pointer}
   /* sector matrix */
   #sectors{overflow-x:auto}
   table.sect{width:100%; border-collapse:collapse; font-size:11.5px}
@@ -119,7 +123,7 @@
   </header>
 
   <div class="mod">
-    <div class="modhd"><span>Sector splits</span><span class="r" id="sectsum"></span></div>
+    <div class="modhd"><span>Sector splits</span><span class="r"><span class="seg" id="sectmode"><b data-m="abs">times</b><b data-m="diff">vs ref</b></span> · <span id="sectsum"></span></span></div>
     <div id="sectors"></div>
   </div>
   <div class="mod" id="chartsmod">
@@ -139,9 +143,8 @@
       </div>
     </div>
     <div class="mod">
-      <div class="modhd"><span>Course · position replay</span><span class="r">Manitou → summit → Manitou</span></div>
+      <div class="modhd"><span>Course · position replay</span><span class="r">Manitou → summit → Manitou · <span id="trailtoggle"></span></span></div>
       <div id="map"></div>
-      <div class="maplegend" id="legend"></div>
     </div>
   </div>
 </div>
@@ -151,6 +154,17 @@ const DATA = {"dist":[0.0,0.04,0.08,0.12,0.16,0.2,0.24,0.28,0.32,0.36,0.4,0.44,0
 const MAPBOX_TOKEN = "pk.eyJ1IjoiY2xrcnVzZSIsImEiOiJjaXIxY2M2dGcwMnNiZnZtZzN0Znk3MXRuIn0.MyKHSjxjG-ZcI2BkRUSGJA";
 const ALL_YEARS = [2017,2018,2019,2020,2021,2022,2023,2025,2026];
 let YEARS = ALL_YEARS.slice();   // active subset — toggled from the header chips
+// view state lives in the URL hash (#y=21,25,26&ref=21&m=diff&t=12345) so a view can be shared
+const URLSTATE=(()=>{ const h=new URLSearchParams(location.hash.slice(1)), o={};
+  const ys=h.get("y"); if(ys){ const set=ys.split(",").map(v=>2000+ +v).filter(v=>ALL_YEARS.includes(v)); if(set.length) o.years=set; }
+  if(h.get("ref")) o.ref=2000+ +h.get("ref"); o.mode=h.get("m")==="diff"?"diff":"abs"; o.t=Math.max(0,+h.get("t")||0); return o; })();
+if(URLSTATE.years) YEARS=ALL_YEARS.filter(v=>URLSTATE.years.includes(v));
+let SECTMODE=URLSTATE.mode;   // sector table: "abs" times or "diff" vs the reference year
+let wt; function writeState(){ clearTimeout(wt); wt=setTimeout(()=>{ const h=new URLSearchParams();
+  if(YEARS.length<ALL_YEARS.length) h.set("y",YEARS.map(y=>String(y).slice(2)).join(","));
+  const fastest=YEARS.reduce((b,v)=>DATA.finish[v]<DATA.finish[b]?v:b, YEARS[0]);
+  if(REF!==fastest) h.set("ref",String(REF).slice(2)); if(SECTMODE==="diff") h.set("m","diff"); if(tNow>0) h.set("t",Math.round(tNow));
+  const q=h.toString().replace(/%2C/g,","); history.replaceState(null,"", q?"#"+q:location.pathname+location.search); },250); }
 const COL = {2017:"#b91c1c",2018:"#ea580c",2019:"#ca8a04",2020:"#15803d",2021:"#0d9488",2022:"#2563eb",2023:"#7c3aed",2025:"#db2777",2026:"#111111"};
 const D=DATA.dist, LAT=DATA.lat, LON=DATA.lon, ELE=DATA.ele, T=DATA.t, HR=DATA.hr;
 const SPM={}; ALL_YEARS.forEach(y=>SPM[y]=DATA.cad[y]?DATA.cad[y].map(c=>c?c*2:c):null); // steps/min; only some years logged cadence
@@ -187,6 +201,7 @@ const hrMin=Math.floor(Math.min(...allhr)/5)*5, hrMax=Math.ceil(Math.max(...allh
 const SECTORS=[{n:"Start → Barr Camp",s:"↑ Barr",a:0,b:7.8},{n:"Barr → A-Frame",s:"↑ A-Frame",a:7.8,b:10.5},{n:"A-Frame → Summit",s:"↑ Summit",a:10.5,b:13.48},{n:"Summit → A-Frame",s:"↓ A-Frame",a:13.48,b:16.46},{n:"A-Frame → Barr",s:"↓ Barr",a:16.46,b:19.16},{n:"Barr → Finish",s:"↓ Finish",a:19.16,b:26.37}];
 // gap-to-reference (default = fastest finisher); rebuilt when the reference is changed
 let REF = YEARS.reduce((b,y)=>DATA.finish[y]<DATA.finish[b]?y:b, YEARS[0]);
+if(URLSTATE.ref && YEARS.includes(URLSTATE.ref)) REF=URLSTATE.ref;
 let GAP={}, gMax=1;
 function rebuildGap(){ GAP={}; YEARS.forEach(y=>{GAP[y]=D.map((_,i)=>T[y][i]-T[REF][i]);});
   // axis fits every active year except the single worst one (with 3+ years), so one blow-up year
@@ -217,21 +232,21 @@ let gain=0; for(let i=1;i<N;i++){const d=ELE[i]-ELE[i-1]; if(d>0)gain+=d;}
 $("#gain").textContent = (Math.round(gain/10)*10).toLocaleString()+" ft";
 
 /* ---------- legend ---------- */
-function renderLegend(){ $("#legend").innerHTML = YEARS.map(y=>`<span><i style="background:${COL[y]}"></i>${y}</span>`).join("")
-  + `<span style="color:#9aa0a6">out-and-back · turn at 13.5mi</span>`
-  + `<span id="trailtoggle" style="margin-left:auto;cursor:pointer;text-decoration:underline dotted">color: ${trailMode==="year"?"fastest year":"pace"}</span>`;
-  $("#trailtoggle").addEventListener("click",toggleTrail); }
 
 /* ---------- map ---------- */
-let map=null, mapReady=false, trailMode="year";
+let map=null, mapReady=false, trailMode="pace";
 const DOMEXPR=["match",["get","y"],...ALL_YEARS.flatMap(y=>[y,COL[y]]),"#999"];
-const SPDEXPR=["interpolate",["linear"],["get","spd"],6,"#1a9850",8.5,"#f6d743",11,"#ef6f4c",15,"#b2182b"];
+// pace color stops from the pace distribution across all runs (10th/40th/70th/95th percentiles), so the
+// scale spans this course's 8–28 min/mi rather than a flat race's
+const pq=q=>allp[Math.floor((allp.length-1)*q)];
+const SPDEXPR=["interpolate",["linear"],["get","spd"],pq(.1),"#1a9850",pq(.4),"#f6d743",pq(.7),"#ef6f4c",pq(.95),"#b2182b"];
+function renderTrailToggle(){ const t=$("#trailtoggle"); if(t)t.textContent=trailMode==="pace"?`color: ${REF} pace`:"color: fastest year"; }
 function toggleTrail(){ trailMode=trailMode==="year"?"pace":"year";
   if(mapReady&&map) map.setPaintProperty("course","line-color", trailMode==="pace"?SPDEXPR:DOMEXPR);
-  const t=$("#trailtoggle"); if(t)t.textContent=trailMode==="year"?"color: fastest year":"color: pace"; }
-// course segments, each tagged with the fastest active year and its pace there
+  renderTrailToggle(); }
+// course segments, each tagged with the fastest active year there and the reference year's pace
 function courseFC(){ const feats=[];
-  for(let i=0;i<N-1;i++) feats.push({type:"Feature",properties:{y:WIN[i], spd:PACE[WIN[i]][i]||12},
+  for(let i=0;i<N-1;i++) feats.push({type:"Feature",properties:{y:WIN[i], spd:PACE[REF][i]||12},
     geometry:{type:"LineString",coordinates:[[LON[i],LAT[i]],[LON[i+1],LAT[i+1]]]}});
   return {type:"FeatureCollection",features:feats}; }
 function refreshMapData(){ if(!mapReady||!map) return; const c=map.getSource("course"); if(c)c.setData(courseFC()); }
@@ -296,10 +311,10 @@ function lineBody(p,T,B){
       +`<text class="num" x="${PGL-3}" y="${(+y+3).toFixed(1)}" text-anchor="end" font-size="${fs(8)}" fill="#9aa0a6">${p.tick(v)}</text>`; }
   const data=p.arr();
   const path=a=>{let s="";for(let i=0;i<N;i++){const v=a[i]; if(v==null)continue; s+=(s?"L":"M")+xOf(D[i]).toFixed(1)+" "+valueY(p,v,T,B).toFixed(1)+" ";}return s;};
-  let ln=""; YEARS.forEach(y=>{ if(!data[y])return; ln+=`<path d="${path(data[y])}" fill="none" stroke="${COL[y]}" stroke-width="1.4" stroke-linejoin="round" opacity=".95"/>`;});
+  let ln=""; YEARS.forEach(y=>{ if(!data[y])return; ln+=`<path data-y="${y}" d="${path(data[y])}" fill="none" stroke="${COL[y]}" stroke-width="1.4" stroke-linejoin="round" opacity=".95"/>`;});
   let dt="",gl=""; YEARS.forEach(y=>{ if(!data[y])return; const v0=data[y][0]??p.lo();
-    gl+=`<line id="pg_${p.k}_${y}" x1="${xOf(0)}" y1="${T}" x2="${xOf(0)}" y2="${B}" stroke="${COL[y]}" stroke-width="1" opacity=".26" stroke-dasharray="3 2"/>`;
-    dt+=`<circle id="pd_${p.k}_${y}" r="3.1" fill="${COL[y]}" stroke="#fff" stroke-width="1.1" cx="${xOf(0)}" cy="${valueY(p,v0,T,B)}"/>`;});
+    gl+=`<line id="pg_${p.k}_${y}" data-y="${y}" x1="${xOf(0)}" y1="${T}" x2="${xOf(0)}" y2="${B}" stroke="${COL[y]}" stroke-width="1" opacity=".26" stroke-dasharray="3 2"/>`;
+    dt+=`<circle id="pd_${p.k}_${y}" data-y="${y}" r="3.1" fill="${COL[y]}" stroke="#fff" stroke-width="1.1" cx="${xOf(0)}" cy="${valueY(p,v0,T,B)}"/>`;});
   return grid+ln+gl+dt;
 }
 // grid step for the gap axis: the smallest tidy interval giving at most ~5 lines each side of zero
@@ -310,10 +325,10 @@ function deltaBody(p,T,B){
     grid+=`<line x1="${PGL}" y1="${y}" x2="${PGW-PGR}" y2="${y}" stroke="${z?'#b7bcc3':'#e4e7ea'}"${z?' stroke-width="1.2"':''}/>`
       +`<text class="num" x="${PGL-3}" y="${(+y+3).toFixed(1)}" text-anchor="end" font-size="${fs(8)}" fill="#9aa0a6">${z?'0':(g<0?'−':'+')+(st>=60?Math.abs(g)/60:'0:'+String(Math.abs(g)).padStart(2,'0'))}</text>`; }
   const path=a=>{let s="";for(let i=0;i<N;i++) s+=(i?"L":"M")+xOf(D[i]).toFixed(1)+" "+valueY(p,a[i],T,B).toFixed(1)+" ";return s;};
-  let ln=""; YEARS.forEach(y=> ln+=`<path d="${path(GAP[y])}" fill="none" stroke="${COL[y]}" stroke-width="${y===REF?2:1.4}" stroke-linejoin="round" opacity=".95"/>`);
+  let ln=""; YEARS.forEach(y=> ln+=`<path data-y="${y}" d="${path(GAP[y])}" fill="none" stroke="${COL[y]}" stroke-width="${y===REF?2:1.4}" stroke-linejoin="round" opacity=".95"/>`);
   let dt="",gl=""; YEARS.forEach(y=>{
-    gl+=`<line id="pg_${p.k}_${y}" x1="${xOf(0)}" y1="${T}" x2="${xOf(0)}" y2="${B}" stroke="${COL[y]}" stroke-width="1" opacity=".26" stroke-dasharray="3 2"/>`;
-    dt+=`<circle id="pd_${p.k}_${y}" r="3.1" fill="${COL[y]}" stroke="#fff" stroke-width="1.1" cx="${xOf(0)}" cy="${valueY(p,GAP[y][0],T,B)}"/>`;});
+    gl+=`<line id="pg_${p.k}_${y}" data-y="${y}" x1="${xOf(0)}" y1="${T}" x2="${xOf(0)}" y2="${B}" stroke="${COL[y]}" stroke-width="1" opacity=".26" stroke-dasharray="3 2"/>`;
+    dt+=`<circle id="pd_${p.k}_${y}" data-y="${y}" r="3.1" fill="${COL[y]}" stroke="#fff" stroke-width="1.1" cx="${xOf(0)}" cy="${valueY(p,GAP[y][0],T,B)}"/>`;});
   return grid+ln+gl+dt;
 }
 function cadBody(p,T,B){
@@ -324,12 +339,12 @@ function cadBody(p,T,B){
   YEARS.forEach((y,k)=>{ const y0=T+k*h+2, y1=T+(k+1)*h-2, runFill=SPM[y]?COL[y]:`url(#hatch_${y})`; let i=0;
     while(i<N){ const run=isRun(y,i); let j=i+1; while(j<N&&isRun(y,j)===run)j++;
       const x0=xOf(D[i]),x1=xOf(D[Math.min(j,N-1)]);
-      lanes+=`<rect x="${x0.toFixed(1)}" y="${y0.toFixed(1)}" width="${Math.max(0.5,x1-x0).toFixed(1)}" height="${(y1-y0).toFixed(1)}" fill="${run?runFill:'#dfe3e8'}" opacity="${run?0.9:1}"/>`;
+      lanes+=`<rect data-y="${y}" x="${x0.toFixed(1)}" y="${y0.toFixed(1)}" width="${Math.max(0.5,x1-x0).toFixed(1)}" height="${(y1-y0).toFixed(1)}" fill="${run?runFill:'#dfe3e8'}" opacity="${run?0.9:1}"/>`;
       i=j; }
-    lanes+=`<text class="num" x="${PGL-3}" y="${((y0+y1)/2+3).toFixed(1)}" text-anchor="end" font-size="${fs(8)}" fill="${COL[y]}">${y}</text>`; });
+    lanes+=`<text data-y="${y}" class="num" x="${PGL-3}" y="${((y0+y1)/2+3).toFixed(1)}" text-anchor="end" font-size="${fs(8)}" fill="${COL[y]}">${y}</text>`; });
   let dt="",gl=""; YEARS.forEach((y,k)=>{
-    gl+=`<line id="pg_cad_${y}" x1="${xOf(0)}" y1="${T}" x2="${xOf(0)}" y2="${B}" stroke="${COL[y]}" stroke-width="1" opacity=".26" stroke-dasharray="3 2"/>`;
-    dt+=`<circle id="pd_cad_${y}" r="3.1" fill="#fff" stroke="${COL[y]}" stroke-width="1.5" cx="${xOf(0)}" cy="${laneCenter(k)}"/>`;});
+    gl+=`<line id="pg_cad_${y}" data-y="${y}" x1="${xOf(0)}" y1="${T}" x2="${xOf(0)}" y2="${B}" stroke="${COL[y]}" stroke-width="1" opacity=".26" stroke-dasharray="3 2"/>`;
+    dt+=`<circle id="pd_cad_${y}" data-y="${y}" r="3.1" fill="#fff" stroke="${COL[y]}" stroke-width="1.5" cx="${xOf(0)}" cy="${laneCenter(k)}"/>`;});
   return defs+lanes+gl+dt;
 }
 function panelSVG(p){ const W=PGW,H=panelH(p),T=PTT,B=H-6;
@@ -362,7 +377,8 @@ function toggleYear(y){
   else YEARS=ALL_YEARS.filter(v=>v===y||YEARS.includes(v));
   if(!YEARS.includes(REF)) REF=YEARS.reduce((b,v)=>DATA.finish[v]<DATA.finish[b]?v:b, YEARS[0]);
   rebuildWin(); rebuildGap(); MAXFIN=Math.max(...YEARS.map(v=>DATA.finish[v])); const sl=$("#scrub"); if(sl) sl.max=MAXFIN;
-  renderYearPick(); renderRef(); renderLegend(); renderCharts(); renderSectors(); refreshMapData(); scrub(Math.min(tNow,MAXFIN));
+  if(HLpin&&!YEARS.includes(HLpin)){ HLpin=null; setHL(null); }
+  renderYearPick(); renderRef(); renderTrailToggle(); renderCharts(); renderSectors(); refreshMapData(); scrub(Math.min(tNow,MAXFIN)); writeState();
 }
 function renderRef(){ const h=$("#refsel"); if(!h) return; h.innerHTML=YEARS.map(y=>`<option value="${y}"${y===REF?' selected':''}>${y}</option>`).join(""); h.style.color=COL[REF]; }
 
@@ -372,18 +388,21 @@ function renderSectors(){
   const rows=SECTORS.map(S=>{ const times=YEARS.map(y=>tAtDist(y,S.b)-tAtDist(y,S.a)); const best=Math.min(...times);
     return {S,times,best,by:YEARS[times.indexOf(best)]}; });
   const totals=YEARS.map(y=>DATA.finish[y]); const ideal=rows.reduce((s,r)=>s+r.best,0); const fastest=Math.min(...totals);
-  const head=`<tr><th>sector</th><th class="aux">mi</th><th class="aux">Δft</th>`+YEARS.map(y=>`<th style="color:${COL[y]}">${y}</th>`).join("")+`<th>best</th><th>spread</th></tr>`;
+  const diff=SECTMODE==="diff", cell=(t,tref,y)=> (diff&&y!==REF)?fmtGap(t-tref):fmtClock(t);
+  const head=`<tr><th>sector</th><th class="aux">mi</th><th class="aux">Δft</th>`+YEARS.map(y=>`<th data-y="${y}" style="color:${COL[y]}">${y}</th>`).join("")+`<th>best</th><th>spread</th></tr>`;
   const body=rows.map(r=>{ const i0=Math.round(r.S.a/STEP), i1=Math.min(N-1,Math.round(r.S.b/STEP)), dft=Math.round(ELE[i1]-ELE[i0]);
     const spread=Math.round(Math.max(...r.times)-Math.min(...r.times));
     return `<tr><td class="sn">${r.S.n}</td><td class="mu aux">${r.S.a.toFixed(2)}–${r.S.b.toFixed(2)}</td><td class="mu aux">${dft>0?'+':''}${dft}</td>`
-      +r.times.map((t,k)=>{ const y=YEARS[k], win=y===r.by;
-        return `<td class="${win?'win':''}" style="${win?'color:'+COL[y]:''}">${fmtClock(t)}</td>`; }).join("")
+      +r.times.map((t,k)=>{ const y=YEARS[k], win=y===r.by, tref=r.times[YEARS.indexOf(REF)], ahead=diff&&y!==REF&&t<tref;
+        return `<td data-y="${y}" class="${win?'win':''}${ahead?' ahead':''}" style="${win?'color:'+COL[y]:''}">${cell(t,tref,y)}</td>`; }).join("")
       +`<td class="mu">${fmtClock(r.best)}</td><td class="mu">${spread<60?spread+"s":fmtClock(spread)}</td></tr>`; }).join("");
   const foot=`<tr class="tot"><td>FINISH</td><td class="mu aux">0.00–${TOTAL.toFixed(2)}</td><td class="mu aux">+${Math.round(gain)}</td>`
-    +YEARS.map((y,k)=>{ const win=totals[k]===fastest; return `<td class="${win?'win':''}" style="${win?'color:'+COL[y]:''}">${fmtClock(totals[k])}</td>`; }).join("")
+    +YEARS.map((y,k)=>{ const win=totals[k]===fastest, tref=DATA.finish[REF], ahead=diff&&y!==REF&&totals[k]<tref;
+      return `<td data-y="${y}" class="${win?'win':''}${ahead?' ahead':''}" style="${win?'color:'+COL[y]:''}">${cell(totals[k],tref,y)}</td>`; }).join("")
     +`<td class="mu">${fmtClock(ideal)}</td><td></td></tr>`;
   host.innerHTML=`<table class="sect"><thead>${head}</thead><tbody>${body}${foot}</tbody></table>`;
   const sx=$("#sectsum"); if(sx) sx.textContent=`best sectors combined ${fmtClock(ideal)}, ${fmtGap(ideal-fastest)} vs fastest finish`;
+  $("#sectmode").querySelectorAll("b").forEach(b=>{ b.classList.toggle("on",b.dataset.m===SECTMODE); if(b.dataset.m==="diff") b.textContent="vs "+REF; });
 }
 
 /* ---------- live telemetry + scrub (by elapsed time) ---------- */
@@ -395,7 +414,7 @@ function renderTel(pos){
   let rows="";
   info.forEach((o,rank)=>{ const {y,p}=o; const lead=rank===0&&leadDist>0, run=isRun(y,p.idx);
     const intv=p.done?"finished":leadDist<=0?"—":lead?"leader":fmtGap(tNow-tAtDist(leadY,p.dist));
-    rows+=`<tr class="${lead?'lead':''}"><td class="yr"><b style="color:${COL[y]}">${y}</b></td>`
+    rows+=`<tr data-y="${y}" class="${lead?'lead':''}"><td class="yr"><b style="color:${COL[y]}">${y}</b></td>`
       +`<td>${p.dist.toFixed(2)}</td><td>${p.done?'—':fmtPace(p.pace)}</td>`
       +`<td class="${run?'run':'walk'}">${run?'RUN':'WALK'}</td><td>${fmtGap(p.gap)}</td><td>${intv}</td></tr>`; });
   $("#tel").innerHTML=`<table class="tel"><colgroup><col style="width:14%"><col style="width:14%"><col style="width:14%"><col style="width:14%"><col style="width:22%"><col style="width:22%"></colgroup><thead><tr><th>year</th><th>mi</th><th>pace</th><th>state</th><th>vs ${REF}</th><th>to leader</th></tr></thead><tbody>${rows}</tbody></table>`;
@@ -409,7 +428,7 @@ function scrub(t){
   const {leadY,leadDist}=renderTel(pos);
   const ld=pos[YEARS.indexOf(leadY)], lmi=ld?ld.dist:0;
   const gpct=Math.round(GRADE[Math.max(0,Math.min(N-1,Math.round(lmi/STEP)))]*100);
-  $("#staterow").innerHTML=`<span>T+<b>${fmtClock(tNow)}</b></span><span>grade <b>${gpct>0?'+':''}${gpct}%</b></span><span>leader <b style="color:${COL[leadY]}">${leadY}</b> @${lmi.toFixed(2)}mi</span><span>sector <b>${sectorAt(lmi).s}</b></span>`;
+  $("#staterow").innerHTML=`<span>grade <b>${gpct>0?'+':''}${gpct}%</b></span><span>leader <b style="color:${COL[leadY]}">${leadY}</b> @${lmi.toFixed(2)}mi</span><span>sector <b>${sectorAt(lmi).s}</b></span>`;
   const ce=$("#curele"); if(tNow>=MAXFIN){ ce.textContent="finished"; ce.style.color=""; }
   else if(leadDist>0){ ce.textContent=leadY; ce.style.color=COL[leadY]; } else { ce.textContent="start"; ce.style.color=""; }
   YEARS.forEach((y,k)=>{ const p=pos[k]; const cx=xOf(p.dist).toFixed(1);
@@ -422,17 +441,35 @@ function scrub(t){
       dot.setAttribute("cy",valueY(P,v,PTT,panelH(P)-6));
     }); });
   if(mapReady){ const src=map.getSource("runners"); if(src)src.setData(runnersFC(tNow)); }
+  writeState();
 }
 // dragging any panel sets the time the reference year reached that distance
 function xToTime(clientX, host){ const r=host.getBoundingClientRect();
   const px=(clientX-r.left)/(r.width||1)*PGW; const d=xToDist(px);
   return interpArr(T[REF], Math.max(0,Math.min(N-1,d/STEP))); }
 
+/* ---------- highlight one year everywhere: hover = transient, click a table year = pinned ---------- */
+let HLpin=null;
+document.head.insertAdjacentHTML("beforeend","<style>"+ALL_YEARS.map(y=>
+  `body[data-hl="${y}"] #charts [data-y]:not([data-y="${y}"]){opacity:.1}
+   body[data-hl="${y}"] #charts path[data-y="${y}"]{stroke-width:2.6}
+   body[data-hl="${y}"] table [data-y]:not([data-y="${y}"]){opacity:.3}`).join("\n")+"</style>");
+function setHL(y){ if(y) document.body.dataset.hl=y; else delete document.body.dataset.hl;
+  if(mapReady&&map) map.setPaintProperty("runners","circle-opacity", y?["case",["==",["get","y"],y],1,0.2]:1); }
+(function(){ const hot=e=>{ const el=e.target.closest&&e.target.closest("[data-y]"); return el&&el.closest("#yearpick,#sectors,#tel,#charts")?+el.dataset.y:null; };
+  document.addEventListener("pointerover",e=>{ if(e.pointerType!=="mouse")return; const y=hot(e); if(y!=null) setHL(y); });
+  document.addEventListener("pointerout",e=>{ if(e.pointerType!=="mouse")return; if(hot(e)!=null) setHL(HLpin); });
+  document.addEventListener("click",e=>{ const el=e.target.closest&&e.target.closest("#sectors [data-y], #tel tr[data-y]"); if(!el)return;
+    const y=+el.dataset.y; HLpin=HLpin===y?null:y; setHL(HLpin); });
+})();
+
 /* ---------- wiring ---------- */
-renderYearPick(); renderRef(); renderLegend();
+renderYearPick(); renderRef(); renderTrailToggle();
+$("#trailtoggle") && $("#trailtoggle").addEventListener("click",toggleTrail);
+$("#sectmode") && $("#sectmode").addEventListener("click",e=>{ const b=e.target.closest("b[data-m]"); if(!b)return; SECTMODE=b.dataset.m; renderSectors(); writeState(); });
 $("#yearpick") && $("#yearpick").addEventListener("click",e=>{ const b=e.target.closest("b[data-y]"); if(!b)return; toggleYear(+b.dataset.y); });
 $("#refsel") && $("#refsel").addEventListener("change",e=>{
-  REF=+e.target.value; rebuildGap(); renderRef(); renderCharts(); renderSectors(); scrub(tNow); });
+  REF=+e.target.value; rebuildGap(); renderRef(); renderTrailToggle(); renderCharts(); renderSectors(); refreshMapData(); scrub(tNow); writeState(); });
 const sc=$("#scrub"); sc.max=MAXFIN; sc.addEventListener("input", e=>scrub(+e.target.value));
 // mouse: press-and-drag scrubs at once. touch: a vertical swipe scrolls the page (touch-action: pan-y),
 // a horizontal drag scrubs, and a tap jumps to that distance.
@@ -455,7 +492,7 @@ let rt; window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=
 
 renderCharts(); renderSectors();
 initMap();
-scrub(0);
+scrub(URLSTATE.t);
 </script>
 </body>
 </html>
