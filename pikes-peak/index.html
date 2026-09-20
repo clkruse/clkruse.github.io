@@ -38,11 +38,8 @@
   .modhd>span:first-child{white-space:nowrap}
   .modhd .r{font-family:var(--mono); font-size:10.5px; font-weight:400; letter-spacing:0; text-transform:none; color:var(--muted)}
   /* layout */
-  .layout{display:grid; grid-template-columns:1fr; gap:0}
-  @media (min-width:920px){
-    .layout{grid-template-columns:minmax(330px,400px) minmax(0,1fr); gap:0; align-items:start}
-    .col-rail{position:sticky; top:0; align-self:start}
-  }
+  .rail{display:grid; grid-template-columns:1fr; gap:0}
+  @media (min-width:920px){ .rail{grid-template-columns:minmax(360px,1fr) minmax(0,1.3fr); align-items:start} }
   /* scrubber */
   .scrub{border:1px solid var(--rule); margin:9px 13px 0; padding:7px 10px}
   .scrubhead{display:flex; justify-content:space-between; align-items:baseline; font-size:11px; color:var(--muted)}
@@ -62,7 +59,7 @@
   .state span{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
   .state b{font-family:var(--mono); color:var(--ink); font-weight:500}
   /* map */
-  #map{height:clamp(220px,32vh,330px); overflow:hidden}
+  #map{height:clamp(260px,40vh,420px); overflow:hidden}
   .maplegend{display:flex; gap:11px; flex-wrap:wrap; align-items:center; padding:6px 10px; font-size:10.5px; color:var(--muted); border-top:1px solid var(--rule)}
   .maplegend i{display:inline-block; width:9px; height:9px; margin-right:5px; vertical-align:middle; border-radius:50%}
   #trailtoggle{cursor:pointer; color:var(--muted); margin-left:auto; border-bottom:1px solid var(--rule2)}
@@ -86,7 +83,9 @@
     .mast .spacer{margin-left:0}
     .yearchips b{padding:4px 5px; font-size:13px}
     #refsel{font-size:13px}
-    .scrub{position:sticky; top:env(safe-area-inset-top,0px); z-index:5; background:var(--paper); box-shadow:0 2px 0 var(--paper)}
+    .scrub{position:fixed; left:0; right:0; bottom:0; z-index:5; margin:0; background:var(--paper); border:0; border-top:1px solid var(--rule2);
+      padding:7px 13px calc(7px + env(safe-area-inset-bottom,0px)); box-shadow:0 -6px 12px rgba(0,0,0,.05)}
+    body{padding-bottom:72px}
     table.tel{font-size:11px}
     #map{height:clamp(240px,40vh,360px)}
     table.sect{font-size:11px}
@@ -119,8 +118,16 @@
     <span class="kv">reference <select id="refsel" title="year the gaps are measured against"></select></span>
   </header>
 
-  <div class="layout">
-    <div class="col-rail">
+  <div class="mod">
+    <div class="modhd"><span>Sector splits</span><span class="r" id="sectsum"></span></div>
+    <div id="sectors"></div>
+  </div>
+  <div class="mod" id="chartsmod">
+    <div class="modhd"><span>All channels vs distance</span></div>
+    <div id="charts"></div>
+  </div>
+  <div class="rail">
+    <div>
       <div class="scrub">
         <div class="scrubhead"><span>T+<b id="curd">0:00</b> / <span id="curtot"></span></span><span id="curele"></span></div>
         <input type="range" id="scrub" min="0" value="0" step="1">
@@ -130,22 +137,12 @@
         <div id="tel"></div>
         <div class="state" id="staterow"></div>
       </div>
-      <div class="mod">
-        <div class="modhd"><span>Course · position replay</span><span class="r">Manitou → summit → Manitou</span></div>
-        <div id="map"></div>
-        <div class="maplegend" id="legend"></div>
-      </div>
     </div>
-
-    <div class="mod" id="chartsmod">
-      <div class="modhd"><span>All channels vs distance</span></div>
-      <div id="charts"></div>
+    <div class="mod">
+      <div class="modhd"><span>Course · position replay</span><span class="r">Manitou → summit → Manitou</span></div>
+      <div id="map"></div>
+      <div class="maplegend" id="legend"></div>
     </div>
-  </div>
-
-  <div class="mod">
-    <div class="modhd"><span>Sector splits</span><span class="r" id="sectsum"></span></div>
-    <div id="sectors"></div>
   </div>
 </div>
 <script>
@@ -266,19 +263,20 @@ function initMap(){
 /* ================= dense multi-panel charts · every channel at once ================= */
 let PGW=760, PGL=54, FS=1; const PGR=14;   // shared plot geometry (px) across all panels; FS scales chart type on phones
 const fs=v=>(v*FS).toFixed(1);
-const PHT=124, PTT=16, PBB=PHT-6;           // panel svg height / plot top / plot bottom
+let PHT=124; const PTT=16;                   // panel svg height / plot top (height set per width in renderCharts)
+const panelH=p=>p.k==="delta"?Math.round(PHT*1.4):PHT;   // the gap panel gets extra room for its grid
 function xOf(d){ return PGL + (d/TOTAL)*(PGW-PGL-PGR); }
 function xToDist(px){ return Math.max(0,Math.min(TOTAL,(px-PGL)/(PGW-PGL-PGR)*TOTAL)); }
 // walk/run classification — cadence is bimodal; RUN if pace<11:00/mi OR smoothed cadence>=150
 const RUNTHRESH=150, WALKPACE=11;
 function spmSmooth(y,i){ if(!SPM[y])return 0; let s=0,n=0; for(let j=Math.max(0,i-3);j<=Math.min(N-1,i+3);j++){const v=SPM[y][j]; if(v){s+=v;n++;}} return n?s/n:0; }
 function isRun(y,i){ const p=PACE[y][i]; if(p!=null && p<WALKPACE) return true; return spmSmooth(y,i)>=RUNTHRESH; }
-function laneCenter(k){ const h=(PBB-PTT)/YEARS.length; return (PTT+k*h+h/2).toFixed(1); }
+function laneCenter(k){ const h=(PHT-6-PTT)/YEARS.length; return (PTT+k*h+h/2).toFixed(1); }
 function sectorAt(d){ for(const S of SECTORS) if(d>=S.a && d<S.b) return S; return SECTORS[SECTORS.length-1]; }
 const PANELS=[
+ {k:"delta",ttl:()=>"BEHIND / AHEAD OF "+REF, unit:"minutes · + behind · − ahead", dir:"zero"},
  {k:"pace", ttl:"PACE",             unit:"min/mi",     arr:()=>PACE,   lo:()=>pMin, hi:()=>pMax, dir:"lowTop",  step:4,  tick:v=>v},
  {k:"gap",  ttl:"GRADE-ADJ PACE",   unit:"min/mi",     arr:()=>GAPACE, lo:()=>pMin, hi:()=>pMax, dir:"lowTop",  step:4,  tick:v=>v},
- {k:"delta",ttl:()=>"BEHIND / AHEAD OF "+REF, unit:"sec", dir:"zero"},
  {k:"hr",   ttl:"HEART RATE",       unit:"bpm",        arr:()=>HR,     lo:()=>hrMin,hi:()=>hrMax,dir:"highTop", step:20, tick:v=>v},
  {k:"cad",  ttl:"WALKING vs RUNNING", unit:"run = pace under 11:00/mi or cadence ≥ 150 spm · hatched years have no cadence data", dir:"cad"},
 ];
@@ -304,10 +302,13 @@ function lineBody(p,T,B){
     dt+=`<circle id="pd_${p.k}_${y}" r="3.1" fill="${COL[y]}" stroke="#fff" stroke-width="1.1" cx="${xOf(0)}" cy="${valueY(p,v0,T,B)}"/>`;});
   return grid+ln+gl+dt;
 }
+// grid step for the gap axis: the smallest tidy interval giving at most ~5 lines each side of zero
+function gapStep(){ for(const st of [15,30,60,120,300,600,900,1200,1800,3600]) if(gMax/st<=5) return st; return 3600; }
 function deltaBody(p,T,B){
-  let grid=""; [-gMax,0,gMax].forEach(g=>{ const y=valueY(p,g,T,B).toFixed(1), z=g===0;
-    grid+=`<line x1="${PGL}" y1="${y}" x2="${PGW-PGR}" y2="${y}" stroke="${z?'#c2c7cd':'#edeff1'}"/>`
-      +`<text class="num" x="${PGL-3}" y="${(+y+3).toFixed(1)}" text-anchor="end" font-size="${fs(8)}" fill="#9aa0a6">${z?'0':(g<0?'−':'+')+Math.abs(Math.round(g))}</text>`; });
+  let grid=""; const st=gapStep();
+  for(let g=-Math.floor(gMax/st)*st; g<=gMax; g+=st){ const y=valueY(p,g,T,B).toFixed(1), z=g===0;
+    grid+=`<line x1="${PGL}" y1="${y}" x2="${PGW-PGR}" y2="${y}" stroke="${z?'#b7bcc3':'#e4e7ea'}"${z?' stroke-width="1.2"':''}/>`
+      +`<text class="num" x="${PGL-3}" y="${(+y+3).toFixed(1)}" text-anchor="end" font-size="${fs(8)}" fill="#9aa0a6">${z?'0':(g<0?'−':'+')+(st>=60?Math.abs(g)/60:'0:'+String(Math.abs(g)).padStart(2,'0'))}</text>`; }
   const path=a=>{let s="";for(let i=0;i<N;i++) s+=(i?"L":"M")+xOf(D[i]).toFixed(1)+" "+valueY(p,a[i],T,B).toFixed(1)+" ";return s;};
   let ln=""; YEARS.forEach(y=> ln+=`<path d="${path(GAP[y])}" fill="none" stroke="${COL[y]}" stroke-width="${y===REF?2:1.4}" stroke-linejoin="round" opacity=".95"/>`);
   let dt="",gl=""; YEARS.forEach(y=>{
@@ -331,7 +332,7 @@ function cadBody(p,T,B){
     dt+=`<circle id="pd_cad_${y}" r="3.1" fill="#fff" stroke="${COL[y]}" stroke-width="1.5" cx="${xOf(0)}" cy="${laneCenter(k)}"/>`;});
   return defs+lanes+gl+dt;
 }
-function panelSVG(p){ const W=PGW,H=PHT,T=PTT,B=PBB;
+function panelSVG(p){ const W=PGW,H=panelH(p),T=PTT,B=H-6;
   const body = p.k==="cad"?cadBody(p,T,B) : p.dir==="zero"?deltaBody(p,T,B) : lineBody(p,T,B);
   const title=typeof p.ttl==="function"?p.ttl():p.ttl;
   const fits=(title.length*6.2+p.unit.length*5+30)*FS < W-PGL-PGR;   // rough text-width estimate
@@ -353,7 +354,7 @@ function mileRulerSVG(){ const W=PGW,H=15, lab=TOTAL>15?2:1, minr=TOTAL>15?1:0.5
     if(maj) s+=`<text class="num" x="${x}" y="13" text-anchor="middle" font-size="${fs(8.5)}" fill="#596069">${Math.round(d)}</text>`; }
   return `<div style="border-top:1px solid #d9dce0">`+s+`</svg></div>`; }
 function renderCharts(){ const wrap=$("#charts"); if(!wrap) return; PGW=wrap.clientWidth||760;
-  const narrow=PGW<560; FS=narrow?1.2:1; PGL=narrow?40:54;
+  const narrow=PGW<560; FS=narrow?1.2:1; PGL=narrow?40:54; PHT=PGW>900?150:124;
   wrap.innerHTML = sectorRulerSVG() + PANELS.map(p=>`<div class="panel">${panelSVG(p)}</div>`).join("") + mileRulerSVG(); }
 function renderYearPick(){ const h=$("#yearpick"); if(h) h.innerHTML=ALL_YEARS.map(y=>`<b data-y="${y}" class="${YEARS.includes(y)?'on':''}" style="color:${COL[y]}">${(""+y).slice(2)}</b>`).join(""); }
 function toggleYear(y){
@@ -418,7 +419,7 @@ function scrub(t){
       if(P.dir!=="zero" && !arr) return;   // this year has no data for this channel
       dot.setAttribute("cx",cx); if(g){g.setAttribute("x1",cx);g.setAttribute("x2",cx);}
       let v = P.dir==="zero" ? p.gap : arr[p.idx]; if(v==null) v=P.dir==="zero"?0:P.lo();
-      dot.setAttribute("cy",valueY(P,v,PTT,PBB));
+      dot.setAttribute("cy",valueY(P,v,PTT,panelH(P)-6));
     }); });
   if(mapReady){ const src=map.getSource("runners"); if(src)src.setData(runnersFC(tNow)); }
 }
