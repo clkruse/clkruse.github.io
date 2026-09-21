@@ -11,8 +11,8 @@
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.7.0/mapbox-gl.js"></script>
 <style>
   :root{
-    --ink:#1b1b1a; --paper:#ffffff; --tint:#f6f6f3; --rule:#e6e6e2; --rule2:#d3d3cd;
-    --muted:#74756f; --accent:#b45309;
+    --ink:#18181b; --paper:#ffffff; --tint:#f4f5f7; --rule:#e5e7eb; --rule2:#d1d5db;
+    --muted:#6b7280; --accent:#64748b;
     --sans:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     --serif:Georgia,"Iowan Old Style",Cambria,"Times New Roman",serif;
     --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
@@ -52,7 +52,7 @@
   table.tel td{font-family:var(--mono); font-variant-numeric:tabular-nums; text-align:right; padding:3px 3px; border-bottom:1px solid var(--rule); white-space:nowrap; overflow:hidden}
   table.tel td.yr{font-family:var(--sans)}
   table.tel tr:last-child td{border-bottom:none}
-  table.tel tr.lead td{background:#f7f7f3}
+  table.tel tr.lead td{background:#f3f4f6}
   table.tel .run{color:#15803d} table.tel .walk{color:var(--accent); font-weight:600}
   .state{display:grid; grid-template-columns:auto auto auto; justify-content:space-between; gap:1px 14px; font-size:11px; color:var(--muted); padding:6px 10px; border-top:1px solid var(--rule)}
   .state span{white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
@@ -374,7 +374,7 @@ function panelSVG(p){ const W=PGW,H=panelH(p),T=PTT,B=H-6;
 function sectorRulerSVG(){ const W=PGW,H=20; let s=`<svg viewBox="0 0 ${W} ${H}" height="${H}" preserveAspectRatio="xMidYMid meet" style="display:block;width:100%">`;
   SECTORS.forEach((S,i)=>{ const x0=xOf(S.a),x1=xOf(S.b),cx=((x0+x1)/2).toFixed(1);
     const lab = (x1-x0) > (S.s.length*5.4+8)*FS ? S.s : S.s.slice(0,1);   // arrow only when the name won't fit
-    if(i>0) s+=`<line x1="${x0.toFixed(1)}" y1="0" x2="${x0.toFixed(1)}" y2="${H}" stroke="#e0e2df"/>`;
+    if(i>0) s+=`<line x1="${x0.toFixed(1)}" y1="0" x2="${x0.toFixed(1)}" y2="${H}" stroke="#e2e5e9"/>`;
     s+=`<text x="${cx}" y="13" text-anchor="middle" font-size="${fs(8.5)}" fill="#596069">${lab}</text>`; });
   return `<div style="border-bottom:1px solid #d9dce0">`+s+`</svg></div>`; }
 function mileRulerSVG(){ const W=PGW,H=15, lab=TOTAL>15?2:1, minr=TOTAL>15?1:0.5; let s=`<svg viewBox="0 0 ${W} ${H}" height="${H}" preserveAspectRatio="xMidYMid meet" style="display:block;width:100%">`;
