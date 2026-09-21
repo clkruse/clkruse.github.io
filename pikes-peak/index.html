@@ -29,7 +29,6 @@
   .mast h1{font-family:var(--serif); font-weight:700; font-size:23px; letter-spacing:-.01em; margin:0 6px 0 0}
   .mast .kv{font-size:11.5px; color:var(--muted)}
   .mast .kv b{font-family:var(--mono); color:var(--ink); font-weight:500; font-variant-numeric:tabular-nums}
-  .mast .spacer{margin-left:auto}
   /* module */
   .mod{border:1px solid var(--rule); margin:9px 13px 0; background:var(--paper)}
   .modhd{display:flex; flex-wrap:wrap; justify-content:space-between; gap:2px 10px; align-items:baseline; padding:6px 10px;
@@ -72,14 +71,25 @@
   .pchart svg{display:block; width:100%}
   #refsel{font:600 11.5px var(--mono); color:var(--ink); background:transparent; border:0; border-bottom:1px solid var(--rule2); padding:0 2px 1px; cursor:pointer; -webkit-appearance:none; appearance:none}
   #refsel:hover{border-color:var(--ink)}
-  .yearchips b{cursor:pointer; padding:0 3px; opacity:.28; font-weight:600; font-family:var(--mono); text-decoration:line-through; user-select:none}
-  .yearchips b.on{opacity:1; text-decoration:none}
+  /* filter row: legend-style pills that toggle years; a filled dot means shown, a hollow one hidden */
+  .filters{display:flex; flex-wrap:wrap; align-items:center; gap:6px 8px; padding:7px 13px; border-bottom:1px solid var(--rule); font-size:11.5px; color:var(--muted); background:var(--tint)}
+  .yearchips{display:inline-flex; flex-wrap:wrap; gap:4px}
+  .yearchips b{display:inline-flex; align-items:center; gap:5px; padding:3px 8px 3px 6px; border:1px solid var(--rule2); border-radius:999px; line-height:1;
+    font:600 11.5px var(--mono); color:var(--ink); background:var(--paper); cursor:pointer; user-select:none; -webkit-user-select:none; transition:background .1s,border-color .1s}
+  .yearchips b i{width:9px; height:9px; border-radius:50%; border:1.5px solid currentColor; background:currentColor; box-sizing:border-box}
+  .yearchips b:not(.on){color:var(--muted); border-color:var(--rule); background:transparent}
+  .yearchips b:not(.on) i{background:transparent}
+  .yearchips b:hover{border-color:var(--ink)}
+  .filters .all{cursor:pointer; color:var(--muted); border-bottom:1px solid var(--rule2); font-weight:500; font-family:var(--mono)}
+  .filters .all:hover{color:var(--ink); border-color:var(--ink)}
+  .filters .ref{margin-left:auto}
   /* phones: sticky scrub bar, bigger tap targets, sticky first column on the split table */
   @media (max-width:919px){
     .mast{padding:10px 13px 8px; gap:4px 12px}
     .mast h1{flex-basis:100%; margin:0}
-    .mast .spacer{margin-left:0}
-    .yearchips b{padding:4px 5px; font-size:13px}
+    .filters{padding:8px 13px}
+    .yearchips b{padding:5px 9px 5px 7px; font-size:12.5px}
+    .filters .ref{margin-left:0; flex-basis:100%}
     #refsel{font-size:13px}
     .scrub{position:fixed; left:0; right:0; bottom:0; z-index:5; margin:0; background:var(--paper); border:0; border-top:1px solid var(--rule2);
       padding:7px 13px calc(7px + env(safe-area-inset-bottom,0px)); box-shadow:0 -6px 12px rgba(0,0,0,.05)}
@@ -118,9 +128,13 @@
     <span class="kv">distance <b>26.2&nbsp;mi</b></span>
     <span class="kv">climb <b id="gain"></b></span>
     <span class="kv">runs <b>2017–2026</b></span>
-    <span class="kv spacer">years <span class="yearchips" id="yearpick" title="click to toggle a year on/off"></span></span>
-    <span class="kv">reference <select id="refsel" title="year the gaps are measured against"></select></span>
   </header>
+  <div class="filters">
+    <span class="lbl">Showing</span>
+    <span class="yearchips" id="yearpick" title="click a year to hide or show it"></span>
+    <b id="yearsall" class="all" hidden>all</b>
+    <span class="ref">reference <select id="refsel" title="year the gaps are measured against"></select></span>
+  </div>
 
   <div class="mod">
     <div class="modhd"><span>Sector splits</span><span class="r"><span class="seg" id="sectmode"><b data-m="abs">times</b><b data-m="diff">vs ref</b></span> · <span id="sectsum"></span></span></div>
@@ -371,10 +385,12 @@ function mileRulerSVG(){ const W=PGW,H=15, lab=TOTAL>15?2:1, minr=TOTAL>15?1:0.5
 function renderCharts(){ const wrap=$("#charts"); if(!wrap) return; PGW=wrap.clientWidth||760;
   const narrow=PGW<560; FS=narrow?1.2:1; PGL=narrow?40:54; PHT=PGW>900?150:124;
   wrap.innerHTML = sectorRulerSVG() + PANELS.map(p=>`<div class="panel">${panelSVG(p)}</div>`).join("") + mileRulerSVG(); }
-function renderYearPick(){ const h=$("#yearpick"); if(h) h.innerHTML=ALL_YEARS.map(y=>`<b data-y="${y}" class="${YEARS.includes(y)?'on':''}" style="color:${COL[y]}">${(""+y).slice(2)}</b>`).join(""); }
+function renderYearPick(){ const h=$("#yearpick"); if(h) h.innerHTML=ALL_YEARS.map(y=>`<b data-y="${y}" class="${YEARS.includes(y)?'on':''}"><i style="color:${COL[y]}"></i>${y}</b>`).join("");
+  const a=$("#yearsall"); if(a) a.hidden=YEARS.length===ALL_YEARS.length; }
 function toggleYear(y){
-  if(YEARS.includes(y)){ if(YEARS.length<=1) return; YEARS=YEARS.filter(v=>v!==y); }   // keep at least one year
-  else YEARS=ALL_YEARS.filter(v=>v===y||YEARS.includes(v));
+  if(YEARS.includes(y)){ if(YEARS.length<=1) return; setYears(YEARS.filter(v=>v!==y)); }   // keep at least one year
+  else setYears(ALL_YEARS.filter(v=>v===y||YEARS.includes(v))); }
+function setYears(list){ YEARS=list;
   if(!YEARS.includes(REF)) REF=YEARS.reduce((b,v)=>DATA.finish[v]<DATA.finish[b]?v:b, YEARS[0]);
   rebuildWin(); rebuildGap(); MAXFIN=Math.max(...YEARS.map(v=>DATA.finish[v])); const sl=$("#scrub"); if(sl) sl.max=MAXFIN;
   if(HLpin&&!YEARS.includes(HLpin)){ HLpin=null; setHL(null); }
@@ -457,7 +473,7 @@ document.head.insertAdjacentHTML("beforeend","<style>"+ALL_YEARS.map(y=>
 function setHL(y){ if(y) document.body.dataset.hl=y; else delete document.body.dataset.hl;
   if(mapReady&&map) map.setPaintProperty("runners","circle-opacity", y?["case",["==",["get","y"],y],1,0.2]:1); }
 (function(){ const hot=e=>{ const el=e.target.closest&&e.target.closest("[data-y]"); return el&&el.closest("#yearpick,#sectors,#tel,#charts")?+el.dataset.y:null; };
-  document.addEventListener("pointerover",e=>{ if(e.pointerType!=="mouse")return; const y=hot(e); if(y!=null) setHL(y); });
+  document.addEventListener("pointerover",e=>{ if(e.pointerType!=="mouse")return; const y=hot(e); if(y!=null) setHL(YEARS.includes(y)?y:HLpin); });   // a hidden year's chip highlights nothing
   document.addEventListener("pointerout",e=>{ if(e.pointerType!=="mouse")return; if(hot(e)!=null) setHL(HLpin); });
   document.addEventListener("click",e=>{ const el=e.target.closest&&e.target.closest("#sectors [data-y], #tel tr[data-y]"); if(!el)return;
     const y=+el.dataset.y; HLpin=HLpin===y?null:y; setHL(HLpin); });
@@ -468,6 +484,7 @@ renderYearPick(); renderRef(); renderTrailToggle();
 $("#trailtoggle") && $("#trailtoggle").addEventListener("click",toggleTrail);
 $("#sectmode") && $("#sectmode").addEventListener("click",e=>{ const b=e.target.closest("b[data-m]"); if(!b)return; SECTMODE=b.dataset.m; renderSectors(); writeState(); });
 $("#yearpick") && $("#yearpick").addEventListener("click",e=>{ const b=e.target.closest("b[data-y]"); if(!b)return; toggleYear(+b.dataset.y); });
+$("#yearsall") && $("#yearsall").addEventListener("click",()=>setYears(ALL_YEARS.slice()));
 $("#refsel") && $("#refsel").addEventListener("change",e=>{
   REF=+e.target.value; rebuildGap(); renderRef(); renderTrailToggle(); renderCharts(); renderSectors(); refreshMapData(); scrub(tNow); writeState(); });
 const sc=$("#scrub"); sc.max=MAXFIN; sc.addEventListener("input", e=>scrub(+e.target.value));
