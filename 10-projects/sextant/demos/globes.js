@@ -207,6 +207,7 @@ function plateRingAnchor(points, cx, cy, direction, front = true, minDistance = 
   d.addPreset('worked', () => applyWorked());
   d.addPreset('high-altitude', () => alt.set(75, { emit: false }));
   d.addPreset('low-altitude', () => alt.set(15, { emit: false }));
+  d.addPreset('sixty', () => alt.set(60, { emit: false }));
   SIGHT_STORY.subscribe(applyWorked);
 
   function draw(ctx, w, h) {
@@ -533,6 +534,12 @@ function plateRingAnchor(points, cx, cy, direction, front = true, minDistance = 
     }
   };
   d.addPreset('worked', () => applyWorked(workedSight, { resetStage: true }));
+  d.addPreset('sixty-forty', () => {
+    altA.set(60, { emit: false });
+    altB.set(40, { emit: false });
+    setThirdRevealed(false);
+    updateThirdAvailability();
+  });
   SIGHT_STORY.subscribe(state => applyWorked(state));
 
   function intersections(zA, zB) {

@@ -42,6 +42,9 @@
       <main class="article">
 
     <p data-figure="demo-center">
+      How can we use the stars to figure out where we are on the Earth?
+    </p>
+    <p data-figure="demo-center">
       It is the evening of <span data-sight-value="date"></span> in the South Pacific. Vega is bright above
       the horizon, land is nowhere in sight, and the ship has only a sextant, a chronometer, and an almanac.
       Can one point of light say where the ship is?
@@ -69,35 +72,93 @@
       worked values back.
     </p>
 
-    <h2 id="ground-positions" data-figure="demo-center"><span class="sec-no" data-original="01">1</span>A star gives a point and a distance</h2>
+    <h2 id="ground-positions" data-figure="demo-center"><span class="sec-no" data-original="01">1</span>Stellar ground positions and altitudes</h2>
 
     <p data-figure="demo-center">
-      At any instant, Vega is directly above one point on Earth. This is its
-      <strong>geographical position</strong>, or <strong>GP</strong>. A ray through Earth’s center marks the
-      point cleanly: stand there and Vega is at the zenith, <span class="num">90°</span> above every horizon.
-      Drag the star and watch its GP stay attached.
+      Imagine that you are standing at the center of a transparent Earth looking outward at the stars. If you
+      pointed a laser at a star, your ray would draw a straight line that passes through the surface of the
+      Earth at a single point. That point is called the star’s <strong>ground position</strong>, or
+      <strong>GP</strong> for short.
     </p>
 
     <figure class="demo" id="demo-center">
       <div class="demo-panel">
         <canvas class="grab"></canvas>
       </div>
-      <figcaption>Drag Vega. Its center ray always names exactly one geographical position.</figcaption>
+      <figcaption>Drag Vega. Its center ray always names exactly one ground position.</figcaption>
     </figure>
 
+    <p data-figure="demo-center">
+      Now let’s imagine that you traveled up that laser beam’s path to the star’s ground position on the
+      Earth’s surface. Where would you expect the star to be found? You would find it directly overhead. This
+      means that if you planted a flagpole at that spot, it would point right at the star.
+    </p>
+
+    <p data-figure="demo-center">
+      You can describe this star’s position in the sky with an angle. If looking level out at the horizon is
+      0°, then the flagpole is at a right angle to the horizon and points at
+      90°. This angle from the horizon to the direction of the star is called a
+      star’s <strong>altitude</strong>.
+    </p>
+
+    <h2 id="altitude-distance" data-figure="demo-altitude"><span class="sec-no" data-original="02">2</span>Finding your position by measuring a star’s altitude</h2>
+
     <p data-figure="demo-altitude">
-      The center ray is only a construction. The physical light reaches Earth in effectively parallel rays.
-      As you travel away from the GP, your local horizon and overhead tilt with the surface while Vega’s
-      direction does not. Its <strong>altitude</strong> falls by exactly the angle you have moved around Earth.
+      How does this fact help us use the stars to find out where on Earth we’re located? One way to find your
+      location using the stars might be to find a star that’s directly above you, look up that star’s ground
+      position in a book, and say that you are at the same location as the star’s known ground position.
     </p>
 
     <p data-figure="demo-altitude">
-      For the geometry, assume the sextant reading has already been corrected. Navigators call that angle
-      <strong>observed altitude, <span class="num">Ho</span></strong>. The angle left over to the zenith is
-      <strong>zenith distance</strong>:
-      <span class="num">z = 90° − Ho</span>.
+      But what if you don’t happen to be standing right on the ground position of a star? You’re still in
+      luck, so long as you can precisely measure the star’s altitude. Let’s explore how a star’s altitude
+      relates to how close you are to its ground position.
+    </p>
+
+    <p data-figure="demo-altitude">
+      Imagine once again that you’re standing on the star’s ground position and pointing straight up. This
+      means that the star is 90° overhead. But what happens as you move away from the
+      ground position? From your perspective as you move, the horizon will always remain as a reference at
+      0° and you’ll keep pointing directly overhead at 90°.
+      But because the Earth is round, the direction that you’re pointing in the sky will shift as your position
+      changes. From an outside perspective, the direction you’re pointing overhead when at the North Pole will
+      be completely different to the direction at the equator.
+    </p>
+
+    <p data-figure="demo-setting">
+      As you move on the round globe, it will seem as if the positions of the stars are moving. Let’s return to
+      our original example. You start on the ground position of a star and then move away. As you do so, the
+      star’s altitude will fall a little closer to the horizon. The star will continue to move lower in the sky
+      until it disappears beyond the horizon.
+    </p>
+
+    <p data-figure="demo-setting">
+      How does the height of the star change depending on how far you’ve moved? You’ll notice that the star is
+      directly overhead (90°) at the ground position, and it falls lower in the sky
+      until it sits on the horizon when you’ve traveled 90° away from your starting
+      position.
+    </p>
+
+    <figure class="demo" id="demo-setting">
+      <div class="demo-panel">
+        <canvas class="grab"></canvas>
+        <div class="demo-controls"></div>
+      </div>
+      <figcaption>Drag along the line. Each degree you travel from the GP lowers the star by one degree.</figcaption>
+    </figure>
+
+    <p class="takeaway" data-figure="demo-setting">
+      This observation is the heart of celestial navigation! If you measure the altitude of a star, it tells
+      you how many degrees from the star’s GP you have traveled. Your distance from the GP is given by a simple
+      rule: <span class="num">90° − altitude</span>.
+    </p>
+
+    <p data-figure="demo-altitude">
+      Navigators give these angles names. A sextant reading that has been corrected is the
+      <strong>observed altitude, <span class="num">Ho</span></strong>, and the angle left over to the zenith is
+      the <strong>zenith distance</strong>: <span class="num">z = 90° − Ho</span>.
       <button class="prose-control" type="button" data-figure="demo-altitude"
-        data-demo-preset="worked">Show the Vega sight</button> and compare the same moment from deck and space.
+        data-demo-preset="worked">Show the Vega sight</button> to see both angles for our worked sight.
     </p>
 
     <figure class="demo" id="demo-altitude">
@@ -107,13 +168,6 @@
       </div>
       <figcaption>Drag either frame. Ho and z always complete the same right angle.</figcaption>
     </figure>
-
-    <p class="takeaway" data-figure="demo-altitude">
-      This is the hinge of celestial navigation: an angle measured in the sky becomes an angular distance
-      across Earth.
-    </p>
-
-    <h2 id="position-ring" data-figure="demo-arcminute"><span class="sec-no" data-original="02">2</span>One distance becomes one ring</h2>
 
     <p data-figure="demo-arcminute">
       Our Vega sight gives <span class="num">Ho <span data-sight-value="ho"></span></span>, so
@@ -140,6 +194,56 @@
       </p>
     </details>
 
+    <h2 id="position-ring" data-figure="demo-twopoints"><span class="sec-no" data-original="03">3</span>Rings of position</h2>
+
+    <p data-figure="demo-twopoints">
+      We now understand that measuring the altitude of a star tells us how far away we are from the star’s
+      ground position. If the star is 90° overhead, you’re right at the ground
+      position. If the star is at 30°, it means you’re 60°
+      from the ground position (<span class="num">90° − 30°</span>). And if the star is right on the horizon
+      (0°), we know that we’re located 90° from the ground
+      position.
+    </p>
+
+    <p data-figure="demo-twopoints">
+      Let’s go through an example to see how this works in practice. You measure the altitude of a star and
+      find that it is 60° above the horizon.
+    </p>
+
+    <ul class="steps" data-figure="demo-twopoints">
+      <li>Start by locating the star’s ground position. For now, let’s just assume that the ground positions
+        of a star can be found in a book. Mark that position on the globe.</li>
+      <li>Next, you’ll measure the distance from the GP for your measured altitude. In this case, that works
+        out to be <span class="num">90° − 60° = 30°</span>.</li>
+      <li>Now mark that distance from the GP on the map. But wait! You’ll notice that in this 2D illustration,
+        two points are located 30° from the GP. Both of these are valid
+        positions.</li>
+    </ul>
+
+    <figure class="demo" id="demo-twopoints">
+      <div class="demo-panel">
+        <canvas class="grab"></canvas>
+        <div class="demo-controls"></div>
+      </div>
+      <figcaption>Change the measured altitude. A and B always sit the same distance either side of the GP.</figcaption>
+    </figure>
+
+    <p data-figure="demo-twopoints">
+      I oversimplified a bit when saying that the stellar altitude alone would give position. In two
+      dimensions, you’ll always have two positions that are valid for a given angle. In 2D, you could travel
+      30° “up” or “down” from the GP in order to reach a position where the star
+      would appear to be 60° in altitude.
+    </p>
+
+    <p data-figure="demo-circle">
+      It gets even more interesting in three dimensions. You can not only move 30°
+      “up” or “down”, you can also move 30° “left”, 30°
+      “right”, 30° “diagonal” and on and on. It turns out that there’s a full ring of
+      positions where the star will appear to be 60° above the horizon.
+      <button class="prose-control" type="button" data-figure="demo-circle"
+        data-demo-preset="sixty">Set the globe to 60°</button> to see that ring.
+    </p>
+
     <div class="prediction" data-figure="demo-circle">
       <p><strong>Before moving the slider:</strong> if Vega appears higher, does your ring grow or shrink?</p>
       <div class="prediction-options" role="group" aria-label="Predict how altitude changes the position ring">
@@ -151,13 +255,6 @@
       <p class="prediction-feedback" hidden></p>
     </div>
 
-    <p data-figure="demo-circle">
-      Distance does not include direction. Every point exactly <span data-sight-value="radius"></span> from
-      Vega’s GP is possible, so the sight draws a complete <strong>circle of position</strong>. Real
-      measurement uncertainty gives it width: <span class="num">±1′</span> becomes roughly a
-      <span class="num">±1 nm</span> band.
-    </p>
-
     <figure class="demo" id="demo-circle">
       <div class="demo-panel">
         <canvas class="grab"></canvas>
@@ -167,19 +264,34 @@
     </figure>
 
     <p class="takeaway" data-figure="demo-circle">
-      One sight can be narrow and accurate, yet still leave every point around an enormous ring possible.
+      To mark this ring, measure 30° from the star’s ground position and trace a
+      circle around the point.
     </p>
 
-    <h2 id="crossing-rings" data-figure="demo-twostar"><span class="sec-no" data-original="03">3</span>Crossing rings narrow the answer</h2>
+    <h2 id="crossing-rings" data-figure="demo-twostar"><span class="sec-no" data-original="04">4</span>Two sights, two rings, two locations</h2>
 
     <p data-figure="demo-twostar">
-      Observe a second body and you get another GP and another ring. Your ship must satisfy both
-      measurements, so it must be at a crossing. Two rings on a sphere usually cross twice.
+      If measuring the altitude of a star gives a full ring of valid positions, how are we going to use the
+      stars to find our position on the globe? There’s a trick! We can measure the altitude of more than one
+      star, each of which gives an independent ring of positions.
     </p>
+
+    <p data-figure="demo-twostar">Let’s give this a try with two stars:</p>
+
+    <ul class="steps" data-figure="demo-twostar">
+      <li>Measure the altitude of star one. It is 60° above the horizon.</li>
+      <li>Mark the ring of positions given by star one by measuring 30° from the
+        star’s GP and trace a circle.</li>
+      <li>Measure the altitude of star two. It is 40° above the horizon.</li>
+      <li>Trace a circle with a radius of 50° around star two’s ground
+        position.</li>
+    </ul>
+
     <p data-figure="demo-twostar">
-      A <strong>dead-reckoning position</strong>, advanced from the last fix using course, speed, wind, and
-      current, normally tells you which candidate is plausible. A third body can decide without that prior:
-      reveal its ring and only one crossing survives.
+      You’ll notice that these circles intersect at exactly two points. These points represent the only
+      locations on the globe where you could see these two stars at these altitudes.
+      <button class="prose-control" type="button" data-figure="demo-twostar"
+        data-demo-preset="sixty-forty">Set Vega to 60° and Sirius to 40°</button> to try it.
     </p>
 
     <figure class="demo" id="demo-twostar">
@@ -190,12 +302,18 @@
       <figcaption>Inspect two candidates first. Then add the third sight and see which one remains.</figcaption>
     </figure>
 
+    <p data-figure="demo-twostar">
+      A <strong>dead-reckoning position</strong>, advanced from the last fix using course, speed, wind, and
+      current, normally tells you which candidate is plausible. A third body can decide without that prior:
+      reveal its ring and only one crossing survives.
+    </p>
+
     <p class="takeaway" data-figure="demo-twostar">
       That is the whole method in ideal form: each body supplies a time-specific GP and a measured distance;
       the ship is where the rings cross. Now we have to measure the angle and find each GP carefully.
     </p>
 
-    <h2 id="measuring-altitude" data-figure="demo-mirror"><span class="sec-no" data-original="04">4</span>First: measure the angle</h2>
+    <h2 id="measuring-altitude" data-figure="demo-mirror"><span class="sec-no" data-original="05">5</span>First: measure the angle</h2>
 
     <h3 class="beat-title" data-figure="demo-mirror">The mirror doubles an angle</h3>
     <p data-figure="demo-mirror">
@@ -294,7 +412,7 @@
       </dl>
     </div>
 
-    <h2 id="moving-ground-positions" data-figure="demo-motion"><span class="sec-no" data-original="05">5</span>Second: find Vega’s GP at the sight time</h2>
+    <h2 id="moving-ground-positions" data-figure="demo-motion"><span class="sec-no" data-original="06">6</span>Second: find Vega’s GP at the sight time</h2>
 
     <h3 class="beat-title" data-figure="demo-motion">The GP does not wait</h3>
     <p data-figure="demo-motion">
@@ -374,8 +492,8 @@
       <figcaption>Move UTC. GHA Aries changes while Vega keeps nearly the same SHA offset.</figcaption>
     </figure>
 
-    <div class="sight-log sight-log--split" aria-label="Worked Vega sight, geographical position">
-      <div class="sight-log__head"><strong>Time → geographical position</strong><span>finding the GP from time</span></div>
+    <div class="sight-log sight-log--split" aria-label="Worked Vega sight, ground position">
+      <div class="sight-log__head"><strong>Time → ground position</strong><span>finding the GP from time</span></div>
       <dl>
         <div><dt>UTC</dt><dd data-sight-value="utc"></dd></div>
         <div><dt>GHA Aries</dt><dd data-sight-value="ghaAries"></dd></div>
@@ -385,7 +503,7 @@
       </dl>
     </div>
 
-    <h2 id="chart-lines" data-figure="demo-lopzoom"><span class="sec-no" data-original="06">6</span>Turn the ring into a plotted LOP</h2>
+    <h2 id="chart-lines" data-figure="demo-lopzoom"><span class="sec-no" data-original="07">7</span>Turn the ring into a plotted LOP</h2>
 
     <p data-figure="demo-lopzoom">
       The global circle is exact, but only a few miles near dead reckoning matter. At chart scale that short
@@ -447,7 +565,7 @@
       course and speed, so every line refers to the same moment before you combine them.
     </p>
 
-    <h2 id="complete-sight" data-figure="demo-workflow"><span class="sec-no" data-original="07">7</span>The complete sight, end to end</h2>
+    <h2 id="complete-sight" data-figure="demo-workflow"><span class="sec-no" data-original="08">8</span>The complete sight, end to end</h2>
 
     <p data-figure="demo-workflow">
       Each symbol now has one job. Correct the sextant reading from <span class="num">Hs → Ho</span>.
@@ -474,7 +592,7 @@
       </dl>
     </div>
 
-    <h2 id="shortcuts" data-figure="demo-polaris"><span class="sec-no" data-original="08">8</span>Two useful shortcuts</h2>
+    <h2 id="shortcuts" data-figure="demo-polaris"><span class="sec-no" data-original="09">9</span>Two useful shortcuts</h2>
 
     <p data-figure="demo-polaris">
       The general method works for any suitable body, but special geometry can collapse the work. A star
@@ -558,7 +676,9 @@
   <script src="story.js" defer></script>
   <script src="demos/world.js" defer></script>
   <script src="demos/center.js" defer></script>
+  <script src="demos/setting.js" defer></script>
   <script src="demos/arcminute.js" defer></script>
+  <script src="demos/twopoints.js" defer></script>
   <script src="demos/globes.js" defer></script>
   <script src="demos/mirror.js" defer></script>
   <script src="demos/sextant.js" defer></script>

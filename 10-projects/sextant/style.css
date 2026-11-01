@@ -240,6 +240,13 @@ body {
   text-indent: 0;
 }
 
+.article .steps {
+  margin: var(--half-rhythm) 0;
+  padding-left: 3ch;
+}
+.article .steps li + li { margin-top: 0.35em; }
+.article .steps + p { text-indent: 0; }
+
 .article .method-thesis {
   margin: var(--half-rhythm) 3ch var(--rhythm);
   padding: 0;

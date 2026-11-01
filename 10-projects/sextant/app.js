@@ -1578,7 +1578,8 @@ function drawGlobeBase(ctx, toView, cx, cy, R, options = {}) {
    –––––––––––––––––––––––––––––––––––––––––––––––– */
 
 (function layoutController() {
-  const figIds = ['demo-center', 'demo-altitude', 'demo-arcminute', 'demo-circle',
+  const figIds = ['demo-center', 'demo-setting', 'demo-altitude', 'demo-arcminute',
+    'demo-twopoints', 'demo-circle',
     'demo-twostar', 'demo-mirror', 'demo-sextant', 'demo-scope', 'demo-dip', 'demo-refraction',
     'demo-motion', 'demo-samesky', 'demo-clock', 'demo-almanac', 'demo-lopzoom', 'demo-intercept',
     'demo-workflow', 'demo-polaris', 'demo-noon'];
