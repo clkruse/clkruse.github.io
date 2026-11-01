@@ -1,258 +1,230 @@
 'use strict';
-/* §06: the almanac as a book, not a planet. A page of tables plus the
-   same arithmetic unrolled on a strip: one racing number (GHA Aries)
-   plus a fixed catalog offset (SHA) is one addition. Declination never
-   joins. Hour angles run westward from Greenwich, left → right. */
+/* §06: why the almanac stays small. It tabulates one racing number
+   (GHA Aries); each star keeps a nearly fixed catalog offset (SHA), so a
+   star's GHA is one addition. Declination stays separate as the GP's
+   latitude. Hour angles run westward from Greenwich. */
 
 (function demoAlmanac() {
-  const d = createDemo('demo-almanac', { aspect: 1.22, maxH: 560, draw });
-  let gmt = 4.6;
-  addSlider(d, {
-    label: 'Greenwich time', min: 0, max: 24, step: 1 / 60, value: gmt,
-    fmt: v => {
-      const hh = Math.floor(v) % 24, mm = Math.round((v - Math.floor(v)) * 60);
-      return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+  const d = createDemo('demo-almanac', {
+    aspect: 1.31,
+    maxH: 500,
+    compactAspect: 1.22,
+    draw,
+  });
+  const STORY_SOURCE = 'demo-almanac';
+  const WORKED = SIGHT_STORY.state;
+  const DATE_LABEL = (() => {
+    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
+      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+    const [year, month, day] = WORKED.date.split('-').map(Number);
+    return `${day} ${months[month - 1]} ${year}`;
+  })();
+  const WORKED_UTC = WORKED.utcHours;
+  const VEGA_SHA = WORKED.sha;
+  const VEGA_DEC = WORKED.dec;
+  const STELLAR_RATE = SIGHT_STORY.constants.stellarRate;
+  let gmt = SIGHT_STORY.state.utcHours;
+  const gmtSlider = addSlider(d, {
+    // Stop one second before midnight: showing the next 00:00 without changing
+    // the displayed date would make its sidereal advance look stale.
+    label: 'UTC', min: 0, max: 24 - 1 / 3600, step: 1 / 3600, value: gmt,
+    fmt: utcText,
+    onchange: v => {
+      gmt = v;
+      if (Math.abs(SIGHT_STORY.state.utcHours - v) > 1e-10) {
+        SIGHT_STORY.set({ utcHours: v }, { source: STORY_SOURCE });
+      }
     },
-    onchange: v => { gmt = v; },
   });
   const ariesStat = addStat(d, 'GHA Aries');
   const sumStat = addStat(d, 'GHA Vega = Aries + SHA', true);
-  const decStat = addStat(d, 'dec Vega – catalog constant');
+  const decStat = addStat(d, 'Vega declination');
 
   const STARS = [
-    { name: 'Vega', sha: 80.5, dec: '38° 48′ N', main: true },
+    { name: 'Vega', sha: VEGA_SHA, dec: `${fmtDM(VEGA_DEC, 1)} N`, main: true },
     { name: 'Sirius', sha: 258.5, dec: '16° 44′ S' },
     { name: 'Capella', sha: 280.5, dec: '46° 01′ N' },
   ];
   const wrap360 = a => ((a % 360) + 360) % 360;
-  const ghaAt = t => wrap360(100 + t * 15.041);
-  const hhmm = t => {
-    const hh = Math.floor(t) % 24, mm = Math.round((t - Math.floor(t)) * 60);
-    return String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
-  };
+  const ghaAt = t => wrap360(
+    WORKED.ghaAries + (t - WORKED.utcHours) * STELLAR_RATE
+  );
+  function utcText(t) {
+    const raw = Math.round(t * 3600);
+    const total = ((raw % 86400) + 86400) % 86400;
+    const hh = Math.floor(total / 3600);
+    const mm = Math.floor((total % 3600) / 60);
+    const ss = total % 60;
+    return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+  }
 
-  function barDim(ctx, x1, x2, y, color, text, side) {
-    const L = Math.abs(x2 - x1);
-    if (L < 10) return;
-    const a = x1 < x2 ? 0 : Math.PI;
-    ctx.strokeStyle = color;
-    ctx.fillStyle = color;
-    ctx.lineWidth = 0.9;
-    ctx.beginPath();
-    ctx.moveTo(x1, y);
-    ctx.lineTo(x2, y);
-    ctx.stroke();
-    if (L >= 16) {
-      dimHead(ctx, x1, y, a + Math.PI, 6, 2);
-      dimHead(ctx, x2, y, a, 6, 2);
-    }
-    if (text && L >= 44) {
-      label(ctx, text, (x1 + x2) / 2, y + (side < 0 ? -10 : 11),
-        { color, size: 10.5, halo: P.paper });
-    }
+  d.addPreset('worked', () => {
+    gmtSlider.set(WORKED_UTC, { emit: true });
+  });
+
+  SIGHT_STORY.subscribe((state, source) => {
+    if (source === STORY_SOURCE) return;
+    gmt = state.utcHours;
+    gmtSlider.set(gmt, { emit: false });
+  });
+
+  function almanacState() {
+    const ghaAries = ghaAt(gmt);
+    const stars = STARS.map(st => ({ ...st, gha: wrap360(ghaAries + st.sha) }));
+    return {
+      ghaAries,
+      stars,
+      ghaVega: stars[0].gha,
+      wrapped: ghaAries + STARS[0].sha >= 360,
+    };
+  }
+
+  function setReadouts(s) {
+    ariesStat.set(fmtDM(s.ghaAries, 1));
+    sumStat.set(s.wrapped
+      ? `${fmtDM(s.ghaAries, 1)} + ${fmtDM(VEGA_SHA, 1)} − 360° = ${fmtDM(s.ghaVega, 1)}`
+      : `${fmtDM(s.ghaAries, 1)} + ${fmtDM(VEGA_SHA, 1)} = ${fmtDM(s.ghaVega, 1)}`);
+    decStat.set(`${fmtDM(VEGA_DEC, 1)} N`);
   }
 
   function draw(ctx, w, h) {
-    ctx.fillStyle = P.paper;
+    const s = almanacState();
+    drawCatalogCompressor(ctx, w, h, s);
+    setReadouts(s);
+  }
+
+  function drawCatalogCompressor(ctx, w, h, s) {
+    ctx.fillStyle = PLATE.paper;
     ctx.fillRect(0, 0, w, h);
 
-    const ghaAries = ghaAt(gmt);
-    const shaV = STARS[0].sha;
-    const ghaVega = wrap360(ghaAries + shaV);
-    const wrapped = ghaAries + shaV >= 360;
+    const compact = w < 500 || h < 350;
+    const titleSize = compact ? 8.5 : 11;
+    const bodySize = compact ? 8 : 9.2;
+    const dataSize = compact ? 8 : 9.5;
+    const pad = compact ? 8 : 14;
+    const definitionsY = compact ? 30 : 50;
+    const definitionsH = compact ? 62 : 84;
+    const lookupY = definitionsY + definitionsH + (compact ? 7 : 25);
+    const workY = lookupY + (compact ? 11 : 30);
+    const workH = compact ? 65 : 140;
+    const declinationY = workY + workH + (compact ? 6 : 24);
+    const summaryRuleY = compact ? declinationY + 18 : declinationY + 30;
 
-    const hour0 = Math.floor(gmt) % 24;
-    const hour1 = (hour0 + 1) % 24;
-    const gha0 = ghaAt(hour0);
-    const gha1 = ghaAt(hour0 + 1);
-    const onHour = (gmt - hour0) * 60 < 0.51;
+    plateText(ctx, 'One Aries lookup, then add Vega’s SHA', w / 2,
+      compact ? 11 : 15, {
+        size: titleSize, weight: 600, tracking: titleSize * 0.12, align: 'center',
+      });
+    plateRule(ctx, compact ? 25 : 32, 14, w - 14);
 
-    /* ————— the sky, unrolled ————— */
+    plateBox(ctx, pad, definitionsY, w - pad * 2, [
+      {
+        text: 'GHA: ANGLE WEST FROM GREENWICH.',
+        font: PLATE.dataFont,
+        tracking: 0,
+      },
+      {
+        text: 'GHA ARIES: ONE CHANGING VALUE FOR EVERY STAR.',
+        font: PLATE.dataFont,
+        tracking: 0,
+      },
+      {
+        text: 'SHA: EACH STAR’S OWN OFFSET FROM ARIES.',
+        font: PLATE.dataFont,
+        tracking: 0,
+      },
+      {
+        text: 'DECLINATION: THE GP’S LATITUDE.',
+        font: PLATE.dataFont,
+        tracking: 0,
+      },
+    ], {
+      title: 'WHY ONE LOOKUP WORKS',
+      size: bodySize,
+      lineHeight: compact ? 9 : 12.5,
+      padding: compact ? 6 : 7,
+      height: definitionsH,
+    });
 
-    const pad = 16;
-    const stripTop = 26;
-    const stripH = Math.min(112, h * 0.30);
-    const x0 = pad + 8, x1 = w - pad - 8;
-    const yStrip = stripTop + 18;
-    const yMid = yStrip + stripH * 0.42;
-    const xOf = ha => x0 + (wrap360(ha) / 360) * (x1 - x0);
+    plateDataText(ctx, compact
+      ? `${utcText(gmt)} UTC · look up GHA Aries ${fmtDM(s.ghaAries, 1)}`
+      : `${DATE_LABEL} · ${utcText(gmt)} UTC · look up GHA Aries ${fmtDM(s.ghaAries, 1)}`,
+    w / 2, lookupY, {
+      size: compact ? 8 : 10, weight: 600, align: 'center',
+    });
 
-    label(ctx, 'hour angle, westward from Greenwich', pad, 16,
-      { color: P.inkFaint, size: 10.5, align: 'left' });
+    const workLines = [
+      {
+        text: `GHA ARIES     ${fmtDM(s.ghaAries, 1)}`,
+        font: PLATE.dataFont, tracking: 0,
+      },
+      {
+        text: `+ VEGA SHA    ${fmtDM(VEGA_SHA, 1)}`,
+        font: PLATE.dataFont, tracking: 0,
+      },
+      ...(s.wrapped ? [{
+        text: '− FULL TURN   360°',
+        font: PLATE.dataFont, tracking: 0,
+      }] : []),
+      {
+        text: `= GHA VEGA    ${fmtDM(s.ghaVega, 1)}`,
+        weight: 600, font: PLATE.dataFont, tracking: 0,
+      },
+    ];
+    const workW = compact ? w - pad * 2 : w * 0.66;
+    const workX = (w - workW) / 2;
+    plateBox(ctx, workX, workY, workW, workLines, {
+      title: 'WORKED VEGA ADDITION',
+      size: compact ? 8 : 10.5,
+      lineHeight: compact ? 9 : 24,
+      padding: compact ? 6 : 7,
+      height: workH,
+      font: PLATE.dataFont,
+    });
 
-    ctx.fillStyle = P.paperDeep;
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.rect(x0, yStrip, x1 - x0, stripH * 0.72);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.strokeStyle = P.inkFaint;
-    ctx.lineWidth = 0.75;
-    for (let a = 0; a < 360; a += 30) {
-      const x = xOf(a);
-      const major = a % 90 === 0;
-      ctx.beginPath();
-      ctx.moveTo(x, yStrip);
-      ctx.lineTo(x, yStrip + (major ? 10 : 5));
-      ctx.stroke();
-      if (major) {
-        label(ctx, a === 0 ? '0°' : a + '°', x, yStrip + 20,
-          { color: P.inkFaint, size: 9.5, halo: P.paperDeep,
-            align: a === 0 ? 'left' : 'center' });
-      }
-    }
-
-    // Greenwich: the earth-fixed edge of the page
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.moveTo(x0, yStrip);
-    ctx.lineTo(x0, yStrip + stripH * 0.72);
-    ctx.stroke();
-    label(ctx, 'Greenwich', x0 + 6, yMid + 18,
-      { color: P.ink, size: 10.5, halo: P.paperDeep, align: 'left' });
-
-    const xA = xOf(ghaAries);
-    const xV = xOf(ghaVega);
-
-    const starXs = STARS.map(st => ({ st, x: xOf(ghaAries + st.sha) }));
-    for (const { st, x } of starXs) {
-      starGlyph(ctx, x, yMid - 4, st.main ? 7 : 5, st.main ? P.s2 : P.inkSoft);
-      const crowded = starXs.some(o => o.st !== st && Math.abs(o.x - x) < 44);
-      if (crowded && !st.main) continue;
-      const nearR = x > x1 - 46, nearL = x < x0 + 70;
-      label(ctx, st.name, x + (nearR ? -10 : nearL ? 12 : 0), yMid - 18,
-        {
-          color: st.main ? P.s2 : P.inkSoft, size: 10.5, halo: P.paperDeep,
-          align: nearR ? 'right' : nearL ? 'left' : 'center',
+    if (compact) {
+      plateDataText(ctx, `Vega declination ${fmtDM(VEGA_DEC, 1)} N`,
+        w / 2, declinationY, {
+          size: dataSize, align: 'center',
+        });
+      plateDataText(ctx, `gives GP latitude ${fmtDM(VEGA_DEC, 1)} N`,
+        w / 2, declinationY + 10, {
+          size: dataSize, align: 'center',
+        });
+    } else {
+      plateDataText(ctx,
+        `Vega declination ${fmtDM(VEGA_DEC, 1)} N → GP latitude ${fmtDM(VEGA_DEC, 1)} N`,
+        w / 2, declinationY, {
+          size: 10, align: 'center',
         });
     }
 
-    ctx.strokeStyle = P.s3;
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.moveTo(xA, yStrip + 4);
-    ctx.lineTo(xA, yStrip + stripH * 0.72 - 4);
-    ctx.stroke();
-    pointMark(ctx, xA, yMid - 4, P.s3, 3);
-    const ariesAlign = xA > x1 - 50 ? 'right' : xA < x0 + 50 ? 'left' : 'center';
-    label(ctx, 'Aries', xA, yStrip + stripH * 0.72 - 12,
-      { color: P.s3, size: 10.5, halo: P.paperDeep, align: ariesAlign });
-
-    // the two addends, drawn as lengths on the strip
-    const yBar = yStrip + stripH * 0.72 + 16;
-    barDim(ctx, x0, xA, yBar, P.s3, 'GHA Aries', -1);
-    if (!wrapped) {
-      barDim(ctx, xA, xV, yBar + 18, P.inkSoft, 'SHA – fixed', 1);
-      barDim(ctx, x0, xV, yBar + 36, P.s2, 'GHA Vega', 1);
+    plateRule(ctx, summaryRuleY, 14, w - 14);
+    if (compact) {
+      plateDataText(ctx,
+        `Sirius SHA ${fmtDM(s.stars[1].sha, 1)} → GHA ${fmtDM(s.stars[1].gha, 1)}`,
+        w / 2, summaryRuleY + 10, {
+          size: dataSize, align: 'center',
+        });
+      plateDataText(ctx,
+        `Capella SHA ${fmtDM(s.stars[2].sha, 1)} → GHA ${fmtDM(s.stars[2].gha, 1)}`,
+        w / 2, summaryRuleY + 22, {
+          size: dataSize, align: 'center',
+        });
     } else {
-      const leftLen = xV - x0, rightLen = x1 - xA;
-      barDim(ctx, xA, x1, yBar + 18, P.inkSoft, rightLen >= leftLen ? 'SHA wraps' : '', 1);
-      barDim(ctx, x0, xV, yBar + 18, P.inkSoft, leftLen > rightLen ? 'SHA wraps' : '', 1);
-      barDim(ctx, x0, xV, yBar + 36, P.s2, 'GHA Vega', 1);
+      plateText(ctx, 'TWO MORE STARS AT THIS UTC',
+        w / 2, summaryRuleY + 18, {
+          size: bodySize, weight: 600, align: 'center',
+        });
+      plateDataText(ctx,
+        `Sirius: SHA ${fmtDM(s.stars[1].sha, 1)} → GHA ${fmtDM(s.stars[1].gha, 1)}`,
+        w / 2, summaryRuleY + 42, {
+          size: dataSize, align: 'center',
+        });
+      plateDataText(ctx,
+        `Capella: SHA ${fmtDM(s.stars[2].sha, 1)} → GHA ${fmtDM(s.stars[2].gha, 1)}`,
+        w / 2, summaryRuleY + 66, {
+          size: dataSize, align: 'center',
+        });
     }
-
-    /* ————— the page ————— */
-
-    const pageY = yBar + 52;
-    const pageX = pad;
-    const pageW = w - pad * 2;
-    const pageH = h - pageY - 8;
-    if (pageH < 70) {
-      ariesStat.set(fmtDM(ghaAries, 1));
-      sumStat.set(wrapped
-        ? `${fmtDM(ghaAries, 1)} + 80° 30′ − 360° = ${fmtDM(ghaVega, 1)}`
-        : `${fmtDM(ghaAries, 1)} + 80° 30′ = ${fmtDM(ghaVega, 1)}`);
-      decStat.set('38° 48′ N');
-      return;
-    }
-
-    ctx.fillStyle = P.paperDeep;
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.rect(pageX, pageY, pageW, pageH);
-    ctx.fill();
-    ctx.stroke();
-
-    const split = pageW > 420;
-    const tight = pageH < 168;
-    const colL = pageX + 14;
-    const colR = split ? pageX + pageW * 0.50 : colL;
-    const row0 = pageY + 16;
-    const lh = Math.min(18, Math.max(13, (pageH - 40) / (tight && !split ? 9 : 10)));
-
-    label(ctx, 'THE NAUTICAL ALMANAC', colL, row0,
-      { color: P.ink, size: 11, halo: P.paperDeep, align: 'left', weight: 600 });
-    if (pageW > 460) {
-      label(ctx, 'one racing column, one fixed catalog', pageX + pageW - 14, row0,
-        { color: P.inkFaint, size: 10.5, halo: P.paperDeep, align: 'right' });
-    }
-
-    // Aries block – the number that moves
-    const yA = row0 + lh * 1.55;
-    label(ctx, 'ARIES', colL, yA, { color: P.s3, size: 10.5, halo: P.paperDeep, align: 'left' });
-    label(ctx, 'GMT', colL, yA + lh, { color: P.inkFaint, size: 10, halo: P.paperDeep, align: 'left' });
-    label(ctx, 'GHA', colL + 88, yA + lh, { color: P.inkFaint, size: 10, halo: P.paperDeep, align: 'left' });
-
-    const ariesRows = onHour
-      ? [
-          { t: String((hour0 + 23) % 24).padStart(2, '0') + 'h',
-            v: fmtDM(ghaAt(hour0 - 1), 1), now: false },
-          { t: String(hour0).padStart(2, '0') + 'h', v: fmtDM(gha0, 1), now: true },
-          { t: String(hour1).padStart(2, '0') + 'h', v: fmtDM(gha1, 1), now: false },
-        ]
-      : [
-          { t: String(hour0).padStart(2, '0') + 'h', v: fmtDM(gha0, 1), now: false },
-          { t: 'now  ' + hhmm(gmt), v: fmtDM(ghaAries, 1), now: true },
-          { t: String(hour1).padStart(2, '0') + 'h', v: fmtDM(gha1, 1), now: false },
-        ];
-    const shownAries = tight && !split ? ariesRows.filter(r => r.now) : ariesRows;
-    shownAries.forEach((r, i) => {
-      const y = yA + lh * (2 + i);
-      const c = r.now ? P.s3 : P.ink;
-      label(ctx, r.t, colL, y, { color: c, size: 11, halo: P.paperDeep, align: 'left' });
-      label(ctx, r.v, colL + 88, y, { color: c, size: 11, halo: P.paperDeep, align: 'left' });
-    });
-
-    // Stars block – the lines that do not move
-    const yS = split ? yA : yA + lh * (tight ? 3.4 : 5.6);
-    const shownStars = tight && !split ? STARS.filter(st => st.main) : STARS;
-    label(ctx, 'STARS', colR, yS, { color: P.s2, size: 10.5, halo: P.paperDeep, align: 'left' });
-    label(ctx, 'SHA', colR + 78, yS + lh, { color: P.inkFaint, size: 10, halo: P.paperDeep, align: 'left' });
-    label(ctx, 'Dec', colR + 168, yS + lh, { color: P.inkFaint, size: 10, halo: P.paperDeep, align: 'left' });
-    shownStars.forEach((st, i) => {
-      const y = yS + lh * (2 + i);
-      const c = st.main ? P.s2 : P.ink;
-      label(ctx, st.name, colR, y, { color: c, size: 11, halo: P.paperDeep, align: 'left' });
-      label(ctx, fmtDM(st.sha, 1), colR + 78, y, { color: c, size: 11, halo: P.paperDeep, align: 'left' });
-      label(ctx, st.dec, colR + 168, y, { color: c, size: 11, halo: P.paperDeep, align: 'left' });
-    });
-
-    // the addition, typeset in the same colors as the strip
-    const yEq = pageY + pageH - 15;
-    const eqClear = yEq > yS + lh * (shownStars.length + 2.2);
-    if (eqClear) {
-      const parts = wrapped
-        ? [['GHA Vega  ', P.s2], ['=  ', P.ink], [fmtDM(ghaAries, 1), P.s3],
-           ['  +  ', P.ink], ['80° 30′', P.inkSoft],
-           ['  −  360°  =  ', P.ink], [fmtDM(ghaVega, 1), P.s2]]
-        : [['GHA Vega  ', P.s2], ['=  ', P.ink], [fmtDM(ghaAries, 1), P.s3],
-           ['  +  ', P.ink], ['80° 30′', P.inkSoft],
-           ['  =  ', P.ink], [fmtDM(ghaVega, 1), P.s2]];
-      let x = colL;
-      for (const [t, c] of parts) {
-        label(ctx, t, x, yEq, { color: c, size: 11, halo: P.paperDeep, align: 'left' });
-        x += textW(ctx, t, 11);
-      }
-    }
-
-    ariesStat.set(fmtDM(ghaAries, 1));
-    sumStat.set(wrapped
-      ? `${fmtDM(ghaAries, 1)} + 80° 30′ − 360° = ${fmtDM(ghaVega, 1)}`
-      : `${fmtDM(ghaAries, 1)} + 80° 30′ = ${fmtDM(ghaVega, 1)}`);
-    decStat.set('38° 48′ N');
   }
 })();

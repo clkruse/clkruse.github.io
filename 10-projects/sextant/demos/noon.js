@@ -2,36 +2,86 @@
 /* §08: the noon sight. */
 
 (function demoNoon() {
-  const d = createDemo('demo-noon', { aspect: 1.55, maxH: 520, draw });
-  let truth = newTruth();
+  // noon-geometry.js fills this shared object in place. Keeping the placeholder
+  // makes this demo safe whether that deferred script runs before or after us.
+  const geometry = window.SextantNoonGeometry || (window.SextantNoonGeometry = {});
+  const T0 = 6, T1 = 22;
+  let revealStage = 0; // 0 hunt the peak, 2 decode the sight
+  // The decoded sight is a wide, short plate; the hunt keeps the taller frame.
+  const d = createDemo('demo-noon', {
+    aspect: { valueOf: () => (revealStage === 2 ? 1.82 : 1.3) },
+    maxH: { valueOf: () => (revealStage === 2 ? 360 : 560) },
+    compactAspect: { valueOf: () => (revealStage === 2 ? 1.35 : 1.3) },
+    compactMaxH: { valueOf: () => (revealStage === 2 ? 210 : 560) },
+    draw,
+  });
+  const TRUTHS = [
+    { lat: 32, lon: -24 },
+    { lat: -18, lon: 38 },
+    { lat: 47, lon: 12 },
+  ];
+  let truthIndex = 0;
+  let truth = { ...TRUTHS[truthIndex] };
   let cursorT = 11.0;
   let best = null; // {t, h}
-  let revealed = false;
   const dec = addSlider(d, {
     label: "sun's declination", min: -23.4, max: 23.4, step: 0.1, value: 15,
     fmt: v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + '°',
-    onchange: () => { best = null; revealed = false; },
+    onchange: () => { resetReveal(); },
   });
-  const sample = addStat(d, 'your sample');
+  const timeSlider = addSlider(d, {
+    label: 'sample UTC', min: T0, max: T1, step: 1 / 60, value: cursorT,
+    fmt: v => clock(v),
+    onchange: v => { setCursorTime(v); },
+  });
+  const sample = addStat(d, 'current sample');
   const solved = addStat(d, ' ', true);
-  addButton(d, 'reveal solution', () => { revealed = true; });
-  addButton(d, 'new position', () => {
-    truth = newTruth();
-    best = null;
-    revealed = false;
+  const revealButton = addButton(d, 'reveal noon position', advanceReveal);
+  revealButton.type = 'button';
+  let revealButtonLabel = '';
+  const newButton = addButton(d, 'new position', () => {
+    truthIndex = (truthIndex + 1) % TRUTHS.length;
+    truth = { ...TRUTHS[truthIndex] };
+    resetReveal();
   }, 'subtle');
+  newButton.type = 'button';
+  newButton.setAttribute('aria-label', 'Generate a new hidden position');
 
-  function newTruth() {
-    return { lat: 26 + Math.random() * 26, lon: -(15 + Math.random() * 60) };
+  function monochromeNoonStyle() {
+    return {
+      paper: PLATE.paper,
+      paperDeep: PLATE.paper,
+      ink: PLATE.ink,
+      soft: PLATE.ink,
+      faint: PLATE.ink,
+      line: PLATE.ink,
+      guide: PLATE.ink,
+      result: PLATE.ink,
+      sun: PLATE.ink,
+      tint: PLATE.ink,
+      gridAlpha: 1,
+      tintAlpha: 0,
+      cardLineAlpha: 1,
+      controlSuccess: 'var(--s7)',
+    };
   }
+
+  // Illustrative equation of time, E = apparent solar time − mean solar time.
+  // E = +6 min puts Greenwich apparent noon at 11:54 UTC. In practice the
+  // navigator uses the almanac GHA at the recorded UTC, not a fixed correction.
+  const EQUATION_OF_TIME_MIN = 6;
+  const sunGhaSigned = t => (t - 12) * 15 + EQUATION_OF_TIME_MIN * 0.25;
+  const normalize360 = degrees => ((degrees % 360) + 360) % 360;
+  const normalize180 = degrees => ((degrees + 180) % 360 + 360) % 360 - 180;
+  const sunGha = t => normalize360(sunGhaSigned(t));
+  const longitudeFromGha = gha => normalize180(-gha);
+  const transitTime = () => 12 - (truth.lon + EQUATION_OF_TIME_MIN * 0.25) / 15;
   const altAt = t => {
-    const lha = ((t - 12) * 15 + truth.lon) * D2R;
+    const lha = (sunGhaSigned(t) + truth.lon) * D2R;
     const la = truth.lat * D2R, de = dec.v * D2R;
     return Math.asin(Math.sin(la) * Math.sin(de) + Math.cos(la) * Math.cos(de) * Math.cos(lha)) * R2D;
   };
 
-  const X0 = 58, XR = 16, Y0 = 26, YB = 46;
-  const T0 = 6, T1 = 22;
   let geo = null;
   addDrag(d.canvas, {
     start(p) { moveCursor(p); },
@@ -40,176 +90,427 @@
   d.canvas.classList.add('grab');
   function moveCursor(p) {
     if (!geo) return;
-    cursorT = clamp(T0 + (p.x - X0) / geo.sx, T0, T1);
+    setCursorTime(T0 + (p.x - geo.x0) / geo.sx, true);
+  }
+
+  function setCursorTime(value, syncSlider = false) {
+    cursorT = clamp(value, T0, T1);
+    if (syncSlider) timeSlider.set(cursorT);
     const hh = altAt(cursorT);
     if (hh > 0 && (!best || hh > best.h)) best = { t: cursorT, h: hh };
   }
 
+  function setRevealStage(stage) {
+    revealStage = clamp(Math.round(stage), 0, 2);
+    d.refit?.();
+  }
+
+  function resetReveal() {
+    best = null;
+    setRevealStage(0);
+  }
+
+  function advanceReveal() {
+    if (revealStage >= 2) resetReveal();
+    else setRevealStage(2);
+  }
+
+  function syncRevealButton() {
+    const text = revealStage > 0 ? 'start over' : 'reveal noon position';
+    if (revealButtonLabel !== text) {
+      revealButtonLabel = text;
+      revealButton.textContent = text;
+      revealButton.setAttribute('aria-label', text);
+    }
+  }
+
   function draw(ctx, w, h) {
-    ctx.fillStyle = P.paper;
+    syncRevealButton();
+    const style = monochromeNoonStyle();
+    if (revealStage === 2) return drawPlateDecodedSolution(ctx, w, h, style);
+    drawPlatePeakCurve(ctx, w, h, style);
+  }
+
+  function drawPlatePeakCurve(ctx, w, h, style) {
+    ctx.fillStyle = PLATE.paper;
     ctx.fillRect(0, 0, w, h);
-    const pw = w - X0 - XR, ph = h - Y0 - YB;
-    const sx = pw / (T1 - T0);
-    geo = { sx };
-    const yOf = alt => Y0 + ph * (1 - alt / 90);
-    const xOf = t => X0 + (t - T0) * sx;
-    const yAxis = h - YB; // 0° horizon coincides with the x-axis baseline
+    const compact = w < 560 || h < 340;
+    const left = compact ? 38 : 52;
+    const right = w - (compact ? 10 : 16);
+    const top = compact ? 27 : 34;
+    const bottom = h - (compact ? 31 : 42);
+    const sx = (right - left) / (T1 - T0);
+    const xOf = time => left + (time - T0) * sx;
+    const yOf = altitude => bottom
+      - (bottom - top) * clamp(altitude, 0, 90) / 90;
+    const tTr = transitTime();
+    const hMax = altAt(tTr);
+    const ch = altAt(cursorT);
+    const currentX = xOf(cursorT);
+    const currentY = yOf(ch);
+    const currentAtPeak = Math.abs(cursorT - tTr) < 1 / 120;
+    const peakFound = best && Math.abs(hMax - best.h) < 0.05;
+    geo = { sx, x0: left };
 
-    // hairline grid inside the plot box (axis positions excluded)
-    ctx.strokeStyle = P.line;
-    ctx.lineWidth = 1;
-    for (let a = 15; a <= 90; a += 15) {
-      ctx.beginPath();
-      ctx.moveTo(X0, yOf(a));
-      ctx.lineTo(w - XR, yOf(a));
-      ctx.stroke();
+    plateText(ctx, 'CORRECTED ALTITUDE Ho · HUNT THE MERIDIAN PEAK',
+      left, compact ? 10 : 15, {
+        size: compact ? 8 : 10,
+        weight: 600,
+        uppercase: false,
+      });
+
+    for (let altitude = 15; altitude <= 90; altitude += 15) {
+      const y = yOf(altitude);
+      plateLine(ctx, { x: left, y }, { x: right, y }, {
+        kind: 'short',
+        weight: compact ? 0.35 : 0.45,
+      });
     }
-    for (let t = T0 + 2; t <= T1; t += 2) {
-      ctx.beginPath();
-      ctx.moveTo(xOf(t), Y0);
-      ctx.lineTo(xOf(t), yAxis);
-      ctx.stroke();
+    for (let time = T0 + 2; time < T1; time += 2) {
+      const x = xOf(time);
+      plateLine(ctx, { x, y: top }, { x, y: bottom }, {
+        kind: 'short',
+        weight: compact ? 0.3 : 0.4,
+      });
     }
 
-    // flat sun tint under the curve (above the horizon only)
     ctx.save();
     ctx.beginPath();
-    ctx.moveTo(xOf(T0), yOf(0));
-    for (let t = T0; t <= T1; t += 0.05) ctx.lineTo(xOf(t), yOf(Math.max(altAt(t), 0)));
-    ctx.lineTo(xOf(T1), yOf(0));
-    ctx.closePath();
-    ctx.fillStyle = 'rgba(238,114,3,0.08)';
-    ctx.fill();
-    ctx.restore();
-
-    // the day's arc: 2px object line, clipped to the plot box
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(X0, Y0, pw, ph);
+    ctx.rect(left, top, right - left, bottom - top);
     ctx.clip();
+    ctx.strokeStyle = PLATE.ink;
+    ctx.lineWidth = compact ? 1.5 : 2;
+    ctx.setLineDash([]);
     ctx.beginPath();
     let started = false;
-    for (let t = T0; t <= T1; t += 0.05) {
-      const yy = yOf(altAt(t));
-      if (!started) { ctx.moveTo(xOf(t), yy); started = true; }
-      else ctx.lineTo(xOf(t), yy);
+    for (let time = T0; time <= T1; time += 0.04) {
+      const point = { x: xOf(time), y: yOf(altAt(time)) };
+      if (!started) {
+        ctx.moveTo(point.x, point.y);
+        started = true;
+      } else {
+        ctx.lineTo(point.x, point.y);
+      }
     }
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = 2;
     ctx.stroke();
     ctx.restore();
 
-    // axes: 1px ink lines left + bottom, 3px tick marks outside, labels beyond
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(X0, Y0);
-    ctx.lineTo(X0, yAxis);
-    ctx.lineTo(w - XR, yAxis);
-    ctx.stroke();
-    for (let a = 0; a <= 90; a += 15) {
-      ctx.beginPath();
-      ctx.moveTo(X0 - 3, yOf(a));
-      ctx.lineTo(X0, yOf(a));
-      ctx.stroke();
-      label(ctx, a + '°', X0 - 8, yOf(a), { size: 10.5, color: P.inkSoft, align: 'right' });
+    plateLine(ctx, { x: left, y: top }, { x: left, y: bottom }, {
+      weight: 0.8,
+    });
+    plateLine(ctx, { x: left, y: bottom }, { x: right, y: bottom }, {
+      weight: 0.9,
+    });
+    for (let altitude = 0; altitude <= 90; altitude += 15) {
+      const y = yOf(altitude);
+      plateLine(ctx, { x: left - 3, y }, { x: left, y }, {
+        weight: 0.55,
+      });
+      plateDataText(ctx, `${altitude}°`, left - 6, y, {
+        size: compact ? 7.5 : 8,
+        align: 'right',
+      });
     }
-    for (let t = T0; t <= T1; t += 2) {
-      ctx.beginPath();
-      ctx.moveTo(xOf(t), yAxis);
-      ctx.lineTo(xOf(t), yAxis + 3);
-      ctx.stroke();
-      label(ctx, String(t).padStart(2, '0') + ':00', xOf(t), yAxis + 16, { size: 10.5, color: P.inkSoft });
+    const tickStep = compact ? 4 : 2;
+    for (let time = T0; time <= T1; time += tickStep) {
+      const x = xOf(time);
+      plateLine(ctx, { x, y: bottom }, { x, y: bottom + 3 }, {
+        weight: 0.55,
+      });
+      plateDataText(ctx, `${String(time).padStart(2, '0')}:00`, x,
+        bottom + (compact ? 10 : 12), {
+          size: compact ? 7.5 : 8,
+          align: 'center',
+        });
     }
-    label(ctx, 'GMT →', w - XR - 26, yAxis + 34, { size: 11, color: P.inkSoft });
-    label(ctx, "sun's altitude", X0 + 52, Y0 - 12, { size: 11, color: P.inkSoft });
+    plateText(ctx, 'UTC', right, bottom + (compact ? 23 : 28), {
+      size: compact ? 8 : 9,
+      align: 'right',
+    });
 
-    // reveal geometry (computed early so labels can dodge each other)
-    const tTr = 12 - truth.lon / 15;
-    const hMax = altAt(tTr);
-    const atPeak = best && Math.abs(hMax - best.h) < 0.05;
-    // formula block sits in the top corner with the most room beside the peak
-    const fLeft = (xOf(tTr) - X0) >= ((w - XR) - xOf(tTr));
-
-    // best-so-far reference: thin dashed line + small label
     if (best) {
-      const by = yOf(best.h);
-      ctx.strokeStyle = P.brass;
-      ctx.lineWidth = 0.9;
-      ctx.setLineDash([3, 4]);
-      ctx.beginPath();
-      ctx.moveTo(X0, by);
-      ctx.lineTo(xOf(best.t), by);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      // once revealed at the peak, the formula carries the value – drop the label
-      if (!(revealed && atPeak)) {
-        const ly = Math.max(by - 9, Y0 + 8);
-        if (revealed && fLeft && by < Y0 + 86) {
-          // formula block occupies the top-left: anchor the label at the marker instead
-          label(ctx, 'highest so far ' + fmtDM(best.h, 1), xOf(best.t) - 12, ly,
-            { size: 10.5, color: P.brass, halo: P.paper, align: 'right' });
-        } else {
-          label(ctx, 'highest so far ' + fmtDM(best.h, 1), X0 + 8, ly,
-            { size: 10.5, color: P.brass, halo: P.paper, align: 'left' });
-        }
-      }
+      const bestY = yOf(best.h);
+      plateLine(ctx, { x: left, y: bestY }, { x: xOf(best.t), y: bestY }, {
+        kind: 'short',
+        weight: compact ? 0.55 : 0.7,
+      });
+      plateDataText(ctx, `BEST SAMPLE · ${clock(best.t)} · Ho ${best.h.toFixed(1)}°`,
+        left + 5, Math.max(top + 8, bestY - (compact ? 7 : 9)), {
+          size: compact ? 8 : 9,
+        });
     }
 
-    // cursor guide: 0.9px dashed reference line
-    const ch = altAt(cursorT);
-    const cxp = xOf(cursorT), cyp = yOf(Math.max(ch, -3));
-    ctx.strokeStyle = P.inkSoft;
-    ctx.lineWidth = 0.9;
-    ctx.setLineDash([5, 4]);
+    plateLine(ctx, { x: currentX, y: top }, { x: currentX, y: bottom }, {
+      kind: 'construction',
+      weight: compact ? 0.55 : 0.7,
+    });
+    ctx.fillStyle = PLATE.paper;
+    ctx.strokeStyle = PLATE.ink;
+    ctx.lineWidth = compact ? 0.9 : 1.1;
     ctx.beginPath();
-    ctx.moveTo(cxp, Y0);
-    ctx.lineTo(cxp, yAxis);
+    ctx.arc(currentX, currentY, compact ? 3 : 4, 0, TAU);
+    ctx.fill();
     ctx.stroke();
-    ctx.setLineDash([]);
 
-    // reveal
-    if (revealed) {
-      ctx.strokeStyle = P.good;
-      ctx.lineWidth = 1;
-      ctx.setLineDash([6, 4]);
-      ctx.beginPath();
-      ctx.moveTo(xOf(tTr), Y0);
-      ctx.lineTo(xOf(tTr), yAxis);
-      ctx.stroke();
-      ctx.setLineDash([]);
-      label(ctx, 'local noon', xOf(tTr), yAxis - 10, { size: 10.5, color: P.good, halo: P.paper });
-      const latC = 90 - hMax + dec.v;
-      const lonC = -(tTr - 12) * 15;
-      const fx = fLeft ? X0 + 10 : w - XR - 8;
-      const ind = fLeft ? 30 : 0; // continuation indent (left-anchored block only)
-      const align = fLeft ? 'left' : 'right';
-      const rows = [
-        [`lat = 90° − ${hMax.toFixed(1)}° + ${dec.v.toFixed(1)}°`, 0, Y0 + 14],
-        [`= ${latC.toFixed(1)}° N   (true ${truth.lat.toFixed(1)}° N)`, ind, Y0 + 30],
-        [`lon = (noon − 12:00) × 15°/h`, 0, Y0 + 52],
-        [`= ${Math.abs(lonC).toFixed(1)}° W   (true ${Math.abs(truth.lon).toFixed(1)}° W)`, ind, Y0 + 68],
-      ];
-      for (const [txt, dx, yy] of rows) {
-        label(ctx, txt, fx + dx, yy, { size: 11.5, color: P.ink, halo: P.paper, align });
+    const currentAlign = currentX < w * 0.68 ? 'left' : 'right';
+    plateDataText(ctx, `CURRENT SAMPLE · ${clock(cursorT)} · Ho ${ch.toFixed(1)}°`,
+      currentX + (currentAlign === 'left' ? 7 : -7),
+      clamp(currentY + (currentY < top + 22 ? 10 : -9), top + 7, bottom - 7), {
+        size: compact ? 8 : 9,
+        align: currentAlign,
+      });
+
+    sample.set(`${clock(cursorT)} – ${ch < 0 ? 'below horizon' : `Ho ${fmtDM(ch, 1)}`}`);
+    if (peakFound && currentAtPeak) {
+      solved.set('✓ this sample is the peak – reveal noon position to save it',
+        style.controlSuccess);
+    } else if (peakFound) {
+      solved.set('peak found and saved – reveal noon position to lock the record',
+        style.controlSuccess);
+    } else {
+      solved.set('drag the curve or use the sample UTC control to hunt for the highest Ho');
+    }
+  }
+
+  function drawPlateDecodedSolution(ctx, w, h, style) {
+    ctx.fillStyle = PLATE.paper;
+    ctx.fillRect(0, 0, w, h);
+    const compact = w < 560 || h < 340;
+    const targetH = compact ? 210 : 360;
+    const contentH = Math.min(targetH, h - 2);
+    const ratio = contentH / targetH;
+    const top = (h - contentH) / 2;
+    const margin = compact ? 7 : 14;
+    const traceH = Math.round((compact ? 52 : 88) * ratio);
+    const firstCardH = Math.round((compact ? 50 : 220) * ratio);
+    const secondCardH = Math.round((compact ? 78 : 220) * ratio);
+    const conclusionH = compact
+      ? contentH - traceH - firstCardH - secondCardH
+      : Math.round(36 * ratio);
+    const cardGap = compact ? 0 : Math.round(8 * ratio);
+    const cardsTop = top + traceH + cardGap;
+    const conclusionTop = compact
+      ? cardsTop + firstCardH + secondCardH
+      : cardsTop + firstCardH + cardGap;
+    const tTr = transitTime();
+    const hMax = altAt(tTr);
+    const ch = altAt(cursorT);
+    const currentAtPeak = Math.abs(cursorT - tTr) < 1 / 120;
+    const helperReady = typeof geometry.bearingFromLatitudes === 'function'
+      && typeof geometry.calculateNoonLatitude === 'function'
+      && typeof geometry.formatLatitude === 'function'
+      && typeof geometry.formatSignedDegrees === 'function';
+    const bearing = helperReady
+      ? geometry.bearingFromLatitudes(truth.lat, dec.v)
+      : null;
+    const latitudeSolution = helperReady
+      ? geometry.calculateNoonLatitude(hMax, dec.v, bearing)
+      : null;
+    const gha = sunGha(tTr);
+    const longitude = longitudeFromGha(gha);
+    const latitudeEquation = helperReady
+      ? latitudeSolution.bearing === 'overhead'
+        ? 'φ = δ'
+        : `φ = δ ${latitudeSolution.operator} z`
+      : '';
+
+    const traceTop = top + (compact ? 18 : 23);
+    const traceBottom = top + traceH - (compact ? 5 : 8);
+    const x0 = margin + (compact ? 2 : 8);
+    const x1 = w - margin - (compact ? 2 : 8);
+    const sx = (x1 - x0) / (T1 - T0);
+    const xOf = time => x0 + (time - T0) * sx;
+    const plotMax = Math.max(30, hMax * 1.08);
+    const yOf = altitude => traceBottom
+      - (traceBottom - traceTop) * clamp(altitude, 0, plotMax) / plotMax;
+    const currentX = xOf(cursorT);
+    const currentY = yOf(ch);
+    const peakX = xOf(tTr);
+    const peakY = yOf(hMax);
+    geo = { sx, x0 };
+
+    plateText(ctx, 'DECODE THE SAVED PEAK', margin, top + (compact ? 8 : 11), {
+      size: compact ? 8 : 10,
+      weight: 600,
+    });
+    if (currentAtPeak) {
+      plateDataText(ctx, `CURRENT = SAVED · ${clock(tTr)} UTC`,
+        w - margin, top + (compact ? 8 : 11), {
+          size: compact ? 8 : 9,
+          align: 'right',
+        });
+    } else {
+      plateDataText(ctx, `CURRENT ${clock(cursorT)} · SAVED ${clock(tTr)}`,
+        w - margin, top + (compact ? 8 : 11), {
+          size: compact ? 8 : 9,
+          align: 'right',
+        });
+    }
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x0, traceTop, x1 - x0, Math.max(1, traceBottom - traceTop));
+    ctx.clip();
+    ctx.strokeStyle = PLATE.ink;
+    ctx.lineWidth = compact ? 1.15 : 1.5;
+    ctx.beginPath();
+    let traceStarted = false;
+    for (let time = T0; time <= T1; time += 0.04) {
+      const x = xOf(time);
+      const y = yOf(altAt(time));
+      if (!traceStarted) {
+        ctx.moveTo(x, y);
+        traceStarted = true;
+      } else {
+        ctx.lineTo(x, y);
       }
     }
+    ctx.stroke();
+    ctx.restore();
+    plateLine(ctx, { x: x0, y: traceBottom }, { x: x1, y: traceBottom }, {
+      weight: compact ? 0.6 : 0.8,
+    });
+    plateLine(ctx, { x: currentX, y: traceTop },
+      { x: currentX, y: traceBottom }, {
+        kind: 'construction',
+        weight: compact ? 0.45 : 0.6,
+      });
+    plateLine(ctx, { x: peakX, y: traceTop }, { x: peakX, y: traceBottom }, {
+      kind: 'long',
+      weight: compact ? 0.7 : 0.9,
+    });
+    ctx.fillStyle = PLATE.paper;
+    ctx.strokeStyle = PLATE.ink;
+    ctx.lineWidth = compact ? 0.8 : 1;
+    ctx.beginPath();
+    ctx.arc(currentX, currentY, compact ? 2.4 : 3.2, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = PLATE.ink;
+    ctx.beginPath();
+    ctx.arc(peakX, peakY, compact ? 2.7 : 3.6, 0, TAU);
+    ctx.fill();
 
-    // sample marker: flat signal-orange dot with a paper ring, over everything
-    ctx.strokeStyle = P.paper;
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(cxp, cyp, 5, 0, TAU); ctx.stroke();
-    ctx.fillStyle = P.s3;
-    ctx.beginPath(); ctx.arc(cxp, cyp, 4, 0, TAU); ctx.fill();
+    const titleH = compact ? 18 : 28;
+    const dataSize = compact ? 8 : 9;
+    const drawCard = (box, title, lines) => {
+      ctx.fillStyle = PLATE.paper;
+      ctx.strokeStyle = PLATE.ink;
+      ctx.lineWidth = compact ? 0.75 : 0.9;
+      ctx.fillRect(box.x, box.y, box.w, box.h);
+      ctx.strokeRect(box.x + 0.5, box.y + 0.5, box.w - 1, box.h - 1);
+      plateText(ctx, title, box.x + (compact ? 6 : 9),
+        box.y + titleH * 0.48, {
+          size: compact ? 8 : 9,
+          weight: 600,
+        });
+      plateLine(ctx, { x: box.x + (compact ? 5 : 8), y: box.y + titleH },
+        { x: box.x + box.w - (compact ? 5 : 8), y: box.y + titleH }, {
+          weight: compact ? 0.5 : 0.6,
+        });
+      const bodyTop = box.y + titleH;
+      const bodyH = Math.max(1, box.h - titleH);
+      lines.forEach((line, index) => {
+        plateDataText(ctx, line, box.x + (compact ? 6 : 10),
+          bodyTop + bodyH * (index + 1) / (lines.length + 1), {
+            size: dataSize,
+            weight: index === lines.length - 1 ? 600 : 500,
+          });
+      });
+    };
 
-    const mm = Math.round((cursorT - Math.floor(cursorT)) * 60);
-    sample.set(`${String(Math.floor(cursorT)).padStart(2, '0')}:${String(mm).padStart(2, '0')} – ` +
-      (ch < 0 ? 'below horizon' : fmtDM(ch, 1)));
-    if (revealed) solved.set('the peak gives latitude; its Greenwich time gives longitude', P.good);
-    else if (best && Math.abs(altAt(12 - truth.lon / 15) - best.h) < 0.05) {
-      solved.set('✓ that’s the peak – now reveal the solution', P.good);
+    if (compact) {
+      const longitudeBox = {
+        x: margin,
+        y: cardsTop,
+        w: w - margin * 2,
+        h: firstCardH,
+      };
+      const latitudeBox = {
+        x: margin,
+        y: cardsTop + firstCardH,
+        w: w - margin * 2,
+        h: secondCardH,
+      };
+      drawCard(longitudeBox, 'TIME + ALMANAC → LONGITUDE', [
+        `${clock(tTr)} UTC · GHA Sun ${gha.toFixed(1)}°`,
+        `λ = −GHA Sun → ${formatLongitude(longitude)}`,
+      ]);
+      drawCard(latitudeBox, 'HEIGHT + BEARING → LATITUDE', helperReady
+        ? [
+          `Ho ${hMax.toFixed(1)}° · z = 90° − Ho = ${latitudeSolution.z.toFixed(1)}°`,
+          `δ ${geometry.formatSignedDegrees(dec.v)} · ${latitudeSolution.bearingLabel.toUpperCase()}`,
+          `${latitudeEquation} = ${geometry.formatLatitude(latitudeSolution.latitude)}`,
+        ]
+        : ['MERIDIAN DECODER LOADING']);
     } else {
-      solved.set('drag across the day and hunt for the highest point');
+      const gap = 12;
+      const cardW = (w - margin * 2 - gap) / 2;
+      const longitudeBox = {
+        x: margin,
+        y: cardsTop,
+        w: cardW,
+        h: firstCardH,
+      };
+      const latitudeBox = {
+        x: margin + cardW + gap,
+        y: cardsTop,
+        w: cardW,
+        h: secondCardH,
+      };
+      drawCard(longitudeBox, 'TIME + ALMANAC → LONGITUDE', [
+        `SAVED PEAK UTC = ${clock(tTr)}`,
+        `ALMANAC GHA Sun = ${gha.toFixed(1)}°`,
+        'λ = −GHA Sun',
+        `λ = ${formatLongitude(longitude)}`,
+        `LONGITUDE = ${formatLongitude(longitude)}`,
+      ]);
+      drawCard(latitudeBox, 'HEIGHT + BEARING → LATITUDE', helperReady
+        ? [
+          `SAVED PEAK Ho = ${hMax.toFixed(1)}°`,
+          `z = 90° − Ho = ${latitudeSolution.z.toFixed(1)}°`,
+          `δ = ${geometry.formatSignedDegrees(dec.v)}`,
+          `${latitudeSolution.bearingLabel.toUpperCase()} → ${latitudeEquation}`,
+          `φ = ${geometry.formatLatitude(latitudeSolution.latitude)}`,
+          `LATITUDE = ${geometry.formatLatitude(latitudeSolution.latitude)}`,
+        ]
+        : ['MERIDIAN DECODER LOADING']);
     }
+
+    plateRule(ctx, conclusionTop, margin, w - margin);
+    const conclusion = helperReady
+      ? `SAVED PEAK → ${geometry.formatLatitude(latitudeSolution.latitude)} · ${formatLongitude(longitude)}`
+      : 'SAVED PEAK HELD · WAITING FOR MERIDIAN GEOMETRY';
+    plateDataText(ctx, conclusion, w / 2,
+      conclusionTop + conclusionH * 0.54, {
+        size: compact ? 8 : 9,
+        weight: 600,
+        align: 'center',
+      });
+
+    sample.set(`${clock(cursorT)} – ${ch < 0 ? 'below horizon' : `Ho ${fmtDM(ch, 1)}`}`);
+    if (helperReady) {
+      solved.set(
+        `saved peak decoded – ${latitudeSolution.bearingLabel}: `
+        + `${geometry.formatLatitude(latitudeSolution.latitude)}, `
+        + `${formatLongitude(longitude)} from Sun GHA`,
+        style.controlSuccess,
+      );
+    } else {
+      solved.set('meridian passage saved – the latitude decoder is still loading');
+    }
+  }
+
+  function formatLongitude(value, digits = 1) {
+    const longitude = Number(value);
+    if (Math.abs(longitude) < 0.05) return `${(0).toFixed(digits)}°`;
+    return `${Math.abs(longitude).toFixed(digits)}° ${longitude > 0 ? 'E' : 'W'}`;
+  }
+
+  function clock(t) {
+    let hour = Math.floor(t);
+    let minute = Math.round((t - hour) * 60);
+    if (minute === 60) { hour += 1; minute = 0; }
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
   }
 })();

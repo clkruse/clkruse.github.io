@@ -40,6 +40,14 @@ function readPalette() {
   P.s1 = cssVar('--s1');
   P.s2 = cssVar('--s2');
   P.s3 = cssVar('--s3');
+  // Story semantics. The numbered series remain available for independent
+  // comparison figures, but the worked sight uses named roles everywhere.
+  P.measured = cssVar('--measured');
+  P.corrected = cssVar('--corrected');
+  P.ephemeris = cssVar('--ephemeris');
+  P.predicted = cssVar('--predicted');
+  P.constraint = cssVar('--constraint');
+  P.fix = cssVar('--fix');
   P.brass = P.s2;              // primary measurement color: ink blue
   P.sun = P.s3;                // signal orange
   P.good = cssVar('--s7');
@@ -49,9 +57,10 @@ function readPalette() {
   // contrast (owner request); dark mode keeps the fuller ink
   P.globeLimb = P.dark ? P.ink : '#a9a9a9';
   P.globeCoast = P.dark ? P.inkSoft : '#c2c2c2';
-  P.globeGrat = P.dark ? P.inkFaint : '#dcdcdc';
+  // Graticules are construction geometry, not data. Keep them at the
+  // hairline value in both themes so they never compete with a GP or LOP.
+  P.globeGrat = P.line;
   // constants below: dark-sky scenes and representational content
-  P.brassBright = '#4d6fa8';   // series 2, dark stop: legible on sky and on paper
   P.blue = '#c23f52';          // series 1, dark stop: second circle on the globe
   P.sunCore = '#ffb066';
   P.sea = '#2e5f86';
@@ -109,6 +118,381 @@ function label(ctx, text, x, y, opts = {}) {
   ctx.restore();
 }
 
+/* Monochrome technical-plate primitives. The plates use the page's crisp
+   white/dark ground and opposite ink; hierarchy comes only from line
+   weight, pattern, and spacing. */
+const PLATE = Object.freeze({
+  get ink() { return P.ink; },
+  get paper() { return P.paper; },
+  font: '"Avenir Next Condensed", "Helvetica Neue", Helvetica, sans-serif',
+  dataFont: '"SFMono-Regular", Menlo, Consolas, monospace',
+});
+
+function plateTextWidth(ctx, text, opts = {}) {
+  const value = opts.uppercase === false ? String(text) : String(text).toUpperCase();
+  const size = opts.size || 9;
+  const tracking = opts.tracking ?? size * 0.075;
+  ctx.save();
+  ctx.font = `${opts.weight || 500} ${size}px ${opts.font || PLATE.font}`;
+  let width = 0;
+  for (const char of value) width += ctx.measureText(char).width;
+  ctx.restore();
+  return width + Math.max(0, value.length - 1) * tracking;
+}
+
+function plateText(ctx, text, x, y, opts = {}) {
+  const value = opts.uppercase === false ? String(text) : String(text).toUpperCase();
+  const size = opts.size || 9;
+  const tracking = opts.tracking ?? size * 0.075;
+  const width = plateTextWidth(ctx, value, opts);
+  const align = opts.align || 'left';
+  let cursor = align === 'center' ? x - width / 2 : align === 'right' ? x - width : x;
+
+  ctx.save();
+  ctx.font = `${opts.weight || 500} ${size}px ${opts.font || PLATE.font}`;
+  ctx.fillStyle = PLATE.ink;
+  ctx.textAlign = 'left';
+  ctx.textBaseline = opts.baseline || 'middle';
+  for (const char of value) {
+    ctx.fillText(char, cursor, y);
+    cursor += ctx.measureText(char).width + tracking;
+  }
+  if (opts.underline) {
+    const start = align === 'center' ? x - width / 2 : align === 'right' ? x - width : x;
+    ctx.strokeStyle = PLATE.ink;
+    ctx.lineWidth = 0.7;
+    ctx.beginPath();
+    ctx.moveTo(start, y + size * 0.72);
+    ctx.lineTo(start + width, y + size * 0.72);
+    ctx.stroke();
+  }
+  ctx.restore();
+  return width;
+}
+
+function plateDataText(ctx, text, x, y, opts = {}) {
+  return plateText(ctx, text, x, y, {
+    ...opts,
+    font: opts.font || PLATE.dataFont,
+    tracking: opts.tracking ?? 0,
+    uppercase: false,
+  });
+}
+
+function plateDash(kind = 'solid') {
+  if (kind === 'long') return [8, 5];
+  if (kind === 'short') return [3, 3];
+  if (kind === 'construction') return [8, 3, 1.5, 3];
+  return [];
+}
+
+function plateLine(ctx, a, b, opts = {}) {
+  ctx.save();
+  ctx.strokeStyle = PLATE.ink;
+  ctx.lineWidth = opts.weight || 1;
+  ctx.setLineDash(plateDash(opts.kind));
+  ctx.beginPath();
+  ctx.moveTo(a.x, a.y);
+  ctx.lineTo(b.x, b.y);
+  ctx.stroke();
+  ctx.restore();
+}
+
+function plateArrowhead(ctx, point, angle, size = 4.5) {
+  ctx.save();
+  ctx.fillStyle = PLATE.ink;
+  ctx.beginPath();
+  ctx.moveTo(point.x, point.y);
+  ctx.lineTo(point.x - size * Math.cos(angle - 0.42), point.y - size * Math.sin(angle - 0.42));
+  ctx.lineTo(point.x - size * Math.cos(angle + 0.42), point.y - size * Math.sin(angle + 0.42));
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function plateVector(ctx, a, b, opts = {}) {
+  plateLine(ctx, a, b, opts);
+  plateArrowhead(ctx, b, Math.atan2(b.y - a.y, b.x - a.x), opts.head || 4.5);
+}
+
+function plateLeader(ctx, target, labelPoint, opts = {}) {
+  const elbow = opts.elbow || {
+    x: labelPoint.x + (target.x >= labelPoint.x ? 13 : -13),
+    y: labelPoint.y,
+  };
+  ctx.save();
+  ctx.strokeStyle = PLATE.ink;
+  ctx.lineWidth = 0.55;
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(labelPoint.x, labelPoint.y);
+  ctx.lineTo(elbow.x, elbow.y);
+  ctx.lineTo(target.x, target.y);
+  ctx.stroke();
+  ctx.restore();
+  plateArrowhead(ctx, target, Math.atan2(target.y - elbow.y, target.x - elbow.x), opts.head || 3.5);
+}
+
+/* Places technical labels from preferred candidate positions. Occupied
+   labels and reserved diagram zones are rejected; a displaced label gets a
+   paper knockout and a leader, while low-priority labels can disappear in
+   compact/crowded states instead of colliding. */
+function createPlateLabeler(ctx, {
+  left = 6,
+  top = 6,
+  right = Infinity,
+  bottom = Infinity,
+  gap = 3,
+} = {}) {
+  const occupied = [];
+  const expand = (rect, amount) => ({
+    x: rect.x - amount,
+    y: rect.y - amount,
+    w: rect.w + amount * 2,
+    h: rect.h + amount * 2,
+  });
+  const overlaps = (a, b) =>
+    a.x < b.x + b.w && a.x + a.w > b.x
+    && a.y < b.y + b.h && a.y + a.h > b.y;
+  const outside = rect =>
+    rect.x < left || rect.y < top
+    || rect.x + rect.w > right || rect.y + rect.h > bottom;
+  const overlapArea = (a, b) =>
+    Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x))
+    * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
+  const rectFor = (text, candidate, opts) => {
+    const size = opts.size || 9;
+    const padding = opts.padding ?? 2;
+    const width = plateTextWidth(ctx, text, opts) + padding * 2;
+    const height = size * 1.25 + padding * 2;
+    const align = candidate.align || opts.align || 'left';
+    const x = align === 'center'
+      ? candidate.x - width / 2
+      : align === 'right' ? candidate.x - width : candidate.x;
+    return { x, y: candidate.y - height / 2, w: width, h: height, align, padding };
+  };
+  const clamped = rect => ({
+    ...rect,
+    x: clamp(rect.x, left, Math.max(left, right - rect.w)),
+    y: clamp(rect.y, top, Math.max(top, bottom - rect.h)),
+  });
+
+  return {
+    reserve(rect, padding = gap) {
+      occupied.push(expand(rect, padding));
+    },
+    place(text, target, candidates, opts = {}) {
+      const list = Array.isArray(candidates) ? candidates : [candidates];
+      const tested = list.map(candidate => {
+        const rect = rectFor(text, candidate, opts);
+        const collisions = occupied.filter(other => overlaps(expand(rect, gap), other));
+        const penalty = collisions.reduce((sum, other) => sum + overlapArea(expand(rect, gap), other), 0)
+          + (outside(rect) ? 1e6 : 0);
+        return { candidate, rect, penalty };
+      });
+      let choice = tested.find(item => item.penalty === 0);
+      if (!choice) {
+        if (opts.fallback === 'hide') return null;
+        choice = tested.reduce((best, item) => item.penalty < best.penalty ? item : best);
+        choice = { ...choice, rect: clamped(choice.rect) };
+      }
+
+      const moved = choice !== tested[0] || choice.penalty > 0;
+      const rect = choice.rect;
+      if (target && opts.leader !== false) {
+        const anchor = {
+          x: target.x < rect.x ? rect.x
+            : target.x > rect.x + rect.w ? rect.x + rect.w
+              : clamp(target.x, rect.x, rect.x + rect.w),
+          y: target.y < rect.y ? rect.y
+            : target.y > rect.y + rect.h ? rect.y + rect.h
+              : clamp(target.y, rect.y, rect.y + rect.h),
+        };
+        plateLeader(ctx, target, anchor, { head: opts.head || 3.2 });
+      }
+      if (opts.backed !== false || moved) {
+        ctx.save();
+        ctx.fillStyle = PLATE.paper;
+        ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+        ctx.restore();
+      }
+      const textX = rect.align === 'center'
+        ? rect.x + rect.w / 2
+        : rect.align === 'right' ? rect.x + rect.w - rect.padding : rect.x + rect.padding;
+      plateText(ctx, text, textX, rect.y + rect.h / 2, {
+        ...opts,
+        align: rect.align,
+      });
+      occupied.push(expand(rect, gap));
+      return { rect, candidate: choice.candidate, moved };
+    },
+  };
+}
+
+function plateBox(ctx, x, y, width, lines, opts = {}) {
+  const padding = opts.padding || 7;
+  const size = opts.size || 7.5;
+  const lineHeight = opts.lineHeight || size * 1.35;
+  const titleGap = opts.title ? lineHeight + 5 : 0;
+  const height = opts.height || padding * 2 + titleGap + lines.length * lineHeight;
+
+  ctx.save();
+  ctx.fillStyle = PLATE.paper;
+  ctx.fillRect(x, y, width, height);
+  ctx.strokeStyle = PLATE.ink;
+  ctx.lineWidth = 0.8;
+  ctx.strokeRect(x, y, width, height);
+  if (opts.title) {
+    plateText(ctx, opts.title, x + padding, y + padding + size * 0.45, {
+      size, weight: 600, tracking: size * 0.09,
+    });
+    ctx.beginPath();
+    ctx.moveTo(x + padding, y + padding + lineHeight);
+    ctx.lineTo(x + width - padding, y + padding + lineHeight);
+    ctx.stroke();
+  }
+  lines.forEach((line, index) => {
+    const entry = typeof line === 'string' ? { text: line } : line;
+    const entryFont = entry.font || opts.font || PLATE.font;
+    plateText(ctx, entry.text, x + padding + (entry.indent || 0),
+      y + padding + titleGap + lineHeight * (index + 0.48), {
+        size: entry.size || size,
+        weight: entry.weight || 500,
+        tracking: entry.tracking ?? size * 0.055,
+        font: entryFont,
+        uppercase: entry.uppercase ?? (entryFont === PLATE.dataFont ? false : undefined),
+      });
+  });
+  ctx.restore();
+  return height;
+}
+
+function plateRule(ctx, y, x1, x2) {
+  plateLine(ctx, { x: x1, y }, { x: x2, y }, { kind: 'long', weight: 0.9 });
+}
+
+function plateHatch(ctx, path, bounds, opts = {}) {
+  const spacing = opts.spacing || 5;
+  const slope = opts.slope ?? 0.42;
+  const extra = bounds.h * Math.abs(slope) + spacing;
+  ctx.save();
+  ctx.clip(path);
+  ctx.strokeStyle = PLATE.ink;
+  ctx.lineWidth = opts.weight || 0.45;
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  for (let x = bounds.x - extra; x <= bounds.x + bounds.w + extra; x += spacing) {
+    ctx.moveTo(x, bounds.y + bounds.h);
+    ctx.lineTo(x + bounds.h * slope, bounds.y);
+  }
+  ctx.stroke();
+  ctx.restore();
+}
+
+function plateWireSphere(ctx, cx, cy, radius, opts = {}) {
+  ctx.save();
+  ctx.fillStyle = PLATE.paper;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, TAU);
+  ctx.fill();
+  ctx.restore();
+
+  if (opts.hatchSide) {
+    const lune = new Path2D();
+    lune.moveTo(cx, cy - radius);
+    if (opts.hatchSide === 'right') {
+      lune.arc(cx, cy, radius, -Math.PI / 2, Math.PI / 2, false);
+      lune.ellipse(cx, cy, radius * 0.34, radius, 0, Math.PI / 2, -Math.PI / 2, true);
+    } else {
+      lune.arc(cx, cy, radius, -Math.PI / 2, Math.PI / 2, true);
+      lune.ellipse(cx, cy, radius * 0.34, radius, 0, Math.PI / 2, Math.PI * 1.5, false);
+    }
+    lune.closePath();
+    plateHatch(ctx, lune, {
+      x: cx - radius, y: cy - radius, w: radius * 2, h: radius * 2,
+    }, { spacing: Math.max(3, radius / 24), weight: 0.4 });
+  }
+
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate((opts.tilt || 0) * D2R);
+  ctx.strokeStyle = PLATE.ink;
+  ctx.lineWidth = 0.75;
+
+  if (opts.graticule !== false) {
+    ctx.setLineDash(plateDash('long'));
+    ctx.beginPath();
+    ctx.ellipse(0, 0, radius, radius * 0.27, 0, Math.PI, TAU);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, radius, radius * 0.27, 0, 0, Math.PI);
+    ctx.stroke();
+
+    ctx.setLineDash(plateDash('long'));
+    ctx.beginPath();
+    ctx.ellipse(0, 0, radius * 0.27, radius, 0, Math.PI / 2, Math.PI * 1.5);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, radius * 0.27, radius, 0, -Math.PI / 2, Math.PI / 2);
+    ctx.stroke();
+  }
+
+  if (opts.axis !== false) {
+    ctx.setLineDash(plateDash('construction'));
+    ctx.lineWidth = 0.65;
+    ctx.beginPath();
+    ctx.moveTo(0, -radius - 11);
+    ctx.lineTo(0, radius + 11);
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+  ctx.restore();
+
+  ctx.strokeStyle = PLATE.ink;
+  ctx.lineWidth = 1.65;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, TAU);
+  ctx.stroke();
+  ctx.lineWidth = 0.65;
+  ctx.beginPath();
+  ctx.moveTo(cx - 4, cy);
+  ctx.lineTo(cx + 4, cy);
+  ctx.moveTo(cx, cy - 4);
+  ctx.lineTo(cx, cy + 4);
+  ctx.stroke();
+  if (opts.northLabel !== false) {
+    plateText(ctx, 'N', cx, cy - radius - 17, {
+      size: opts.labelSize || 8.5, align: 'center',
+    });
+  }
+}
+
+function plateDimension(ctx, a, b, text, opts = {}) {
+  plateLine(ctx, a, b, { weight: 0.65 });
+  const angle = Math.atan2(b.y - a.y, b.x - a.x);
+  const normal = { x: -Math.sin(angle), y: Math.cos(angle) };
+  const tick = opts.tick || 4;
+  plateLine(ctx,
+    { x: a.x - normal.x * tick, y: a.y - normal.y * tick },
+    { x: a.x + normal.x * tick, y: a.y + normal.y * tick },
+    { weight: 0.55 });
+  plateLine(ctx,
+    { x: b.x - normal.x * tick, y: b.y - normal.y * tick },
+    { x: b.x + normal.x * tick, y: b.y + normal.y * tick },
+    { weight: 0.55 });
+  plateArrowhead(ctx, a, angle + Math.PI, opts.head || 3.5);
+  plateArrowhead(ctx, b, angle, opts.head || 3.5);
+  plateDataText(ctx, text, (a.x + b.x) / 2 + normal.x * (opts.offset || -8),
+    (a.y + b.y) / 2 + normal.y * (opts.offset || -8), {
+      size: opts.size || 7.5,
+      align: 'center',
+      font: opts.font || PLATE.dataFont,
+      tracking: opts.tracking ?? 0,
+    });
+}
+
 function arrow(ctx, x1, y1, x2, y2, size = 7) {
   const a = Math.atan2(y2 - y1, x2 - x1);
   ctx.beginPath();
@@ -155,6 +539,7 @@ function sunGlyph(ctx, x, y, r) {
 
 /* ––––– demo scaffolding ––––– */
 
+const allDemos = [];
 const visibleDemos = new Set();
 const io = new IntersectionObserver(entries => {
   for (const e of entries) {
@@ -164,19 +549,51 @@ const io = new IntersectionObserver(entries => {
   }
 }, { rootMargin: '80px' });
 
-function createDemo(figId, { aspect = 1.6, maxH = 560, draw }) {
+function createDemo(figId, {
+  aspect = 1.6,
+  maxH = 560,
+  compactAspect = aspect,
+  compactMaxH = maxH,
+  draw,
+}) {
   const fig = document.getElementById(figId);
   const canvas = fig.querySelector('canvas');
   const controls = fig.querySelector('.demo-controls');
-  const d = { fig, canvas, controls, ctx: canvas.getContext('2d'), w: 0, h: 0, dpr: 1, t: 0, draw };
+  const humanName = figId.replace(/^demo-/, '').replaceAll('-', ' ');
+  const d = {
+    fig, canvas, controls, ctx: canvas.getContext('2d'),
+    w: 0, h: 0, dpr: 1, t: 0, draw,
+    presets: new Map(),
+  };
+  d.addPreset = (name, apply) => {
+    d.presets.set(name, apply);
+    return d;
+  };
+  d.applyPreset = (name, options = {}) => {
+    const apply = d.presets.get(name);
+    if (!apply) return false;
+    apply(options);
+    canvas.dispatchEvent(new CustomEvent('demo:preset', {
+      bubbles: true,
+      detail: { figure: figId, preset: name },
+    }));
+    return true;
+  };
+  allDemos.push(d);
+
+  canvas.tabIndex = 0;
+  canvas.setAttribute('aria-label', `${humanName} interactive figure`);
   canvas._demo = d;
   io.observe(canvas);
   const fit = () => {
     const cssW = canvas.parentElement.clientWidth;
     if (!cssW) return;
+    const compact = cssW < 500;
+    const activeAspect = Math.max(0.25, Number(compact ? compactAspect : aspect) || 1.6);
+    const activeMaxH = Math.max(120, Number(compact ? compactMaxH : maxH) || 560);
     // never let a panel outgrow the viewport (matters for the sticky right panel)
     const availH = Math.max(280, window.innerHeight - 330);
-    const cssH = Math.min(maxH, Math.round(cssW / aspect), availH);
+    const cssH = Math.min(activeMaxH, Math.round(cssW / activeAspect), availH);
     d.dpr = Math.min(2, window.devicePixelRatio || 1);
     d.w = cssW; d.h = cssH;
     canvas.style.height = cssH + 'px';
@@ -185,6 +602,7 @@ function createDemo(figId, { aspect = 1.6, maxH = 560, draw }) {
   };
   new ResizeObserver(fit).observe(canvas.parentElement);
   allFits.push(fit);
+  d.refit = fit;
   fit();
   return d;
 }
@@ -233,16 +651,24 @@ function addSlider(d, { label: lab, min, max, step = 1, value, fmt = v => v, onc
   const input = el('input', '', wrap);
   input.type = 'range';
   input.min = min; input.max = max; input.step = step; input.value = value;
+  input.setAttribute('aria-label', lab);
   const val = el('span', 'ctl-value', wrap);
   const paint = () => {
-    val.textContent = fmt(+input.value);
+    const formatted = fmt(+input.value);
+    val.textContent = formatted;
+    input.setAttribute('aria-valuetext', formatted);
     input.style.setProperty('--fill', (100 * (input.value - min) / (max - min)) + '%');
   };
   input.addEventListener('input', () => { paint(); onchange && onchange(+input.value); });
   paint();
   return {
     get v() { return +input.value; },
-    set(x) { input.value = x; paint(); },
+    input,
+    set(x, { emit = false } = {}) {
+      input.value = x;
+      paint();
+      if (emit && onchange) onchange(+input.value);
+    },
   };
 }
 
@@ -417,280 +843,487 @@ function pointMark(ctx, x, y, color, r = 3.2) {
   ctx.beginPath(); ctx.arc(x, y, r + 0.8, 0, TAU); ctx.stroke();
 }
 
+function drawPaneDivider(ctx, x, h) {
+  ctx.strokeStyle = P.line;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x, 12);
+  ctx.lineTo(x, h - 12);
+  ctx.stroke();
+}
+
+function deckGaugeLayout(h, { top = 44, bottom = 64 } = {}) {
+  const y90 = top;
+  const yNeg90 = h - bottom;
+  const y0 = (y90 + yNeg90) / 2;
+  return {
+    y0,
+    y90,
+    yNeg90,
+    yOf: deg => y0 - (y0 - y90) * deg / 90,
+  };
+}
+
+function drawEarthCrust(ctx, cx, cy, R, thickness = 20) {
+  ctx.fillStyle = P.paperDeep;
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, TAU);
+  ctx.arc(cx, cy, Math.max(8, R - thickness), 0, TAU, true);
+  ctx.fill('evenodd');
+  ctx.strokeStyle = P.ink;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, TAU);
+  ctx.stroke();
+}
+
 (function demoAltitude() {
-  const d = createDemo('demo-altitude', { aspect: 1.5, maxH: 520, draw });
+  const d = createDemo('demo-altitude', {
+    aspect: 1.5,
+    maxH: 520,
+    compactAspect: 0.9,
+    compactMaxH: 340,
+    draw,
+  });
   // star direction is fixed (up the page). You walk away from the GP;
   // your horizon and overhead tilt with you. Altitude is the angle
   // between that tilted horizon and the unmoving star.
   const starA = -90 * D2R;
   const S = { x: Math.cos(starA), y: Math.sin(starA) };
-  let theta = -40 * D2R;
-  const altStat = addStat(d, 'altitude');
-  const fromStat = addStat(d, 'from the GP');
-  d.canvas._qaTheta = deg => { theta = clamp(deg, -140, 30) * D2R; };
+  const FALLBACK_WORKED_SIGHT = { ho: 42.5011, z: 47.4989 };
+  let workedSight = FALLBACK_WORKED_SIGHT;
+  let theta = -workedSight.z * D2R;
+  const normalizeTheta = angle => {
+    if (!Number.isFinite(angle)) return 0;
+    let normalized = angle % TAU;
+    if (normalized > Math.PI) normalized -= TAU;
+    if (normalized < -Math.PI) normalized += TAU;
+    return normalized;
+  };
+  const setTheta = angle => { theta = normalizeTheta(angle); };
+  const thetaDistanceDeg = () =>
+    Math.min(180, Math.abs(normalizeTheta(theta)) * R2D);
+  const thetaSide = () => theta > 0 ? 1 : -1;
+  const altStat = addStat(d, 'corrected altitude Ho');
+  const fromStat = addStat(d, 'zenith distance z');
+  const applyWorked = (state = workedSight) => {
+    workedSight = state;
+    setTheta(-clamp(Number(state.z) || 0, 0, 180) * D2R);
+  };
+  d.addPreset('worked', () => applyWorked());
+  window.addEventListener('DOMContentLoaded', () => {
+    if (typeof SIGHT_STORY === 'undefined') return;
+    SIGHT_STORY.subscribe(state => applyWorked(state));
+  }, { once: true });
+  d.canvas._qaTheta = deg => { setTheta(Number(deg) * D2R); };
 
   d.canvas.classList.add('grab');
-  let geo = null, pane = null;
+  let geo = null;
   addDrag(d.canvas, {
-    start(p) {
-      pane = geo && p.x < geo.splitX ? 'outside' : 'deck';
-    },
     move(p) {
       if (!geo) return;
-      if (pane === 'deck') {
-        const hDrag = clamp((geo.y0 - p.y) / (geo.y0 - geo.y90) * 90, -50, 89.9);
-        const side = theta >= 0 ? 1 : -1;
-        theta = clamp(side * (90 - hDrag) * D2R, -140 * D2R, 30 * D2R);
-      } else {
-        const a = Math.atan2(p.y - geo.cy, p.x - geo.cx);
-        let off = a - starA;
-        while (off > Math.PI) off -= TAU;
-        while (off < -Math.PI) off += TAU;
-        theta = clamp(off, -140 * D2R, 30 * D2R);
+      if (geo.local && p.x >= geo.local.x) {
+        const rayA = clamp(
+          Math.atan2(p.y - geo.local.origin.y, p.x - geo.local.origin.x),
+          -Math.PI / 2,
+          Math.PI / 2
+        );
+        const dist = clamp(90 + rayA * R2D, 0, 180);
+        setTheta(thetaSide() * dist * D2R);
+        return;
       }
+      const a = Math.atan2(p.y - geo.cy, p.x - geo.cx);
+      setTheta(a - starA);
     },
   });
 
   function draw(ctx, w, h) {
-    ctx.fillStyle = P.paper;
+    ctx.fillStyle = PLATE.paper;
     ctx.fillRect(0, 0, w, h);
 
-    const fromDeg = Math.abs(theta) * R2D;
-    const hdeg = 90 - fromDeg;
-    const below = hdeg < 0;
-    const atGP = fromDeg < 3.5;
-    const hC = P.s2;
+    const fromDeg = thetaDistanceDeg();
+    const altitude = 90 - fromDeg;
+    const below = altitude < 0;
+    const compact = w < 500 || h < 330;
+    const titleSize = compact ? 8.5 : 10.5;
+    const fieldTop = compact ? 31 : 41;
+    const fieldBottom = h - (compact ? 8 : 12);
+    const splitX = w * (compact ? 0.47 : 0.53);
+    const earthTop = fieldTop + (compact ? 22 : 27);
+    const cx = splitX * 0.5;
+    const cy = earthTop + (fieldBottom - earthTop) * (compact ? 0.57 : 0.56);
+    const R = Math.min(
+      splitX * (compact ? 0.34 : 0.35),
+      (fieldBottom - earthTop) * (compact ? 0.34 : 0.36)
+    );
+    const rightX = splitX + (compact ? 5 : 13);
+    const rightW = w - rightX - (compact ? 6 : 14);
 
-    const splitX = w * 0.68;
-    const y0 = h - 64, y90 = 58;
-    const yOf = deg => y0 - (y0 - y90) * deg / 90;
-    geo = geo || {};
-    geo.splitX = splitX;
-    geo.y0 = y0;
-    geo.y90 = y90;
-
-    /* ————— left: from outside —————
-       Broad enough to show the 300°–130° limb, so you can walk
-       the star onto the horizon and then under it. */
-
-    const R = Math.min(h * 0.28, splitX * 0.26);
-    const cx = splitX * 0.50;
-    const cy = Math.max(h * 0.54, R + 145);
-    geo.cx = cx; geo.cy = cy; geo.R = R;
-
-    const oA = starA + theta;
-    const O = { x: cx + R * Math.cos(oA), y: cy + R * Math.sin(oA) };
-    const u = { x: Math.cos(oA), y: Math.sin(oA) };
-    const gp = { x: cx + R * Math.cos(starA), y: cy + R * Math.sin(starA) };
-
-    const tHat = rot(u, Math.PI / 2);
-    const tUp = (tHat.x * S.x + tHat.y * S.y) >= 0 ? tHat : { x: -tHat.x, y: -tHat.y };
-    const angT = Math.atan2(tUp.y, tUp.x);
-    const angOver = Math.atan2(u.y, u.x);
-    const back = { x: -tUp.x, y: -tUp.y }; // horizon, away from the star
-    const inLeft = (x, pad = 22) => clamp(x, pad, splitX - 16);
-    const inY = (y, pad = 28) => clamp(y, pad, h - 16);
-    const haloAt = (x, y) => {
-      const d = Math.hypot(x - cx, y - cy);
-      return (d < R - 1 && d > R - 22) ? P.paperDeep : P.paper;
-    };
-
-    label(ctx, 'from outside', 16, 18, { color: P.inkSoft, size: 10.5, align: 'left' });
-
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(0, 0, splitX, h);
-    ctx.clip();
-
-    // a crust, not a disk: enough fill to say "this side is earth"
-    // without handing the pane to the interior
-    ctx.fillStyle = P.paperDeep;
-    ctx.beginPath();
-    ctx.arc(cx, cy, R, 0, TAU);
-    ctx.arc(cx, cy, Math.max(8, R - 20), 0, TAU, true);
-    ctx.fill('evenodd');
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.arc(cx, cy, R, 0, TAU);
-    ctx.stroke();
-
-    // horizon is a tangent both ways, so when the star sets you can
-    // see it on the earth side of the line
-    const fitArm = (dir, maxLen) => {
-      let len = maxLen;
-      for (let k = 0; k < 6; k++) {
-        const x = O.x + dir.x * len, y = O.y + dir.y * len;
-        if (x > 36 && x < splitX - 14 && y > 30 && y < h - 20) break;
-        len *= 0.72;
-      }
-      return { x: O.x + dir.x * len, y: O.y + dir.y * len };
-    };
-    const hSky = fitArm(tUp, Math.min(R * 0.42, 78));
-    const hGnd = fitArm(back, Math.min(R * 0.42, 78));
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(hSky.x, hSky.y);
-    ctx.lineTo(hGnd.x, hGnd.y);
-    ctx.stroke();
-    const hFar = hGnd;
-
-    rightAngleMark(ctx, O.x, O.y, angOver, angT, 11, P.inkSoft);
-
-    const oLen = Math.min(R * 0.32, 72);
-    if (!atGP) {
-      ctx.strokeStyle = P.inkSoft;
-      ctx.lineWidth = 1;
-      ctx.beginPath();
-      ctx.moveTo(O.x, O.y);
-      ctx.lineTo(O.x + u.x * oLen, O.y + u.y * oLen);
-      ctx.stroke();
-    }
-
-    let starP = { x: O.x + S.x * 86, y: O.y + S.y * 86 };
-    if (Math.hypot(starP.x - cx, starP.y - cy) < R + 16) {
-      const dx = O.x - cx;
-      const rOut = R + 18;
-      const disc = rOut * rOut - dx * dx;
-      starP = disc > 0
-        ? { x: O.x, y: cy - Math.sqrt(disc) - 18 }
-        : { x: O.x, y: 52 };
-    }
-    if (starP.y < 48) starP.y = 48;
-    ctx.strokeStyle = hC;
-    ctx.fillStyle = hC;
-    ctx.lineWidth = 1.6;
-    if (below) ctx.setLineDash([5, 4]);
-    ctx.beginPath();
-    ctx.moveTo(O.x, O.y);
-    ctx.lineTo(starP.x, starP.y + 14);
-    ctx.stroke();
-    ctx.setLineDash([]);
-    if (!below) dimHead(ctx, starP.x, starP.y + 14, starA, 9, 2.7);
-    starGlyph(ctx, starP.x, starP.y, 9, P.ink);
-
-    if (!atGP && !below && hdeg > 14 && hdeg < 78) {
-      const rH = Math.min(R * 0.22, 48);
-      angleDim(ctx, O.x, O.y, rH, angT, starA, hC);
-    }
-
-    if (atGP) {
-      pointMark(ctx, gp.x, gp.y, P.ink);
-    } else {
-      pointMark(ctx, gp.x, gp.y, P.ink);
-      pointMark(ctx, O.x, O.y, P.ink);
-    }
-    ctx.restore();
-
-    // labels live outside the clip so leaders and type never get sheared
-    const hx = inLeft(hFar.x);
-    const hy = inY(hFar.y + (hFar.y > O.y ? 13 : -13));
-    label(ctx, 'horizon', hx, hy, {
-      color: P.inkSoft, size: 10.5, halo: haloAt(hx, hy),
-      align: hFar.x < O.x ? 'left' : 'right',
+    plateText(ctx, compact
+      ? 'ALTITUDE + ZENITH DISTANCE'
+      : 'ALTITUDE AND ZENITH DISTANCE COMPLETE A RIGHT ANGLE',
+    compact ? 9 : 14, compact ? 15 : 19, {
+      size: titleSize,
+      align: 'left',
     });
 
-    if (!atGP && fromDeg > 20 && fromDeg < 100) {
-      const ox = O.x + u.x * oLen;
-      const oy = O.y + u.y * oLen;
-      const lx = inLeft(ox + back.x * 16);
-      const ly = inY(oy + back.y * 16);
-      label(ctx, 'overhead', lx, ly, {
-        color: P.inkSoft, size: 10.5, halo: haloAt(lx, ly),
-        align: back.x >= 0 ? 'left' : 'right',
+    plateText(ctx, compact ? 'EARTH PROOF' : 'EARTH-CENTER PROOF',
+      splitX * 0.5, fieldTop + (compact ? 8 : 10), {
+        size: compact ? 7.5 : 8.5,
+        weight: 600,
+        align: 'center',
+      });
+
+    plateWireSphere(ctx, cx, cy, R, {
+      tilt: 0,
+      graticule: false,
+      axis: false,
+      northLabel: false,
+    });
+
+    const gp = { x: cx, y: cy - R };
+    const oA = starA + theta;
+    const u = { x: Math.cos(oA), y: Math.sin(oA) };
+    const observer = { x: cx + R * u.x, y: cy + R * u.y };
+    const rayTop = earthTop + (compact ? 6 : 8);
+    const samePoint = fromDeg < 1.2;
+    const coincidentRays = !samePoint && Math.abs(observer.x - gp.x) < 1.2;
+
+    plateLine(ctx, { x: cx, y: cy }, observer, {
+      kind: 'construction',
+      weight: compact ? 0.6 : 0.75,
+    });
+    if (!samePoint) {
+      plateLine(ctx, { x: cx, y: cy }, gp, {
+        kind: 'construction',
+        weight: compact ? 0.6 : 0.75,
       });
     }
 
-    {
-      const starLeft = starP.x < splitX * 0.55;
-      const slx = inLeft(starLeft ? starP.x - 14 : starP.x + 15);
-      const sly = inY(starP.y);
-      label(ctx, 'star', slx, sly, {
-        color: P.inkSoft, size: 10.5, halo: haloAt(slx, sly),
-        align: starLeft ? 'right' : 'left',
-      });
-    }
+    ctx.save();
+    ctx.strokeStyle = PLATE.ink;
+    ctx.lineWidth = compact ? 1.7 : 2.15;
+    ctx.beginPath();
+    ctx.arc(cx, cy, R, starA, oA, theta < 0);
+    ctx.stroke();
+    ctx.restore();
 
-    if (atGP) {
-      leaderNote(ctx, 'you, at the GP', gp.x, gp.y, 0.85, 34, P.inkSoft,
-        { size: 10.5, halo: haloAt(gp.x + 24, gp.y + 28) });
+    if (samePoint) {
+      plateVector(ctx, gp, { x: gp.x, y: rayTop }, {
+        kind: 'long',
+        weight: compact ? 0.85 : 1,
+        head: compact ? 3.2 : 4,
+      });
     } else {
-      leaderNote(ctx, 'GP', gp.x, gp.y, theta > 0 ? -2.4 : 2.5, 28, P.inkSoft,
-        { size: 10.5, halo: P.paper });
-      const inward = Math.atan2(-u.y, -u.x);
-      const youDir = inward + (theta < 0 ? 0.55 : -0.55);
-      const yx = O.x + Math.cos(youDir) * 34, yy = O.y + Math.sin(youDir) * 34;
-      leaderNote(ctx, 'you – drag', O.x, O.y, youDir, 34, P.inkSoft,
-        { size: 10.5, halo: haloAt(yx, yy) });
+      plateVector(ctx, observer, { x: observer.x, y: rayTop }, {
+        kind: 'long',
+        weight: compact ? 0.85 : 1,
+        head: compact ? 3.2 : 4,
+      });
+      if (!coincidentRays) {
+        plateVector(ctx, gp, { x: gp.x, y: rayTop }, {
+          kind: 'long',
+          weight: compact ? 0.85 : 1,
+          head: compact ? 3.2 : 4,
+        });
+      }
     }
 
-    /* ————— divider ————— */
+    if (!samePoint && !coincidentRays) {
+      const rayFloor = Math.min(observer.y, gp.y);
+      const markY = rayTop + (rayFloor - rayTop) * 0.52;
+      const raySeparation = Math.abs(observer.x - gp.x);
+      const drawParallelMark = (x, y) => {
+        const length = compact ? 4.5 : 6;
+        const spacing = compact ? 3 : 4;
+        for (const offset of [-spacing / 2, spacing / 2]) {
+          plateLine(ctx,
+            { x: x - length / 2, y: y + offset + length * 0.34 },
+            { x: x + length / 2, y: y + offset - length * 0.34 },
+            { weight: compact ? 0.65 : 0.8 });
+        }
+      };
+      drawParallelMark(observer.x, markY);
+      drawParallelMark(gp.x, markY + (raySeparation < 18 ? (compact ? 8 : 10) : 0));
+    }
 
-    ctx.strokeStyle = P.line;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(splitX, 12);
-    ctx.lineTo(splitX, h - 12);
-    ctx.stroke();
+    if (!samePoint) {
+      const verticalLength = Math.min(R * 0.31, compact ? 18 : 34);
+      const verticalEnd = {
+        x: observer.x + u.x * verticalLength,
+        y: observer.y + u.y * verticalLength,
+      };
+      plateVector(ctx, observer, verticalEnd, {
+        kind: 'construction',
+        weight: compact ? 0.65 : 0.8,
+        head: compact ? 3 : 3.8,
+      });
+    }
 
-    /* ————— right: from where you stand, scale on the outer edge ————— */
-
-    const ax = w - 50;
-    label(ctx, 'from where you stand', w - 16, 18,
-      { color: P.inkSoft, size: 10.5, align: 'right' });
-
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(splitX + 16, y0);
-    ctx.lineTo(ax + 12, y0);
-    ctx.stroke();
-    label(ctx, '0°', ax + 12, y0 + 13,
-      { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'left' });
-    label(ctx, 'horizon', ax - 12, y0 + 13,
-      { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'right' });
-
-    ctx.strokeStyle = P.inkSoft;
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(ax, y0);
-    ctx.lineTo(ax, y90);
-    ctx.stroke();
-    for (let a = 30; a <= 60; a += 30) {
-      ctx.lineWidth = 0.75;
+    const centerArcR = Math.min(R * 0.42, compact ? 17 : 29);
+    if (!samePoint) {
+      ctx.save();
+      ctx.strokeStyle = PLATE.ink;
+      ctx.lineWidth = compact ? 0.7 : 0.85;
       ctx.beginPath();
-      ctx.moveTo(ax, yOf(a));
-      ctx.lineTo(ax + 6, yOf(a));
+      arcBetween(ctx, cx, cy, centerArcR, starA, oA);
       ctx.stroke();
-      label(ctx, a + '°', ax + 12, yOf(a), { color: P.inkFaint, size: 9.5, align: 'left' });
-    }
-    label(ctx, '90°', ax + 12, y90 - 2,
-      { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'left' });
-    if (below || hdeg < 78) {
-      label(ctx, 'overhead', ax - 12, y90 - 2,
-        { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'right' });
+      ctx.restore();
     }
 
-    {
-      const sx = ax - 48;
-      const sy = yOf(clamp(hdeg, -16, 90));
-      ctx.strokeStyle = P.inkFaint;
-      ctx.lineWidth = 0.9;
+    ctx.fillStyle = PLATE.ink;
+    ctx.beginPath(); ctx.arc(observer.x, observer.y, compact ? 2.2 : 2.8, 0, TAU); ctx.fill();
+    if (!samePoint) {
+      ctx.beginPath(); ctx.arc(gp.x, gp.y, compact ? 2.2 : 2.8, 0, TAU); ctx.fill();
+    }
+
+    const zMid = starA + theta / 2;
+    if (!samePoint && fromDeg >= 9) {
+      plateDataText(ctx, 'z',
+        cx + Math.cos(zMid) * (centerArcR + (compact ? 7 : 10)),
+        cy + Math.sin(zMid) * (centerArcR + (compact ? 7 : 10)), {
+          size: compact ? 8 : 9.5,
+          align: 'center',
+        });
+    }
+
+    plateText(ctx, compact ? 'PARALLEL VEGA RAYS' : 'PARALLEL RAYS TO VEGA',
+      splitX * 0.5, earthTop - (compact ? 5 : 6), {
+        size: compact ? 7.5 : 8.5,
+        align: 'center',
+      });
+
+    const labels = createPlateLabeler(ctx, {
+      left: 7,
+      top: earthTop,
+      right: splitX - 4,
+      bottom: fieldBottom,
+      gap: compact ? 2 : 3,
+    });
+    const pointSize = compact ? 8 : 9;
+    if (samePoint) {
+      labels.place('GP = YOU', gp, [
+        { x: gp.x + (compact ? 11 : 15), y: gp.y + (compact ? 14 : 18), align: 'left' },
+        { x: gp.x - (compact ? 11 : 15), y: gp.y + (compact ? 14 : 18), align: 'right' },
+      ], {
+        size: pointSize,
+      });
+    } else {
+      const closePoints = Math.hypot(observer.x - gp.x, observer.y - gp.y)
+        < (compact ? 22 : 31);
+      labels.place('VEGA GP', gp, [
+        {
+          x: gp.x - (compact ? 9 : 12),
+          y: gp.y - (compact ? 11 : 14),
+          align: 'right',
+        },
+        {
+          x: gp.x + (compact ? 9 : 12),
+          y: gp.y + (compact ? 13 : 17),
+          align: 'left',
+        },
+      ], {
+        size: pointSize,
+      });
+      const observerOnLeft = observer.x <= cx;
+      labels.place(compact ? 'YOU' : 'YOU · OBSERVER', observer, [
+        {
+          x: observer.x + (observerOnLeft ? -(compact ? 10 : 13) : (compact ? 10 : 13)),
+          y: observer.y + (closePoints ? (compact ? 14 : 18) : (compact ? 14 : 18)),
+          align: observerOnLeft ? 'right' : 'left',
+        },
+        {
+          x: observer.x + (observerOnLeft ? (compact ? 11 : 14) : -(compact ? 11 : 14)),
+          y: observer.y + (compact ? 22 : 28),
+          align: observerOnLeft ? 'left' : 'right',
+        },
+      ], {
+        size: pointSize,
+      });
+    }
+
+    const boxY = fieldTop + (compact ? 6 : 8);
+    const boxHeight = Math.min(
+      compact ? 206 : 278,
+      Math.max(compact ? 158 : 190,
+        fieldBottom - boxY - (compact ? 63 : 78))
+    );
+    plateBox(ctx, rightX, boxY, rightW, [], {
+      height: boxHeight,
+      padding: compact ? 6 : 8,
+    });
+    const boxCenter = rightX + rightW / 2;
+    plateText(ctx, compact ? 'AT THE OBSERVER' : 'LOCAL ANGLES AT THE OBSERVER',
+      boxCenter, boxY + (compact ? 12 : 16), {
+        size: compact ? 8 : 9.5,
+        weight: 600,
+        align: 'center',
+      });
+    plateLine(ctx,
+      { x: rightX + (compact ? 6 : 9), y: boxY + (compact ? 24 : 31) },
+      { x: rightX + rightW - (compact ? 6 : 9), y: boxY + (compact ? 24 : 31) }, {
+        weight: 0.55,
+      });
+
+    const diagramTop = boxY + (compact ? 32 : 40);
+    const diagramBottom = boxY + boxHeight - (compact ? 8 : 12);
+    const diagramH = diagramBottom - diagramTop;
+    const localOrigin = {
+      x: rightX + rightW * (compact ? 0.43 : 0.42),
+      y: diagramTop + diagramH * 0.57,
+    };
+    const rayLength = Math.min(
+      rightW * (compact ? 0.31 : 0.3),
+      diagramH * (compact ? 0.34 : 0.35)
+    );
+    const horizonHalf = Math.min(rightW * 0.35, rayLength * 0.98);
+    const zenithA = -Math.PI / 2;
+    const horizonA = 0;
+    const rayA = zenithA + fromDeg * D2R;
+    const zenithEnd = {
+      x: localOrigin.x,
+      y: localOrigin.y - rayLength,
+    };
+    const rayEnd = {
+      x: localOrigin.x + Math.cos(rayA) * rayLength,
+      y: localOrigin.y + Math.sin(rayA) * rayLength,
+    };
+
+    plateLine(ctx,
+      { x: localOrigin.x - horizonHalf, y: localOrigin.y },
+      { x: localOrigin.x + horizonHalf, y: localOrigin.y }, {
+        weight: compact ? 0.8 : 1,
+      });
+    plateVector(ctx, localOrigin, zenithEnd, {
+      kind: 'construction',
+      weight: compact ? 0.7 : 0.85,
+      head: compact ? 3.1 : 3.8,
+    });
+    plateVector(ctx, localOrigin, rayEnd, {
+      kind: 'long',
+      weight: compact ? 0.9 : 1.05,
+      head: compact ? 3.4 : 4.1,
+    });
+    rightAngleMark(ctx, localOrigin.x, localOrigin.y, horizonA, zenithA,
+      Math.min(compact ? 6 : 8, rayLength * 0.18), PLATE.ink);
+
+    const hoArcR = rayLength * (compact ? 0.34 : 0.32);
+    if (Math.abs(altitude) >= 4) {
+      ctx.save();
+      ctx.strokeStyle = PLATE.ink;
+      ctx.lineWidth = compact ? 0.7 : 0.85;
       ctx.beginPath();
-      ctx.moveTo(ax - 3, sy);
-      ctx.lineTo(sx + 12, sy);
+      ctx.arc(localOrigin.x, localOrigin.y, hoArcR,
+        horizonA, rayA, rayA < horizonA);
       ctx.stroke();
-      starGlyph(ctx, sx, sy, 8, P.ink);
-      const nearTop = hdeg > 78;
-      const nearBot = hdeg < 8;
-      label(ctx, below ? 'star – drag (below)' : 'star – drag',
-        sx - 14, sy + (nearTop ? 16 : nearBot ? -14 : 0),
-        { color: P.inkSoft, size: 10.5, halo: P.paper, align: 'right' });
+      ctx.restore();
+      const hoMid = rayA / 2;
+      plateDataText(ctx, 'Ho',
+        localOrigin.x + Math.cos(hoMid) * (hoArcR + (compact ? 7 : 10)),
+        localOrigin.y + Math.sin(hoMid) * (hoArcR + (compact ? 7 : 10)), {
+          size: compact ? 8 : 9.5,
+          align: 'center',
+        });
+    } else {
+      plateDataText(ctx, 'Ho', localOrigin.x + hoArcR + (compact ? 8 : 11),
+        localOrigin.y + (compact ? 9 : 12), {
+          size: compact ? 8 : 9.5,
+          align: 'center',
+        });
     }
 
-    altStat.set(below ? 'below the horizon' : Math.round(hdeg) + '°', below ? P.red : '');
-    fromStat.set(Math.round(fromDeg) + '°');
+    const zArcR = rayLength * (compact ? 0.64 : 0.62);
+    if (fromDeg >= 4) {
+      ctx.save();
+      ctx.strokeStyle = PLATE.ink;
+      ctx.lineWidth = compact ? 0.7 : 0.85;
+      ctx.beginPath();
+      ctx.arc(localOrigin.x, localOrigin.y, zArcR,
+        zenithA, rayA, false);
+      ctx.stroke();
+      ctx.restore();
+      const zMid = zenithA + fromDeg * D2R / 2;
+      plateDataText(ctx, 'z',
+        localOrigin.x + Math.cos(zMid) * (zArcR + (compact ? 7 : 10)),
+        localOrigin.y + Math.sin(zMid) * (zArcR + (compact ? 7 : 10)), {
+          size: compact ? 8 : 9.5,
+          align: 'center',
+        });
+    } else {
+      plateDataText(ctx, 'z', localOrigin.x + zArcR + (compact ? 7 : 10),
+        localOrigin.y - zArcR * 0.72, {
+          size: compact ? 8 : 9.5,
+          align: 'center',
+        });
+    }
+
+    plateText(ctx, 'LOCAL ZENITH', zenithEnd.x, zenithEnd.y - (compact ? 9 : 11), {
+      size: compact ? 7.5 : 8.5,
+      align: 'center',
+    });
+    plateText(ctx, 'LOCAL HORIZON',
+      localOrigin.x - horizonHalf, localOrigin.y + (compact ? 10 : 13), {
+        size: compact ? 7.5 : 8.5,
+        align: 'left',
+      });
+
+    const nearHorizon = Math.abs(altitude) < 28;
+    plateText(ctx, 'TO VEGA',
+      nearHorizon ? rayEnd.x : rayEnd.x + (compact ? 5 : 7),
+      nearHorizon
+        ? rayEnd.y + (altitude >= 0 ? -(compact ? 9 : 11) : (compact ? 9 : 11))
+        : rayEnd.y, {
+        size: compact ? 7.5 : 8.5,
+        align: nearHorizon ? 'right' : 'left',
+      });
+
+    ctx.fillStyle = PLATE.ink;
+    ctx.beginPath();
+    ctx.arc(localOrigin.x, localOrigin.y, compact ? 2.1 : 2.6, 0, TAU);
+    ctx.fill();
+
+    geo = {
+      mode: 'proof',
+      cx,
+      cy,
+      R,
+      splitX,
+      y0: fieldBottom,
+      y90: fieldTop,
+      local: {
+        x: rightX,
+        y: boxY,
+        width: rightW,
+        height: boxHeight,
+        origin: localOrigin,
+      },
+    };
+
+    const dataTop = boxY + boxHeight + (compact ? 9 : 14);
+    plateText(ctx, 'CURRENT ANGLES', boxCenter, dataTop, {
+      size: compact ? 8 : 9,
+      weight: 600,
+      align: 'center',
+    });
+    plateDataText(ctx, `Ho = ${fmtDM(altitude, 1)}`,
+      boxCenter, dataTop + (compact ? 15 : 20), {
+        size: compact ? 8 : 10,
+        align: 'center',
+      });
+    plateDataText(ctx, `z = ${fmtDM(fromDeg, 1)}`,
+      boxCenter, dataTop + (compact ? 30 : 40), {
+        size: compact ? 8 : 10,
+        align: 'center',
+      });
+    plateDataText(ctx, `Ho + z = 90°`,
+      boxCenter, dataTop + (compact ? 47 : 60), {
+        size: compact ? 8.5 : 10.5,
+        weight: 600,
+        align: 'center',
+      });
+
+    altStat.set(fmtDM(altitude, 1), below ? P.red : '');
+    fromStat.set(fmtDM(fromDeg, 1));
   }
 })();
 
@@ -786,28 +1419,44 @@ function globeArc(ctx, toView, pts, cx, cy, R) {
   ctx.stroke();
 }
 
-// ocean disc, 30-degree graticule, coastline-filled land, 2px ink limb
-function drawGlobeBase(ctx, toView, cx, cy, R) {
+// ocean disc, configurable graticule, coastline-filled land, ink limb
+function drawGlobeBase(ctx, toView, cx, cy, R, options = {}) {
+  const {
+    longitudeStep = 30,
+    latitudes = [-60, -30, 30, 60],
+    graticuleWeight = 0.75,
+    equatorWeight = 1,
+    coastlineWeight = 1,
+    limbWeight = 2,
+    showCenter = true,
+  } = options;
+
   ctx.fillStyle = P.paperDeep;
   ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.fill();
 
-  ctx.strokeStyle = P.globeGrat;
-  ctx.lineWidth = 0.75;
-  for (let lon = 0; lon < 360; lon += 30) {
-    const pts = [];
-    for (let lat = -87; lat <= 87; lat += 3) pts.push([lon, lat]);
-    globeArc(ctx, toView, pts, cx, cy, R);
+  if (graticuleWeight > 0) {
+    ctx.strokeStyle = P.globeGrat;
+    ctx.lineWidth = graticuleWeight;
+    if (longitudeStep > 0) {
+      for (let lon = 0; lon < 360; lon += longitudeStep) {
+        const pts = [];
+        for (let lat = -87; lat <= 87; lat += 3) pts.push([lon, lat]);
+        globeArc(ctx, toView, pts, cx, cy, R);
+      }
+    }
+    for (const lat of latitudes) {
+      const pts = [];
+      for (let lon = 0; lon <= 360; lon += 3) pts.push([lon, lat]);
+      globeArc(ctx, toView, pts, cx, cy, R);
+    }
   }
-  for (const lat of [-60, -30, 30, 60]) {
-    const pts = [];
-    for (let lon = 0; lon <= 360; lon += 3) pts.push([lon, lat]);
-    globeArc(ctx, toView, pts, cx, cy, R);
+  if (equatorWeight > 0) {
+    ctx.strokeStyle = P.globeGrat;
+    ctx.lineWidth = equatorWeight;
+    const eq = [];
+    for (let lon = 0; lon <= 360; lon += 3) eq.push([lon, 0]);
+    globeArc(ctx, toView, eq, cx, cy, R);
   }
-  ctx.strokeStyle = P.globeGrat;
-  ctx.lineWidth = 1;
-  const eq = [];
-  for (let lon = 0; lon <= 360; lon += 3) eq.push([lon, 0]);
-  globeArc(ctx, toView, eq, cx, cy, R);
 
   ctx.save();
   ctx.beginPath();
@@ -903,18 +1552,22 @@ function drawGlobeBase(ctx, toView, cx, cy, R) {
 
   // coastline strokes: stored polylines as-is (rings self-close in the
   // data; the isthmus-cut pieces must NOT get a drawn closing edge)
-  ctx.strokeStyle = P.globeCoast;
-  ctx.lineWidth = 1;
-  for (const ring of LAND) {
-    const pts = [];
-    for (let i = 0; i < ring.length; i += 2) pts.push([ring[i], ring[i + 1]]);
-    globeArc(ctx, toView, pts, cx, cy, R);
+  if (coastlineWeight > 0) {
+    ctx.strokeStyle = P.globeCoast;
+    ctx.lineWidth = coastlineWeight;
+    for (const ring of LAND) {
+      const pts = [];
+      for (let i = 0; i < ring.length; i += 2) pts.push([ring[i], ring[i + 1]]);
+      globeArc(ctx, toView, pts, cx, cy, R);
+    }
   }
 
-  ctx.strokeStyle = P.globeLimb;
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke();
-  centerMark(ctx, cx, cy, 7, P.globeLimb);
+  if (limbWeight > 0) {
+    ctx.strokeStyle = P.globeLimb;
+    ctx.lineWidth = limbWeight;
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, TAU); ctx.stroke();
+  }
+  if (showCenter) centerMark(ctx, cx, cy, 7, P.globeLimb);
 }
 
 /* ––––––––––––––––––––––––––––––––––––––––––––––––
@@ -925,14 +1578,18 @@ function drawGlobeBase(ctx, toView, cx, cy, R) {
    –––––––––––––––––––––––––––––––––––––––––––––––– */
 
 (function layoutController() {
-  const figIds = ['demo-center', 'demo-gp', 'demo-altitude', 'demo-circle', 'demo-polaris', 'demo-twostar',
-    'demo-samesky', 'demo-clock', 'demo-almanac', 'demo-mirror', 'demo-sextant', 'demo-scope',
-    'demo-dip', 'demo-refraction', 'demo-noon', 'demo-noongeom', 'demo-lopzoom', 'demo-intercept'];
+  const figIds = ['demo-center', 'demo-altitude', 'demo-arcminute', 'demo-circle',
+    'demo-twostar', 'demo-mirror', 'demo-sextant', 'demo-scope', 'demo-dip', 'demo-refraction',
+    'demo-motion', 'demo-samesky', 'demo-clock', 'demo-almanac', 'demo-lopzoom', 'demo-intercept',
+    'demo-workflow', 'demo-polaris', 'demo-noon'];
   const figs = figIds.map(id => document.getElementById(id)).filter(Boolean);
   const panel = document.getElementById('right-panel');
   const leftScroll = document.querySelector('.left-scroll');
   const header = document.querySelector('.pixel-header');
   if (!panel || !leftScroll) return;
+  const figureIds = new Set(figs.map(figure => figure.id));
+  const beats = [...leftScroll.querySelectorAll('[data-figure]')]
+    .filter(node => node.tagName !== 'BUTTON' && figureIds.has(node.dataset.figure));
 
   // each figure leaves a marker at its home spot; demo markers double as scroll anchors
   const homes = new Map();
@@ -952,9 +1609,13 @@ function drawGlobeBase(ctx, toView, cx, cy, R) {
   }
 
   function show(id) {
-    if (!id || active === id) return;
+    if (active === id) return;
     active = id;
-    for (const f of figs) f.style.display = f.id === id ? '' : 'none';
+    for (const f of figs) f.style.display = id && f.id === id ? '' : 'none';
+    if (!id) {
+      panel.scrollTop = 0;
+      return;
+    }
     const pnl = document.getElementById(id).querySelector('.demo-panel');
     if (pnl) { // restart the fade
       pnl.style.animation = 'none';
@@ -967,12 +1628,12 @@ function drawGlobeBase(ctx, toView, cx, cy, R) {
   function spy() {
     if (!desktop) return;
     const leftTop = leftScroll.getBoundingClientRect().top;
-    // anchors mark where each figure sat inline (right after the text that
-    // introduces it), so swap as soon as that spot nears the bottom of the view
-    const trigger = leftTop + leftScroll.clientHeight * 0.8;
+    // Prose beats name the figure that should answer them. Crossing the
+    // reading midpoint, rather than an arbitrary figure home, activates it.
+    const trigger = leftTop + leftScroll.clientHeight * 0.52;
     let cur = figs[0] ? figs[0].id : null;
-    for (const a of leftScroll.querySelectorAll('.fig-anchor')) {
-      if (a.getBoundingClientRect().top < trigger) cur = a.dataset.fig;
+    for (const beat of beats) {
+      if (beat.getBoundingClientRect().top <= trigger) cur = beat.dataset.figure;
     }
     show(cur);
   }
@@ -983,7 +1644,7 @@ function drawGlobeBase(ctx, toView, cx, cy, R) {
       panel.appendChild(f);
       f.style.display = 'none';
     }
-    active = null;
+    active = '__unset__';
     spy();
   }
 
@@ -1011,6 +1672,10 @@ function drawGlobeBase(ctx, toView, cx, cy, R) {
     }
   }, { passive: false });
   mq.addEventListener('change', apply);
+  document.addEventListener('story:activate-figure', event => {
+    const id = event.detail?.id;
+    if (desktop && figureIds.has(id)) show(id);
+  });
   window.addEventListener('resize', () => { if (desktop) setHeaderVar(); });
   apply();
 })();

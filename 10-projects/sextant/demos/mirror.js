@@ -2,179 +2,451 @@
 /* §04a: rotate a mirror, the beam turns twice as fast. */
 
 (function demoMirror() {
-  const d = createDemo('demo-mirror', { aspect: 1.7, maxH: 460, draw });
-  const M0 = 128; // reference mirror tilt, degrees (canvas angle of mirror line)
-  let delta = 10;
-  const slider = addSlider(d, {
-    label: 'mirror rotation', min: -20, max: 24, step: 0.5, value: delta,
-    fmt: v => (v > 0 ? '+' : '') + v.toFixed(1) + '°',
-    onchange: v => { delta = v; },
-  });
-  const beamStat = addStat(d, 'beam swings by');
-  d.canvas.classList.add('grab');
-  let geo = null;
-  addDrag(d.canvas, {
-    move(p, dp) {
-      if (!geo) return;
-      const a1 = Math.atan2(p.y - dp.dy - geo.my, p.x - dp.dx - geo.mx);
-      const a2 = Math.atan2(p.y - geo.my, p.x - geo.mx);
-      let dd = (a2 - a1) * R2D;
-      if (dd > 180) dd -= 360; if (dd < -180) dd += 360;
-      delta = clamp(delta + dd, -20, 24);
-      slider.set(delta);
-    },
+  const d = createDemo('demo-mirror', {
+    aspect: 1,
+    maxH: 320,
+    compactAspect: 1.15,
+    draw,
   });
 
-  function beamDir(mirrorDeg) {
-    const mdir = { x: Math.cos(mirrorDeg * D2R), y: Math.sin(mirrorDeg * D2R) };
-    let n = rot(mdir, Math.PI / 2);
-    if (n.x > 0) n = { x: -n.x, y: -n.y }; // normal faces the incoming beam (from left)
-    return reflect({ x: 1, y: 0 }, n);
+  const M0 = 128;
+  let theta = 10;
+  function signedDegrees(value, includePlus = false) {
+    const clean = Math.abs(value) < 0.0005 ? 0 : value;
+    const sign = clean < 0 ? '−' : (includePlus && clean > 0 ? '+' : '');
+    return sign + Math.abs(clean).toFixed(1) + '°';
+  }
+  const slider = addSlider(d, {
+    label: 'mirror rotation θ', min: -20, max: 24, step: 0.5, value: theta,
+    fmt: v => signedDegrees(v, true),
+    onchange: v => { theta = v; },
+  });
+  const beamStat = addStat(d, 'reflected ray turns');
+
+  d.canvas.classList.add('grab');
+  let geo = null;
+  let dragPivot = null;
+  addDrag(d.canvas, {
+    start(p) {
+      if (!geo) return;
+      const pivots = geo.pivots || [geo];
+      dragPivot = pivots.reduce((best, q) => {
+        const dist = Math.hypot(p.x - q.mx, p.y - q.my);
+        return !best || dist < best.dist ? { ...q, dist } : best;
+      }, null);
+    },
+    move(p, dp) {
+      if (!dragPivot) return;
+      const a1 = Math.atan2(p.y - dp.dy - dragPivot.my, p.x - dp.dx - dragPivot.mx);
+      const a2 = Math.atan2(p.y - dragPivot.my, p.x - dragPivot.mx);
+      let dd = (a2 - a1) * R2D;
+      if (dd > 180) dd -= 360;
+      if (dd < -180) dd += 360;
+      theta = clamp(theta + dd, -20, 24);
+      slider.set(theta);
+    },
+    end() { dragPivot = null; },
+  });
+
+  function mirrorVectors(mirrorDeg) {
+    const m = mirrorDeg * D2R;
+    const mdir = { x: Math.cos(m), y: Math.sin(m) };
+    let normal = rot(mdir, Math.PI / 2);
+    if (normal.x > 0) normal = { x: -normal.x, y: -normal.y };
+    return {
+      mdir,
+      normal,
+      reflected: reflect({ x: 1, y: 0 }, normal),
+    };
+  }
+
+  function edgeLength(p, dir, bounds, inset = 12) {
+    let t = Infinity;
+    if (dir.x > 1e-9) t = Math.min(t, (bounds.right - inset - p.x) / dir.x);
+    if (dir.x < -1e-9) t = Math.min(t, (bounds.left + inset - p.x) / dir.x);
+    if (dir.y > 1e-9) t = Math.min(t, (bounds.bottom - inset - p.y) / dir.y);
+    if (dir.y < -1e-9) t = Math.min(t, (bounds.top + inset - p.y) / dir.y);
+    return Math.max(0, t);
   }
 
   function draw(ctx, w, h) {
-    ctx.fillStyle = P.paper;
+    drawBeforeAfter(ctx, w, h);
+    beamStat.set(signedDegrees(2 * theta, true)
+      + '  =  2 × ' + signedDegrees(theta, true));
+  }
+
+  function drawBeforeAfter(ctx, w, h) {
+    ctx.fillStyle = PLATE.paper;
     ctx.fillRect(0, 0, w, h);
-    const mx = w * 0.46, my = h * 0.60;
-    geo = { mx, my };
-    const m = M0 + delta;
-    const mdir = { x: Math.cos(m * D2R), y: Math.sin(m * D2R) };
-    const len = h * 0.24;
 
-    // distance from the pivot to the canvas edge (inset) along a ray
-    const inset = 14;
-    const rayLen = dir => {
-      let t = Infinity;
-      if (dir.x > 1e-9) t = Math.min(t, (w - inset - mx) / dir.x);
-      if (dir.x < -1e-9) t = Math.min(t, (inset - mx) / dir.x);
-      if (dir.y > 1e-9) t = Math.min(t, (h - inset - my) / dir.y);
-      if (dir.y < -1e-9) t = Math.min(t, (inset - my) / dir.y);
-      return t;
+    const compact = w < 500;
+    const titleBottom = compact ? 28 : 32;
+    const footerTop = h - (compact ? 30 : 38);
+    const bodyTop = titleBottom;
+    const bodyBottom = footerTop;
+    const splitX = compact ? w - 10 : w * 0.70;
+    const optics = compact
+      ? {
+        left: 10,
+        right: w - 10,
+        top: bodyTop + 3,
+        bottom: Math.min(bodyTop + 111, bodyBottom - 70),
+      }
+      : {
+        left: 14,
+        right: splitX - 8,
+        top: bodyTop + 7,
+        bottom: bodyBottom - 7,
+      };
+    const opticsH = Math.max(76, optics.bottom - optics.top);
+    const p = compact
+      ? {
+        x: optics.left + (optics.right - optics.left) * 0.56,
+        y: optics.top + opticsH * 0.66,
+      }
+      : {
+        x: optics.left + (optics.right - optics.left) * 0.57,
+        y: optics.top + opticsH * 0.54,
+      };
+    const bounds = {
+      left: optics.left,
+      right: optics.right,
+      top: optics.top,
+      bottom: optics.bottom,
     };
+    const labels = createPlateLabeler(ctx, {
+      ...bounds,
+      gap: compact ? 2 : 3,
+    });
+    const ref = mirrorVectors(M0);
+    const live = mirrorVectors(M0 + theta);
+    const mirrorHalf = Math.min(compact ? 43 : 69, opticsH * (compact ? 0.39 : 0.31));
+    const coincident = Math.abs(theta) < 0.25;
+    geo = { mx: p.x, my: p.y };
 
-    // ––– ghost reference mirror + ghost beam: dashed reference lines –––
-    const gdir = { x: Math.cos(M0 * D2R), y: Math.sin(M0 * D2R) };
-    const gb = beamDir(M0);
-    const rb = beamDir(m);
-    const beamLen = Math.min(rayLen(rb), rayLen(gb));
-    ctx.strokeStyle = P.inkFaint;
-    ctx.lineWidth = 1;
-    ctx.setLineDash([5, 4]);
-    ctx.beginPath();
-    ctx.moveTo(mx - gdir.x * len, my - gdir.y * len);
-    ctx.lineTo(mx + gdir.x * len, my + gdir.y * len);
-    ctx.moveTo(mx, my);
-    ctx.lineTo(mx + gb.x * (beamLen - 16), my + gb.y * (beamLen - 16));
-    ctx.stroke();
-    ctx.setLineDash([]);
-    leaderNote(ctx, 'reference', mx + gdir.x * len * 0.95, my + gdir.y * len * 0.95,
-      112 * D2R, 22, P.inkFaint, { size: 10.5 });
+    plateText(ctx, 'A mirror doubles the turn',
+      w / 2, titleBottom / 2, {
+        size: compact ? 9.5 : 11,
+        weight: 600,
+        tracking: compact ? 1.15 : 1.45,
+        align: 'center',
+      });
+    plateRule(ctx, titleBottom, 14, w - 14);
 
-    // ––– the normal: dash-dot centerline –––
-    let n = rot(mdir, Math.PI / 2);
-    if (n.x > 0) n = { x: -n.x, y: -n.y };
-    const nAng = Math.atan2(n.y, n.x);
-    const NL = h * 0.32;
-    centerline(ctx, mx, my, mx + n.x * NL, my + n.y * NL, P.inkFaint);
-    label(ctx, 'normal', mx + n.x * (NL + 16), my + n.y * (NL + 16),
-      { color: P.inkFaint, size: 10.5, halo: P.paper });
+    const endOnField = vector => {
+      const length = Math.max(8, edgeLength(p, vector, bounds, compact ? 4 : 7) - 2);
+      return {
+        x: p.x + vector.x * length,
+        y: p.y + vector.y * length,
+      };
+    };
+    const mirrorEnds = vectors => ({
+      a: {
+        x: p.x - vectors.mdir.x * mirrorHalf,
+        y: p.y - vectors.mdir.y * mirrorHalf,
+      },
+      b: {
+        x: p.x + vectors.mdir.x * mirrorHalf,
+        y: p.y + vectors.mdir.y * mirrorHalf,
+      },
+    });
+    const referenceMirror = mirrorEnds(ref);
+    const liveMirror = mirrorEnds(live);
+    const referenceRayEnd = endOnField(ref.reflected);
+    const liveRayEnd = endOnField(live.reflected);
 
-    // ––– equal incidence / reflection angles: matched single-tick arcs –––
-    const iAng = Math.PI;                 // incoming ray, reversed
-    const rAng = Math.atan2(rb.y, rb.x);
-    const rEq = h * 0.14;
-    ctx.strokeStyle = P.inkSoft;
-    ctx.lineWidth = 0.9;
-    for (const [from, to] of [[iAng, nAng], [nAng, rAng]]) {
-      ctx.beginPath();
-      arcBetween(ctx, mx, my, rEq, from, to);
-      ctx.stroke();
-      let deq = to - from;                // wrap-safe mid angle
-      while (deq > Math.PI) deq -= TAU;
-      while (deq < -Math.PI) deq += TAU;
-      const mid = from + deq / 2;
-      ctx.beginPath();
-      ctx.moveTo(mx + Math.cos(mid) * (rEq - 4), my + Math.sin(mid) * (rEq - 4));
-      ctx.lineTo(mx + Math.cos(mid) * (rEq + 4), my + Math.sin(mid) * (rEq + 4));
-      ctx.stroke();
+    // A zero turn has one physical surface and one reflected route. At other
+    // settings the short-dashed surface is only the saved starting position.
+    if (!coincident) {
+      plateLine(ctx, referenceMirror.a, referenceMirror.b, {
+        kind: 'short',
+        weight: compact ? 0.55 : 0.7,
+      });
+    }
+    plateLine(ctx, liveMirror.a, liveMirror.b, {
+      weight: compact ? 1.5 : 1.9,
+    });
+
+    const mirrorBack = {
+      x: -live.normal.x,
+      y: -live.normal.y,
+    };
+    const hatchDirection = norm({
+      x: live.mdir.x + mirrorBack.x,
+      y: live.mdir.y + mirrorBack.y,
+    });
+    for (let distance = -mirrorHalf + 6; distance < mirrorHalf - 3;
+      distance += compact ? 8 : 10) {
+      if (Math.abs(distance) < 7) continue;
+      const hatchStart = {
+        x: p.x + live.mdir.x * distance,
+        y: p.y + live.mdir.y * distance,
+      };
+      plateLine(ctx, hatchStart, {
+        x: hatchStart.x + hatchDirection.x * (compact ? 5 : 7),
+        y: hatchStart.y + hatchDirection.y * (compact ? 5 : 7),
+      }, { weight: 0.45 });
     }
 
-    // ––– incoming beam: 1.6px, slim head, leader note –––
-    ctx.strokeStyle = P.brass;
-    ctx.fillStyle = P.brass;
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.moveTo(w * 0.04, my);
-    ctx.lineTo(mx - 6, my);
-    ctx.stroke();
-    dimHead(ctx, mx - 6, my, 0, 9, 2.7);
-    leaderNote(ctx, 'incoming ray', w * 0.17, my, -75 * D2R, 22, P.brass, { size: 10.5 });
+    // The incoming direction is fixed. Reflection is solved before layout by
+    // v - 2(v·n)n, so the same θ always produces the same 2θ turn.
+    plateVector(ctx, { x: bounds.left + 2, y: p.y }, { x: p.x - 6, y: p.y }, {
+      kind: 'long', weight: compact ? 0.9 : 1.05, head: compact ? 3.2 : 4,
+    });
+    if (!coincident) {
+      plateVector(ctx, {
+        x: p.x + ref.reflected.x * 6,
+        y: p.y + ref.reflected.y * 6,
+      }, referenceRayEnd, {
+        kind: 'long',
+        weight: compact ? 0.5 : 0.65,
+        head: compact ? 2.8 : 3.3,
+      });
+    }
+    plateVector(ctx, {
+      x: p.x + live.reflected.x * 6,
+      y: p.y + live.reflected.y * 6,
+    }, liveRayEnd, {
+      kind: 'long', weight: compact ? 1 : 1.25, head: compact ? 3.4 : 4.2,
+    });
 
-    // ––– reflected beam –––
-    ctx.strokeStyle = P.brass;
-    ctx.fillStyle = P.brass;
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.moveTo(mx, my);
-    ctx.lineTo(mx + rb.x * beamLen, my + rb.y * beamLen);
-    ctx.stroke();
-    dimHead(ctx, mx + rb.x * beamLen, my + rb.y * beamLen, rAng, 9, 2.7);
+    const normalHalf = mirrorHalf * (compact ? 0.82 : 0.95);
+    plateLine(ctx, {
+      x: p.x - live.normal.x * normalHalf,
+      y: p.y - live.normal.y * normalHalf,
+    }, {
+      x: p.x + live.normal.x * normalHalf,
+      y: p.y + live.normal.y * normalHalf,
+    }, {
+      kind: 'construction',
+      weight: compact ? 0.55 : 0.65,
+    });
 
-    // ––– dimension: beam sweep 2Δ, between ghost beam and live beam –––
-    // (the beams themselves are the extension lines: they cross the arc)
-    const a1 = Math.atan2(gb.y, gb.x), a2 = rAng;
-    const rB = h * 0.42;
-    angleDim(ctx, mx, my, rB, a1, a2, P.brass);
-    // label at mid-span; when the sweep is tiny the beams nearly coincide,
-    // so the text steps aside to the far side of the ghost beam
-    const sgnB = Math.sign(a2 - a1) || 1;
-    const midB = (a1 + a2) / 2 - (Math.abs(delta) < 4 ? sgnB * 0.30 : 0);
-    label(ctx, '2Δ = ' + (2 * Math.abs(delta)).toFixed(1) + '°',
-      mx + Math.cos(midB) * (rB + 26), my + Math.sin(midB) * (rB + 26),
-      { color: P.brass, size: 11.5, halo: P.paper });
+    const shortest = (a, b) => {
+      let delta = b - a;
+      while (delta > Math.PI) delta -= TAU;
+      while (delta < -Math.PI) delta += TAU;
+      return delta;
+    };
+    const midAngle = (a, b) => a + shortest(a, b) / 2;
+    const incomingBack = Math.PI;
+    const normalA = Math.atan2(live.normal.y, live.normal.x);
+    const liveRayA = Math.atan2(live.reflected.y, live.reflected.x);
+    const refRayA = Math.atan2(ref.reflected.y, ref.reflected.x);
 
-    // ––– dimension: mirror rotation Δ, extension ticks + green arc –––
-    const ma1 = (M0 - 180) * D2R, ma2 = (m - 180) * D2R;
-    const rM = len + 16;
-    ctx.strokeStyle = P.inkFaint;
-    ctx.lineWidth = 0.9;
-    for (const a of [ma1, ma2]) {
+    const equalR = compact ? 15 : 24;
+    ctx.save();
+    ctx.strokeStyle = PLATE.ink;
+    ctx.lineWidth = compact ? 0.55 : 0.7;
+    for (const [a, b] of [[incomingBack, normalA], [normalA, liveRayA]]) {
       ctx.beginPath();
-      ctx.moveTo(mx + Math.cos(a) * (len + 5), my + Math.sin(a) * (len + 5));
-      ctx.lineTo(mx + Math.cos(a) * (rM + 10), my + Math.sin(a) * (rM + 10));
+      arcBetween(ctx, p.x, p.y, equalR, a, b);
       ctx.stroke();
+      const ma = midAngle(a, b);
+      plateLine(ctx, {
+        x: p.x + Math.cos(ma) * (equalR - 2.5),
+        y: p.y + Math.sin(ma) * (equalR - 2.5),
+      }, {
+        x: p.x + Math.cos(ma) * (equalR + 2.5),
+        y: p.y + Math.sin(ma) * (equalR + 2.5),
+      }, { weight: compact ? 0.55 : 0.7 });
     }
-    angleDim(ctx, mx, my, rM, ma1, ma2, P.green);
-    const midM = (ma1 + ma2) / 2;
-    label(ctx, 'Δ = ' + Math.abs(delta).toFixed(1) + '°',
-      mx + Math.cos(midM) * (rM + 32), my + Math.sin(midM) * (rM + 32),
-      { color: P.green, size: 11.5, halo: P.paper });
+    ctx.restore();
+    const equalPoint = {
+      x: p.x + Math.cos(normalA) * (equalR + (compact ? 10 : 14)),
+      y: p.y + Math.sin(normalA) * (equalR + (compact ? 10 : 14)),
+    };
+    labels.place('EQUAL', null, [
+      { ...equalPoint, align: 'center' },
+      { x: equalPoint.x - live.normal.y * 12,
+        y: equalPoint.y + live.normal.x * 12, align: 'center' },
+    ], {
+      size: compact ? 7.5 : 8,
+      leader: false,
+      backed: true,
+    });
 
-    // ––– the mirror: 2px object line, back-hatched on the dead side –––
-    const back = { x: -n.x, y: -n.y };
-    const hx = norm({ x: mdir.x + back.x, y: mdir.y + back.y }); // 45° hatch
-    ctx.strokeStyle = P.inkSoft;
-    ctx.lineWidth = 0.9;
-    ctx.beginPath();
-    for (let s = -len + 4; s <= len - 2; s += 8) {
-      if (Math.abs(s) < 7) continue; // keep the pivot clear
-      const px = mx + mdir.x * s, py = my + mdir.y * s;
-      ctx.moveTo(px, py);
-      ctx.lineTo(px + hx.x * 6, py + hx.y * 6);
+    if (!coincident) {
+      const raySweepR = Math.min(compact ? 50 : 91,
+        Math.max(compact ? 34 : 58, Math.min(
+          Math.hypot(referenceRayEnd.x - p.x, referenceRayEnd.y - p.y),
+          Math.hypot(liveRayEnd.x - p.x, liveRayEnd.y - p.y)) * 0.70));
+      ctx.save();
+      ctx.strokeStyle = PLATE.ink;
+      ctx.lineWidth = compact ? 0.65 : 0.8;
+      ctx.beginPath();
+      arcBetween(ctx, p.x, p.y, raySweepR, refRayA, liveRayA);
+      ctx.stroke();
+      ctx.restore();
+      const rayMid = midAngle(refRayA, liveRayA);
+      const rayValue = {
+        x: p.x + Math.cos(rayMid) * (raySweepR + (compact ? 8 : 12)),
+        y: p.y + Math.sin(rayMid) * (raySweepR + (compact ? 8 : 12)),
+      };
+      const rayValueSide = { x: -Math.sin(rayMid), y: Math.cos(rayMid) };
+      labels.place(`2θ  ${signedDegrees(2 * theta, true)}`, null, [
+        { ...rayValue, align: Math.cos(rayMid) < -0.2 ? 'right' : 'left' },
+        {
+          x: rayValue.x + rayValueSide.x * (compact ? 13 : 17),
+          y: rayValue.y + rayValueSide.y * (compact ? 13 : 17),
+          align: Math.cos(rayMid) < -0.2 ? 'right' : 'left',
+        },
+        {
+          x: rayValue.x - rayValueSide.x * (compact ? 13 : 17),
+          y: rayValue.y - rayValueSide.y * (compact ? 13 : 17),
+          align: Math.cos(rayMid) < -0.2 ? 'right' : 'left',
+        },
+      ], {
+        size: compact ? 8 : 9,
+        font: PLATE.dataFont,
+        tracking: 0,
+        uppercase: false,
+        leader: false,
+        backed: true,
+      });
+
+      const mirrorSweepR = mirrorHalf + (compact ? 7 : 11);
+      const mirrorA0 = M0 * D2R;
+      const mirrorA1 = (M0 + theta) * D2R;
+      ctx.save();
+      ctx.strokeStyle = PLATE.ink;
+      ctx.lineWidth = compact ? 0.65 : 0.8;
+      ctx.beginPath();
+      arcBetween(ctx, p.x, p.y, mirrorSweepR, mirrorA0, mirrorA1);
+      ctx.stroke();
+      ctx.restore();
+      const mirrorMid = midAngle(mirrorA0, mirrorA1);
+      const mirrorValue = {
+        x: p.x + Math.cos(mirrorMid) * (mirrorSweepR + (compact ? 8 : 12)),
+        y: p.y + Math.sin(mirrorMid) * (mirrorSweepR + (compact ? 8 : 12)),
+      };
+      labels.place(`θ  ${signedDegrees(theta, true)}`, null, [
+        { ...mirrorValue, align: 'center' },
+        {
+          x: mirrorValue.x - Math.sin(mirrorMid) * (compact ? 12 : 16),
+          y: mirrorValue.y + Math.cos(mirrorMid) * (compact ? 12 : 16),
+          align: 'center',
+        },
+      ], {
+        size: compact ? 8 : 9,
+        font: PLATE.dataFont,
+        tracking: 0,
+        uppercase: false,
+        leader: false,
+        backed: true,
+      });
+    } else {
+      const coincidencePoint = {
+        x: p.x + live.reflected.x * Math.min(58,
+          Math.hypot(liveRayEnd.x - p.x, liveRayEnd.y - p.y) * 0.60),
+        y: p.y + live.reflected.y * Math.min(58,
+          Math.hypot(liveRayEnd.x - p.x, liveRayEnd.y - p.y) * 0.60),
+      };
+      plateText(ctx, compact ? 'start = now' : 'start and now coincide',
+        coincidencePoint.x - live.reflected.y * (compact ? 8 : 12),
+        coincidencePoint.y + live.reflected.x * (compact ? 8 : 12), {
+          size: compact ? 8 : 9,
+          align: 'center',
+        });
     }
-    ctx.stroke();
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = 2;
+
+    ctx.fillStyle = PLATE.ink;
     ctx.beginPath();
-    ctx.moveTo(mx - mdir.x * len, my - mdir.y * len);
-    ctx.lineTo(mx + mdir.x * len, my + mdir.y * len);
-    ctx.stroke();
-    leaderNote(ctx, 'mirror – drag', mx - mdir.x * len * 0.55, my - mdir.y * len * 0.55,
-      28 * D2R, 24, P.inkSoft, { size: 10.5 });
+    ctx.arc(p.x, p.y, compact ? 2 : 2.6, 0, TAU);
+    ctx.fill();
 
-    // ––– pivot last, over the linework –––
-    pointMark(ctx, mx, my, P.ink);
+    const noteX = compact ? 10 : splitX + 8;
+    const noteW = compact ? w - 20 : Math.min(180, w - noteX - 14);
+    const noteH = compact ? 64 : 100;
+    const noteY = compact
+      ? bodyBottom - noteH - 5
+      : bodyTop + (bodyBottom - bodyTop - noteH) / 2;
+    plateBox(ctx, noteX, noteY, noteW, [
+      'Incoming light is fixed',
+      'Normal turns with mirror',
+      'Reflected ray turns twice',
+    ], {
+      title: 'Why 2θ',
+      size: compact ? 8 : 9,
+      lineHeight: compact ? 11 : 16,
+      padding: compact ? 5 : 9,
+      height: noteH,
+      });
 
-    beamStat.set((2 * Math.abs(delta)).toFixed(1) + '° – always double');
+    labels.place('INCOMING LIGHT', null, [
+      { x: bounds.left + 3, y: p.y + (compact ? 9 : 13), align: 'left' },
+    ], {
+      size: compact ? 8 : 9,
+      leader: false,
+      backed: true,
+    });
+    const rayLabelCandidate = (end, vector, fraction, offset) => {
+      const normal = { x: -vector.y, y: vector.x };
+      return {
+        x: p.x + (end.x - p.x) * fraction + normal.x * offset,
+        y: p.y + (end.y - p.y) * fraction + normal.y * offset,
+        align: 'center',
+      };
+    };
+    if (!coincident || !compact) {
+      labels.place(coincident ? 'REFLECTED LIGHT' : 'REFLECTED LIGHT NOW',
+        null, [
+          rayLabelCandidate(liveRayEnd, live.reflected, compact ? 0.72 : 0.78,
+            compact ? 8 : 11),
+          rayLabelCandidate(liveRayEnd, live.reflected, compact ? 0.55 : 0.60,
+            compact ? -8 : -11),
+        ], {
+          size: compact ? 8 : 9,
+          leader: false,
+          backed: true,
+        });
+    }
+    if (!coincident && !compact) {
+      labels.place('REFLECTED LIGHT AT START', null, [
+        rayLabelCandidate(referenceRayEnd, ref.reflected, compact ? 0.61 : 0.66,
+          compact ? 7 : 10),
+        rayLabelCandidate(referenceRayEnd, ref.reflected, compact ? 0.48 : 0.54,
+          compact ? -7 : -10),
+      ], {
+        size: 8,
+        leader: false,
+        backed: true,
+        fallback: 'hide',
+      });
+    }
+    labels.place('MIRROR NORMAL', null, [
+      {
+        x: p.x + live.normal.x * normalHalf,
+        y: p.y + live.normal.y * normalHalf - (compact ? 6 : 8),
+        align: live.normal.x < 0 ? 'right' : 'left',
+      },
+    ], {
+      size: compact ? 7.5 : 8,
+      leader: false,
+      fallback: 'hide',
+    });
+    labels.place('MIRROR – DRAG',
+      {
+        x: p.x + live.mdir.x * mirrorHalf * 0.72,
+        y: p.y + live.mdir.y * mirrorHalf * 0.72,
+      }, [
+        {
+          x: p.x + live.mdir.x * mirrorHalf + (live.mdir.x < 0 ? -7 : 7),
+          y: p.y + live.mdir.y * mirrorHalf + (compact ? 7 : 10),
+          align: live.mdir.x < 0 ? 'right' : 'left',
+        },
+      ], {
+        size: compact ? 7.5 : 8,
+        head: compact ? 2.7 : 3.2,
+        fallback: 'hide',
+      });
+
+    plateRule(ctx, footerTop, 14, w - 14);
+    plateDataText(ctx,
+      `Mirror ${signedDegrees(theta, true)} → reflected ray ${signedDegrees(2 * theta, true)}`,
+      w / 2, footerTop + (h - footerTop) / 2, {
+        size: compact ? 8 : 9.5,
+        align: 'center',
+      });
   }
 })();

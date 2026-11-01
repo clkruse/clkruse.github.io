@@ -1,24 +1,38 @@
 'use strict';
-/* §04b: the sextant, rays traced through both mirrors.
-   Drafting treatment: flat-fill instrument linework, 2px object edges,
-   0.9px leaders/dimensions, back-hatched mirrors, dash-dot sight axis. */
+/* §04b: the sextant, rays traced through both mirrors (plate treatment). */
 
 (function demoSextant() {
-  const d = createDemo('demo-sextant', { aspect: 1.3, maxH: 600, draw });
-  let sunAlt = 60;   // true altitude of the sun, degrees
-  let arm = 30;      // physical arm rotation, degrees (arc reads 2×)
+  const d = createDemo('demo-sextant', {
+    aspect: 1,
+    maxH: 420,
+    draw,
+  });
+  const CONTACT_TOLERANCE_DEG = 0.05;
+  // The optics are solved in unit instrument space, then scaled uniformly onto
+  // the responsive canvas. Neither the mirror hit nor the image state depends
+  // on CSS pixels.
+  const EXPLODED_HORIZON_DIRECTION = Object.freeze(norm({ x: -0.758, y: 0.652 }));
+  const EXPLODED_MIRROR_HALF = 0.15; // fraction of index-to-horizon distance
+  let vegaAlt = SIGHT_STORY.state.hs;
+  // Start about ten arcminutes off contact: enough to invite adjustment,
+  // close enough that Vega remains visible.
+  let arm = Math.round(((vegaAlt - 0.2) / 2) * 10) / 10;
   const armSlider = addSlider(d, {
     label: 'index arm', min: 0, max: 60, step: 0.1, value: arm,
-    fmt: v => v.toFixed(1) + '° · ' + (2 * v).toFixed(0) + '°',
+    fmt: v => v.toFixed(1) + '°',
     onchange: v => { arm = v; },
   });
-  addSlider(d, {
-    label: "sun's true altitude", min: 10, max: 70, step: 1, value: sunAlt,
-    fmt: v => v.toFixed(0) + '°',
-    onchange: v => { sunAlt = v; },
+  const vegaSlider = addSlider(d, {
+    label: 'Vega altitude', min: 10, max: 70, step: 1 / 600, value: vegaAlt,
+    fmt: v => fmtDM(v, 1),
+    onchange: v => { vegaAlt = v; },
   });
   const readStat = addStat(d, 'the arc reads');
   const status = addStat(d, 'in the telescope', true);
+  SIGHT_STORY.subscribe(s => {
+    vegaAlt = s.hs;
+    vegaSlider.set(s.hs, { emit: false });
+  });
 
   d.canvas.classList.add('grab');
   let geo = null;
@@ -32,292 +46,603 @@
   });
 
   function draw(ctx, w, h) {
-    ctx.fillStyle = P.paper;
-    ctx.fillRect(0, 0, w, h);
+    drawExploded(ctx, w, h);
+  }
 
-    const Pv = { x: w * 0.56, y: h * 0.30 };
-    const M = { x: w * 0.30, y: h * 0.60 };
-    const E = { x: w * 0.90, y: h * 0.60 };
-    const A0 = 78; // arm canvas angle at zero
-    geo = { P: Pv, A0 };
-    const Rarc = h * 0.52;
-
-    const u = norm({ x: M.x - Pv.x, y: M.y - Pv.y });          // index → horizon mirror
-    const mN = norm({ x: 1 - u.x, y: -u.y });                  // horizon-mirror normal
-    const iN0 = norm({ x: u.x - 1, y: u.y });                  // index normal at arm = 0
-    const iN = rot(iN0, arm * D2R);
-    const hRad = sunAlt * D2R;
-    const dIn = { x: Math.cos(hRad), y: Math.sin(hRad) };      // sun ray direction (sun is up-left)
-
-    // back-hatch: 0.9px ticks off the non-silvered side of a mirror line
-    function hatch(x0, y0, x1, y1, nx, ny) {
-      const dx = x1 - x0, dy = y1 - y0, L = Math.hypot(dx, dy);
-      const ux = dx / L, uy = dy / L;
-      ctx.strokeStyle = P.inkSoft;
-      ctx.lineWidth = 0.9;
-      ctx.beginPath();
-      for (let t = 2.5; t <= L - 1; t += 4.5) {
-        const bx = x0 + ux * t, by = y0 + uy * t;
-        ctx.moveTo(bx, by);
-        ctx.lineTo(bx - nx * 5 - ux * 3, by - ny * 5 - uy * 3);
-      }
-      ctx.stroke();
-    }
-    // clamp a ray from p along dir to the canvas margin
-    function toEdge(p, dir) {
-      let t = w + h;
-      if (dir.x > 0) t = Math.min(t, (w - 6 - p.x) / dir.x);
-      if (dir.x < 0) t = Math.min(t, (6 - p.x) / dir.x);
-      if (dir.y > 0) t = Math.min(t, (h - 6 - p.y) / dir.y);
-      if (dir.y < 0) t = Math.min(t, (6 - p.y) / dir.y);
-      return { x: p.x + dir.x * t, y: p.y + dir.y * t };
-    }
-
-    // ––– horizon (sea at left, at telescope height) –––
-    ctx.strokeStyle = P.sea;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(w * 0.015, M.y);
-    ctx.lineTo(w * 0.12, M.y);
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(46,95,134,0.5)';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < 3; i++) {
-      ctx.beginPath();
-      ctx.moveTo(w * 0.02 + i * 9, M.y + 8 + i * 7);
-      ctx.lineTo(w * 0.09 + i * 9, M.y + 8 + i * 7);
-      ctx.stroke();
-    }
-    label(ctx, 'horizon', w * 0.065, M.y - 15, { color: P.sea, size: 11, halo: P.paper });
-
-    // ––– sun: flat disc, thin ring – a light diagram, not a picture –––
-    const sunDist = Math.min(w * 0.52,
-      (Pv.y - 48) / Math.max(dIn.y, 0.05),
-      (Pv.x - 52) / Math.max(dIn.x, 0.05));
-    const sunPos = { x: Pv.x - dIn.x * sunDist, y: Pv.y - dIn.y * sunDist };
-    ctx.fillStyle = P.sun;
-    ctx.beginPath(); ctx.arc(sunPos.x, sunPos.y, 12, 0, TAU); ctx.fill();
-    ctx.strokeStyle = P.sun;
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.arc(sunPos.x, sunPos.y, 16, 0, TAU); ctx.stroke();
-
-    // ––– frame: spokes pivot → band, hub boss at the pivot, closed arc band –––
-    const arcA0 = (A0 - 5) * D2R, arcA1 = (A0 + 65) * D2R;
-    const spokeW = h * 0.016;
-    const hubR = h * 0.026;
-    for (const sa of [(A0 + 2) * D2R, (A0 + 58) * D2R]) {
-      // runs from the pivot (capped by the hub) into the band (capped by its fill)
-      const sx2 = Pv.x + Math.cos(sa) * (Rarc - h * 0.035), sy2 = Pv.y + Math.sin(sa) * (Rarc - h * 0.035);
-      ctx.strokeStyle = P.inkFaint;
-      ctx.lineWidth = spokeW;
-      ctx.beginPath(); ctx.moveTo(Pv.x, Pv.y); ctx.lineTo(sx2, sy2); ctx.stroke();
-      ctx.strokeStyle = P.paperDeep;
-      ctx.lineWidth = Math.max(spokeW - 2.2, 1);
-      ctx.beginPath(); ctx.moveTo(Pv.x, Pv.y); ctx.lineTo(sx2, sy2); ctx.stroke();
-    }
-    // arc band: one closed annular sector, so both radial ends are capped
-    ctx.beginPath();
-    ctx.arc(Pv.x, Pv.y, Rarc, arcA0, arcA1);
-    ctx.arc(Pv.x, Pv.y, Rarc - h * 0.045, arcA1, arcA0, true);
-    ctx.closePath();
-    ctx.fillStyle = P.paperDeep;
-    ctx.fill();
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = 1;
-    ctx.stroke();
-    // heavier outer silhouette on top
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.arc(Pv.x, Pv.y, Rarc, arcA0, arcA1); ctx.stroke();
-    // pivot hub: the boss the spokes and the index arm join
-    ctx.fillStyle = P.paperDeep;
-    ctx.beginPath(); ctx.arc(Pv.x, Pv.y, hubR, 0, TAU); ctx.fill();
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.arc(Pv.x, Pv.y, hubR, 0, TAU); ctx.stroke();
-
-    // two scales on one piece of metal: inner = how far the arm has
-    // actually swung (a sextans, 0–60°, green like Δ on the mirror);
-    // outer = what the engraving claims (0–120°, blue like 2Δ).
-    for (let a = 0; a <= 60; a += 2.5) {
-      const aa = (A0 + a) * D2R;
-      const major = a % 15 === 0;
-      const r1g = Rarc - h * 0.045, r2g = r1g + (major ? h * 0.022 : h * 0.013);
-      ctx.strokeStyle = P.ink;
-      ctx.lineWidth = major ? 1.2 : 0.7;
-      ctx.beginPath();
-      ctx.moveTo(Pv.x + Math.cos(aa) * r1g, Pv.y + Math.sin(aa) * r1g);
-      ctx.lineTo(Pv.x + Math.cos(aa) * r2g, Pv.y + Math.sin(aa) * r2g);
-      ctx.stroke();
-      if (major && Math.abs(a - arm) > 6) {
-        label(ctx, String(a),
-          Pv.x + Math.cos(aa) * (r1g - 11), Pv.y + Math.sin(aa) * (r1g - 11),
-          { size: 10, color: P.green, halo: P.paperDeep });
-        label(ctx, String(2 * a),
-          Pv.x + Math.cos(aa) * (Rarc + 14), Pv.y + Math.sin(aa) * (Rarc + 14),
-          { size: 11.5, color: P.s2, halo: P.paper });
-      }
-    }
-    const sextEnd = {
-      x: Pv.x + Math.cos((A0 + 60) * D2R) * Rarc,
-      y: Pv.y + Math.sin((A0 + 60) * D2R) * Rarc,
+  function solveOpticalState(towardHorizon) {
+    const sight = { x: 1, y: 0 };
+    const indexNormal0 = norm({
+      x: towardHorizon.x - sight.x,
+      y: towardHorizon.y - sight.y,
+    });
+    const indexNormal = rot(indexNormal0, arm * D2R);
+    const incoming = {
+      x: Math.cos(vegaAlt * D2R),
+      y: Math.sin(vegaAlt * D2R),
     };
-    if (arm < 50 && sextEnd.x > 140) {
-      leaderNote(ctx, '60° of metal – a sextans',
-        sextEnd.x, sextEnd.y, (A0 + 64) * D2R, 20, P.inkSoft, { size: 10.5 });
-    }
-
-    // Δ on the instrument: the arm's true swing, same green as the mirror
-    if (arm >= 8) {
-      const rD = Rarc * 0.40;
-      angleDim(ctx, Pv.x, Pv.y, rD, A0 * D2R, (A0 + arm) * D2R, P.green);
-      const midD = (A0 + arm / 2) * D2R;
-      label(ctx, 'Δ',
-        Pv.x + Math.cos(midD) * (rD + 12), Pv.y + Math.sin(midD) * (rD + 12),
-        { color: P.green, size: 11.5, halo: P.paper });
-    }
-
-    // ––– ray trace (unchanged) –––
-    const r1 = reflect(dIn, iN);
-    const tHit = ((M.x - Pv.x) * mN.x + (M.y - Pv.y) * mN.y) / (r1.x * mN.x + r1.y * mN.y);
-    const mirrorHalf = h * 0.055;
-    let hit = null, r2 = null, aligned = false, offDeg = 2 * arm - sunAlt;
-    if (tHit > 0 && isFinite(tHit)) {
-      const X = { x: Pv.x + r1.x * tHit, y: Pv.y + r1.y * tHit };
-      if (Math.hypot(X.x - M.x, X.y - M.y) < mirrorHalf * 1.7) {
-        hit = X;
-        r2 = reflect(r1, mN);
-        aligned = Math.abs(offDeg) < 0.4;
+    const afterIndex = reflect(incoming, indexNormal);
+    const horizonNormal = norm({
+      x: sight.x - towardHorizon.x,
+      y: sight.y - towardHorizon.y,
+    });
+    const denom = afterIndex.x * horizonNormal.x + afterIndex.y * horizonNormal.y;
+    const tHit = Math.abs(denom) < 1e-8 ? Infinity
+      : (towardHorizon.x * horizonNormal.x
+        + towardHorizon.y * horizonNormal.y) / denom;
+    const hit = tHit > 0 && isFinite(tHit)
+      ? {
+        x: afterIndex.x * tHit,
+        y: afterIndex.y * tHit,
       }
-    }
+      : null;
+    return {
+      towardHorizon,
+      indexNormal,
+      incoming,
+      afterIndex,
+      horizonNormal,
+      afterHorizon: hit ? reflect(afterIndex, horizonNormal) : null,
+      hit,
+      error: 2 * arm - vegaAlt,
+    };
+  }
 
-    // direct horizon ray: dashed construction line, sea → clear glass → objective
-    const xObj = w * 0.66 - 4; // telescope objective face
-    ctx.strokeStyle = P.sea;
-    ctx.lineWidth = 0.9;
-    ctx.setLineDash([5, 4]);
-    ctx.beginPath();
-    ctx.moveTo(w * 0.015, M.y);
-    ctx.lineTo(w * 0.635, M.y);
-    ctx.stroke();
-    ctx.setLineDash([]);
+  function projectOpticalState(model, index, scale) {
+    return {
+      ...model,
+      hit: model.hit
+        ? {
+          x: index.x + model.hit.x * scale,
+          y: index.y + model.hit.y * scale,
+        }
+        : null,
+    };
+  }
 
-    // sun beam: signal orange, slim heads at each reflection leg's end;
-    // aligned = slightly heavier stroke (never a glow)
-    ctx.strokeStyle = P.sun;
-    ctx.fillStyle = P.sun;
-    ctx.lineWidth = aligned ? 2.6 : 1.6;
-    const a1 = Math.atan2(dIn.y, dIn.x);
-    const e1 = { x: Pv.x - dIn.x * 4.5, y: Pv.y - dIn.y * 4.5 };
-    ctx.beginPath();
-    ctx.moveTo(sunPos.x + dIn.x * 19, sunPos.y + dIn.y * 19);
-    ctx.lineTo(e1.x, e1.y);
-    ctx.stroke();
-    dimHead(ctx, e1.x, e1.y, a1);
-    if (hit) {
-      // index mirror → horizon mirror
-      const a2 = Math.atan2(r1.y, r1.x);
-      const e2 = { x: hit.x - r1.x * 4.5, y: hit.y - r1.y * 4.5 };
-      ctx.beginPath(); ctx.moveTo(Pv.x, Pv.y); ctx.lineTo(e2.x, e2.y); ctx.stroke();
-      dimHead(ctx, e2.x, e2.y, a2);
-      // horizon mirror → telescope objective (clamped on-canvas)
-      let end;
-      if (r2.x > 0.3) {
-        end = { x: xObj, y: hit.y + r2.y * ((xObj - hit.x) / r2.x) };
-        if (end.y < 6 || end.y > h - 6) end = toEdge(hit, r2);
-      } else {
-        end = toEdge(hit, r2);
-      }
-      ctx.beginPath(); ctx.moveTo(hit.x, hit.y); ctx.lineTo(end.x, end.y); ctx.stroke();
-      dimHead(ctx, end.x, end.y, Math.atan2(r2.y, r2.x));
+  function explodedOpticalState(index, scale) {
+    const model = solveOpticalState(EXPLODED_HORIZON_DIRECTION);
+    const reachesMirror = Boolean(model.hit)
+      && Math.hypot(
+        model.hit.x - EXPLODED_HORIZON_DIRECTION.x,
+        model.hit.y - EXPLODED_HORIZON_DIRECTION.y
+      ) <= EXPLODED_MIRROR_HALF;
+    return {
+      ...projectOpticalState(model, index, scale),
+      reachesMirror,
+    };
+  }
+
+  function setOpticalStatus(error, reachesMirror) {
+    readStat.set(fmtDM(2 * arm, 1) + '  =  twice the arm');
+    if (Math.abs(error) < CONTACT_TOLERANCE_DEG) {
+      status.set('✓ Vega and horizon coincide – altitude = ' + fmtDM(2 * arm, 1), P.good);
+    } else if (reachesMirror) {
+      status.set('image ' + fmtDM(Math.abs(error), 1)
+        + (error < 0 ? ' above' : ' below') + ' the horizon');
     } else {
-      // reflected ray misses the horizon mirror: off it goes
-      const end = toEdge(Pv, r1);
-      ctx.beginPath(); ctx.moveTo(Pv.x, Pv.y); ctx.lineTo(end.x, end.y); ctx.stroke();
-      dimHead(ctx, end.x, end.y, Math.atan2(r1.y, r1.x));
+      status.set('reflected light misses the horizon mirror – swing the arm toward '
+        + fmtDM(vegaAlt / 2, 1), P.inkFaint);
+    }
+  }
+
+  function drawExploded(ctx, w, h) {
+    ctx.fillStyle = PLATE.paper;
+    ctx.fillRect(0, 0, w, h);
+    const compact = w < 500;
+    const titleBottom = compact ? 28 : 32;
+    const ruleY = h - (compact ? 30 : 40);
+    const instrumentBottom = compact ? Math.min(titleBottom + 131, ruleY - 82) : ruleY - 5;
+    const splitX = compact ? w : w * 0.73;
+    const index = {
+      x: w * (compact ? 0.61 : 0.53),
+      y: compact ? titleBottom + 36 : titleBottom + (ruleY - titleBottom) * 0.21,
+    };
+    const opticalScale = compact
+      ? Math.min(w * 0.39, instrumentBottom - index.y + 14)
+      : Math.min(w * 0.33, (ruleY - titleBottom) * 0.62);
+    const horizon = {
+      x: index.x + EXPLODED_HORIZON_DIRECTION.x * opticalScale,
+      y: index.y + EXPLODED_HORIZON_DIRECTION.y * opticalScale,
+    };
+    const eyeX = compact ? w - 7 : splitX - 7;
+    const mirrorHalf = opticalScale * EXPLODED_MIRROR_HALF;
+    const state = explodedOpticalState(index, opticalScale);
+    const reachesMirror = state.reachesMirror;
+    const imageResult = Math.abs(state.error) < CONTACT_TOLERANCE_DEG
+      ? 'contact'
+      : (reachesMirror ? 'double-reflection' : 'miss');
+    d.canvas.dataset.reachesMirror = String(reachesMirror);
+    d.canvas.dataset.imageResult = imageResult;
+    d.canvas.dataset.opticalErrorDegrees = state.error.toFixed(4);
+    const A0 = 78;
+    geo = { P: index, A0 };
+
+    plateText(ctx, 'Light through a sextant', w / 2, titleBottom / 2, {
+      size: compact ? 9.5 : 11,
+      weight: 600,
+      tracking: compact ? 1.15 : 1.45,
+      align: 'center',
+    });
+    plateRule(ctx, titleBottom, 14, w - 14);
+
+    const drawPlateMirror = (point, normal, half, halfSilvered = false) => {
+      const along = rot(normal, Math.PI / 2);
+      const a = { x: point.x - along.x * half, y: point.y - along.y * half };
+      const b = { x: point.x + along.x * half, y: point.y + along.y * half };
+      // Edge-on, a half-silvered plate is still one optical plane. The face
+      // inset, not a split edge line, identifies its clear and silver regions.
+      plateLine(ctx, a, b, { weight: compact ? 1.6 : 2 });
+      if (halfSilvered) return { a, b };
+      const hatchNormal = norm({ x: -normal.x + along.x, y: -normal.y + along.y });
+      const start = -half + 4;
+      const finish = half - 3;
+      for (let distance = start; distance <= finish; distance += compact ? 5 : 6) {
+        const p = {
+          x: point.x + along.x * distance,
+          y: point.y + along.y * distance,
+        };
+        plateLine(ctx, p, {
+          x: p.x + hatchNormal.x * (compact ? 4 : 5),
+          y: p.y + hatchNormal.y * (compact ? 4 : 5),
+        }, { weight: 0.45 });
+      }
+      return { a, b };
+    };
+
+    const toInstrumentEdge = (point, direction, pad = 5) => {
+      const distances = [];
+      if (direction.x > 1e-8) {
+        distances.push((splitX - pad - point.x) / direction.x);
+      } else if (direction.x < -1e-8) {
+        distances.push((pad - point.x) / direction.x);
+      }
+      if (direction.y > 1e-8) {
+        distances.push((instrumentBottom - pad - point.y) / direction.y);
+      } else if (direction.y < -1e-8) {
+        distances.push((titleBottom + pad - point.y) / direction.y);
+      }
+      const distance = Math.min(...distances.filter(value => value >= 0 && isFinite(value)));
+      return {
+        x: point.x + direction.x * distance,
+        y: point.y + direction.y * distance,
+      };
+    };
+    const source = toInstrumentEdge(index, {
+      x: -state.incoming.x,
+      y: -state.incoming.y,
+    }, compact ? 5 : 8);
+    const directStart = { x: compact ? 9 : 16, y: horizon.y };
+    const directEnd = { x: eyeX - (compact ? 7 : 10), y: horizon.y };
+    const scopeStart = compact ? w * 0.71 : splitX - w * 0.16;
+    const scopeHeight = compact ? 9 : 13;
+
+    // Keep the ray trace attached to a recognizable sextant. The fixed frame
+    // is a 60° sector centered on the index-mirror pivot; the moving index arm
+    // reaches the engraved arc, whose numbers report twice the arm angle.
+    const frameA0 = A0 * D2R;
+    const frameA1 = (A0 + 60) * D2R;
+    const frameR = Math.min(
+      (ruleY - titleBottom) * (compact ? 0.43 : 0.59),
+      w * (compact ? 0.35 : 0.32),
+      instrumentBottom - index.y - (compact ? 3 : 12)
+    );
+    const frameBand = compact ? 5 : 8;
+    const frameInnerR = frameR - frameBand;
+    const pointOnFrame = (angle, radius = frameR) => ({
+      x: index.x + Math.cos(angle) * radius,
+      y: index.y + Math.sin(angle) * radius,
+    });
+    const drawOutlinedBar = (from, to, halfWidth) => {
+      const direction = norm({ x: to.x - from.x, y: to.y - from.y });
+      const perpendicular = { x: -direction.y * halfWidth, y: direction.x * halfWidth };
+      ctx.save();
+      ctx.fillStyle = PLATE.paper;
+      ctx.strokeStyle = PLATE.ink;
+      ctx.lineWidth = compact ? 0.8 : 1.05;
+      ctx.beginPath();
+      ctx.moveTo(from.x + perpendicular.x, from.y + perpendicular.y);
+      ctx.lineTo(to.x + perpendicular.x, to.y + perpendicular.y);
+      ctx.lineTo(to.x - perpendicular.x, to.y - perpendicular.y);
+      ctx.lineTo(from.x - perpendicular.x, from.y - perpendicular.y);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    };
+
+    drawOutlinedBar(index, pointOnFrame(frameA0, frameInnerR), compact ? 2.2 : 3.2);
+    ctx.save();
+    ctx.fillStyle = PLATE.paper;
+    ctx.strokeStyle = PLATE.ink;
+    ctx.lineWidth = compact ? 0.9 : 1.2;
+    ctx.beginPath();
+    ctx.arc(index.x, index.y, frameR, frameA0, frameA1);
+    ctx.arc(index.x, index.y, frameInnerR, frameA1, frameA0, true);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.lineWidth = compact ? 1.35 : 1.8;
+    ctx.beginPath();
+    ctx.arc(index.x, index.y, frameR, frameA0, frameA1);
+    ctx.stroke();
+    ctx.restore();
+
+    for (let value = 0; value <= 60; value += 5) {
+      const angle = (A0 + value) * D2R;
+      const major = value % 15 === 0;
+      plateLine(ctx, pointOnFrame(angle, frameR - (major ? frameBand + 3 : frameBand)),
+        pointOnFrame(angle, frameR), {
+          weight: major ? (compact ? 0.7 : 0.9) : 0.45,
+        });
+      if (major && Math.abs(value - arm) > 4) {
+        const numberPoint = pointOnFrame(angle, frameInnerR - (compact ? 7 : 10));
+        if ((!compact && value % 30 === 0) || (compact && value === 60)) {
+          plateDataText(ctx, `${2 * value}°`, numberPoint.x, numberPoint.y + 2, {
+            size: compact ? 7.5 : 8,
+            align: 'center',
+          });
+        }
+      }
     }
 
-    // ––– index arm: outlined flat bar, clamp disc, red reading pointer –––
+    const horizonMountAngle = Math.atan2(horizon.y - index.y, horizon.x - index.x);
+    drawOutlinedBar(pointOnFrame(horizonMountAngle, frameInnerR), horizon,
+      compact ? 2 : 3);
+    drawOutlinedBar(pointOnFrame((A0 + 8) * D2R, frameInnerR), {
+      x: scopeStart - (compact ? 3 : 5),
+      y: horizon.y + scopeHeight * 0.55,
+    }, compact ? 1.5 : 2.2);
+
     const armA = (A0 + arm) * D2R;
-    const tip = { x: Pv.x + Math.cos(armA) * (Rarc - h * 0.02), y: Pv.y + Math.sin(armA) * (Rarc - h * 0.02) };
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = h * 0.02;
-    ctx.beginPath(); ctx.moveTo(Pv.x, Pv.y); ctx.lineTo(tip.x, tip.y); ctx.stroke();
-    ctx.strokeStyle = P.paperDeep;
-    ctx.lineWidth = Math.max(h * 0.02 - 2.4, 1);
-    ctx.beginPath(); ctx.moveTo(Pv.x, Pv.y); ctx.lineTo(tip.x, tip.y); ctx.stroke();
-    // clamp at the arc
-    ctx.fillStyle = P.paperDeep;
-    ctx.beginPath(); ctx.arc(tip.x, tip.y, h * 0.022, 0, TAU); ctx.fill();
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = 1.2;
-    ctx.beginPath(); ctx.arc(tip.x, tip.y, h * 0.022, 0, TAU); ctx.stroke();
-    // reading pointer (wayfinding red)
-    ctx.strokeStyle = P.red;
-    ctx.lineWidth = 1.4;
+    const handleEnd = pointOnFrame(armA, frameInnerR + frameBand * 0.45);
+    const armPerp = {
+      x: -Math.sin(armA) * (compact ? 2 : 2.8),
+      y: Math.cos(armA) * (compact ? 2 : 2.8),
+    };
+    plateLine(ctx,
+      { x: index.x + armPerp.x, y: index.y + armPerp.y },
+      { x: handleEnd.x + armPerp.x, y: handleEnd.y + armPerp.y },
+      { weight: compact ? 0.9 : 1.15 });
+    plateLine(ctx,
+      { x: index.x - armPerp.x, y: index.y - armPerp.y },
+      { x: handleEnd.x - armPerp.x, y: handleEnd.y - armPerp.y },
+      { weight: compact ? 0.9 : 1.15 });
+    plateLine(ctx, pointOnFrame(armA, frameInnerR - 4),
+      pointOnFrame(armA, frameR + (compact ? 2 : 3)), {
+        weight: compact ? 1.3 : 1.7,
+      });
+    ctx.save();
+    ctx.fillStyle = PLATE.paper;
+    ctx.strokeStyle = PLATE.ink;
+    ctx.lineWidth = compact ? 0.8 : 1.05;
     ctx.beginPath();
-    ctx.moveTo(Pv.x + Math.cos(armA) * (Rarc - h * 0.05), Pv.y + Math.sin(armA) * (Rarc - h * 0.05));
-    ctx.lineTo(Pv.x + Math.cos(armA) * Rarc, Pv.y + Math.sin(armA) * Rarc);
+    ctx.arc(handleEnd.x, handleEnd.y, compact ? 2.8 : 4, 0, TAU);
+    ctx.fill();
     ctx.stroke();
-    // the shout: same tick, two numbers – arm Δ and the engraved 2Δ
-    const side = { x: -Math.sin(armA), y: Math.cos(armA) };
-    const flush = side.x >= 0 ? 1 : -1;
-    const rx = tip.x + side.x * 34, ry = tip.y + side.y * 34;
-    const align = flush > 0 ? 'left' : 'right';
-    label(ctx, 'arm  ' + arm.toFixed(0) + '°', rx, ry - 8,
-      { color: P.green, size: 11, halo: P.paper, align });
-    label(ctx, 'reads  ' + (2 * arm).toFixed(0) + '°', rx, ry + 8,
-      { color: P.s2, size: 11.5, halo: P.paper, align });
+    ctx.restore();
 
-    // ––– index mirror (rides on the arm pivot): 2px ink, back-hatched –––
-    const iDir = rot(iN, Math.PI / 2);
-    const iA = { x: Pv.x - iDir.x * mirrorHalf, y: Pv.y - iDir.y * mirrorHalf };
-    const iB = { x: Pv.x + iDir.x * mirrorHalf, y: Pv.y + iDir.y * mirrorHalf };
-    hatch(iA.x, iA.y, iB.x, iB.y, iN.x, iN.y);
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(iA.x, iA.y); ctx.lineTo(iB.x, iB.y); ctx.stroke();
-    pointMark(ctx, Pv.x, Pv.y, P.ink);
+    plateVector(ctx, directStart, directEnd, {
+      kind: 'long', weight: compact ? 0.8 : 1, head: compact ? 3.2 : 4,
+    });
+    plateVector(ctx, {
+      x: source.x + state.incoming.x * (compact ? 8 : 13),
+      y: source.y + state.incoming.y * (compact ? 8 : 13),
+    }, {
+      x: index.x - state.incoming.x * 4,
+      y: index.y - state.incoming.y * 4,
+    }, {
+      kind: 'long', weight: compact ? 0.9 : 1.05, head: compact ? 3.2 : 4,
+    });
 
-    // ––– horizon mirror: silvered half hatched, clear half dashed –––
-    const mDir = rot(mN, Math.PI / 2);
-    const Ms = { x: M.x - mDir.x * mirrorHalf, y: M.y - mDir.y * mirrorHalf }; // silvered end
-    const Mc = { x: M.x + mDir.x * mirrorHalf, y: M.y + mDir.y * mirrorHalf }; // clear end
-    hatch(Ms.x, Ms.y, M.x, M.y, mN.x, mN.y);
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(Ms.x, Ms.y); ctx.lineTo(M.x, M.y); ctx.stroke();
-    ctx.strokeStyle = P.inkSoft;
-    ctx.lineWidth = 1.2;
-    ctx.setLineDash([4, 3]);
-    ctx.beginPath(); ctx.moveTo(M.x, M.y); ctx.lineTo(Mc.x, Mc.y); ctx.stroke();
-    ctx.setLineDash([]);
-
-    // ––– telescope: outlined tube, dash-dot sight axis –––
-    const ty = M.y;
-    ctx.fillStyle = P.paperDeep;
-    ctx.strokeStyle = P.ink;
-    ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.rect(w * 0.68, ty - h * 0.021, w * 0.20, h * 0.042);
-    ctx.fill(); ctx.stroke();
-    ctx.beginPath(); ctx.rect(w * 0.66, ty - h * 0.015, w * 0.03, h * 0.03);
-    ctx.fill(); ctx.stroke();
-    centerline(ctx, w * 0.648, ty, w * 0.895, ty, P.inkFaint);
-
-    // ––– part labels: leader notes –––
-    const iTop = iDir.y < 0 ? iB : iA;
-    leaderNote(ctx, 'index mirror', iTop.x, iTop.y, -35 * D2R, 26, P.inkSoft, { size: 10.5 });
-    leaderNote(ctx, 'horizon mirror', Ms.x, Ms.y, -125 * D2R, 26, P.inkSoft, { size: 10.5 });
-    leaderNote(ctx, 'telescope', w * 0.80, ty + h * 0.021, 75 * D2R, 22, P.inkSoft, { size: 10.5 });
-    const armMid = { x: Pv.x + Math.cos(armA) * Rarc * 0.42, y: Pv.y + Math.sin(armA) * Rarc * 0.42 };
-    leaderNote(ctx, 'index arm', armMid.x, armMid.y, 50 * D2R, 26, P.inkSoft, { size: 10.5 });
-
-    readStat.set(fmtDM(2 * arm, 1) + '  –  twice the arm');
-    if (aligned) {
-      status.set('✓ sun sits on the horizon – altitude = ' + fmtDM(2 * arm, 1), P.good);
-    } else if (hit) {
-      status.set('sun image ' + fmtDM(Math.abs(offDeg), 1) + (offDeg < 0 ? ' above' : ' below') + ' the horizon', '');
+    let opticalEnd = null;
+    let outgoingVisible = false;
+    if (reachesMirror) {
+      const hit = state.hit;
+      plateVector(ctx, index, {
+        x: hit.x - state.afterIndex.x * 4,
+        y: hit.y - state.afterIndex.y * 4,
+      }, {
+        kind: 'long', weight: compact ? 0.9 : 1.05, head: compact ? 3.2 : 4,
+      });
+      opticalEnd = state.afterHorizon.x > 0.15
+        ? {
+          x: eyeX - (compact ? 7 : 10),
+          y: hit.y + state.afterHorizon.y
+            * ((eyeX - (compact ? 7 : 10) - hit.x) / state.afterHorizon.x),
+        }
+        : toInstrumentEdge(hit, state.afterHorizon, compact ? 5 : 8);
+      // Coincidence is an angle-space result, not a pixel-space threshold.
+      // Every non-contact state draws the second route at every viewport.
+      outgoingVisible = imageResult !== 'contact';
+      if (outgoingVisible) {
+        plateVector(ctx, hit, opticalEnd, {
+          kind: 'long', weight: compact ? 0.9 : 1.05, head: compact ? 3.2 : 4,
+        });
+      }
     } else {
-      status.set('reflected ray misses the horizon mirror – keep swinging the arm', P.inkFaint);
+      opticalEnd = toInstrumentEdge(index, state.afterIndex, compact ? 5 : 8);
+      const opticsTop = titleBottom + 4;
+      if (opticalEnd.y < opticsTop) {
+        const t = (opticsTop - index.y) / (opticalEnd.y - index.y);
+        opticalEnd = {
+          x: index.x + (opticalEnd.x - index.x) * t,
+          y: opticsTop,
+        };
+      }
+      if (opticalEnd.y > instrumentBottom - 4) {
+        const t = (instrumentBottom - 4 - index.y) / (opticalEnd.y - index.y);
+        opticalEnd = {
+          x: index.x + (opticalEnd.x - index.x) * t,
+          y: instrumentBottom - 4,
+        };
+      }
+      plateVector(ctx, index, opticalEnd, {
+        kind: 'long', weight: compact ? 0.9 : 1.05, head: compact ? 3.2 : 4,
+      });
     }
+
+    ctx.save();
+    ctx.strokeStyle = PLATE.ink;
+    ctx.lineWidth = compact ? 0.7 : 0.9;
+    const starR = compact ? 5 : 7;
+    ctx.beginPath();
+    ctx.moveTo(source.x - starR, source.y);
+    ctx.lineTo(source.x + starR, source.y);
+    ctx.moveTo(source.x, source.y - starR);
+    ctx.lineTo(source.x, source.y + starR);
+    ctx.moveTo(source.x - starR * 0.55, source.y - starR * 0.55);
+    ctx.lineTo(source.x + starR * 0.55, source.y + starR * 0.55);
+    ctx.moveTo(source.x + starR * 0.55, source.y - starR * 0.55);
+    ctx.lineTo(source.x - starR * 0.55, source.y + starR * 0.55);
+    ctx.stroke();
+    ctx.restore();
+
+    const indexEnds = drawPlateMirror(index, state.indexNormal, mirrorHalf);
+    const horizonEnds = drawPlateMirror(horizon, state.horizonNormal, mirrorHalf, true);
+    ctx.fillStyle = PLATE.ink;
+    ctx.beginPath(); ctx.arc(index.x, index.y, compact ? 2.1 : 2.7, 0, TAU); ctx.fill();
+
+    ctx.fillStyle = PLATE.paper;
+    ctx.strokeStyle = PLATE.ink;
+    ctx.lineWidth = compact ? 1.2 : 1.6;
+    ctx.strokeRect(scopeStart, horizon.y - scopeHeight / 2,
+      eyeX - scopeStart, scopeHeight);
+    ctx.strokeRect(scopeStart - (compact ? 5 : 7), horizon.y - scopeHeight * 0.33,
+      compact ? 6 : 8, scopeHeight * 0.66);
+    plateLine(ctx, { x: scopeStart, y: horizon.y }, {
+      x: eyeX + 4, y: horizon.y,
+    }, { kind: 'construction', weight: 0.55 });
+
+    // Edge view cannot show which half is silvered, so the face key earns a
+    // separate register. Its hatching describes the surface without color.
+    const cardsY = compact
+      ? instrumentBottom + 10
+      : titleBottom + (ruleY - titleBottom - 220) / 2;
+    const faceBox = compact
+      ? { x: 10, y: cardsY, w: Math.min(102, w * 0.36), h: 72 }
+      : { x: splitX + 8, y: cardsY, w: w - splitX - 22, h: 118 };
+    const causalBox = compact
+      ? {
+        x: faceBox.x + faceBox.w + 7,
+        y: cardsY,
+        w: w - faceBox.x - faceBox.w - 17,
+        h: 72,
+      }
+      : {
+        x: faceBox.x,
+        y: cardsY + 128,
+        w: faceBox.w,
+        h: 92,
+      };
+    ctx.save();
+    ctx.fillStyle = PLATE.paper;
+    ctx.strokeStyle = PLATE.ink;
+    ctx.lineWidth = 0.8;
+    ctx.fillRect(faceBox.x, faceBox.y, faceBox.w, faceBox.h);
+    ctx.strokeRect(faceBox.x, faceBox.y, faceBox.w, faceBox.h);
+    ctx.restore();
+    plateText(ctx, compact ? 'Mirror face' : 'Horizon mirror · face',
+      faceBox.x + faceBox.w / 2, faceBox.y + (compact ? 9 : 12), {
+        size: compact ? 8 : 9,
+        align: 'center',
+      });
+    const face = {
+      x: faceBox.x + (compact ? 8 : 14),
+      y: faceBox.y + (compact ? 23 : 32),
+      w: faceBox.w - (compact ? 16 : 28),
+      h: compact ? 17 : 28,
+    };
+    ctx.save();
+    ctx.fillStyle = PLATE.paper;
+    ctx.strokeStyle = PLATE.ink;
+    ctx.lineWidth = compact ? 0.7 : 0.9;
+    ctx.fillRect(face.x, face.y, face.w, face.h);
+    ctx.strokeRect(face.x, face.y, face.w, face.h);
+    ctx.beginPath();
+    ctx.rect(face.x, face.y, face.w / 2, face.h);
+    ctx.clip();
+    ctx.beginPath();
+    for (let offset = -face.h; offset < face.w / 2 + face.h; offset += 6) {
+      ctx.moveTo(face.x + offset, face.y + face.h);
+      ctx.lineTo(face.x + offset + face.h, face.y);
+    }
+    ctx.stroke();
+    ctx.restore();
+    plateLine(ctx, {
+      x: face.x + face.w / 2,
+      y: face.y,
+    }, {
+      x: face.x + face.w / 2,
+      y: face.y + face.h,
+    }, { weight: 0.55 });
+    plateText(ctx, 'Silvered', face.x + face.w * 0.25,
+      faceBox.y + (compact ? 52 : 69), {
+        size: compact ? 7.5 : 8,
+        align: 'center',
+      });
+    plateText(ctx, 'Clear', face.x + face.w * 0.75,
+      faceBox.y + (compact ? 52 : 69), {
+        size: compact ? 7.5 : 8,
+        align: 'center',
+      });
+    if (!compact) {
+      plateText(ctx, 'Vega → silvered', faceBox.x + faceBox.w / 2,
+        faceBox.y + 89, {
+          size: 8,
+          align: 'center',
+        });
+      plateText(ctx, 'Horizon → clear', faceBox.x + faceBox.w / 2,
+        faceBox.y + 104, {
+          size: 8,
+          align: 'center',
+        });
+    }
+    const routeLines = reachesMirror ? [
+      'Vega reflects twice',
+      'Horizon passes through',
+      'Arm brings both together',
+    ] : [
+      'Vega reflects once',
+      'Second mirror is missed',
+      'Move arm toward contact',
+    ];
+    plateBox(ctx, causalBox.x, causalBox.y, causalBox.w, routeLines, {
+      title: reachesMirror
+        ? (compact ? 'Light routes' : 'Why they meet')
+        : (compact ? 'No Vega image' : 'Why no Vega image'),
+      size: compact ? 8 : 9,
+      lineHeight: compact ? 11 : 16,
+      padding: compact ? 5 : 8,
+      height: causalBox.h,
+    });
+
+    const callouts = createPlateLabeler(ctx, {
+      left: compact ? 7 : 10,
+      top: titleBottom + 2,
+      right: compact ? w - 7 : splitX - 4,
+      bottom: instrumentBottom,
+      gap: compact ? 2 : 4,
+    });
+    const typeSize = compact ? 8 : 9;
+
+    if (!compact) {
+      callouts.place('INDEX MIRROR', indexEnds.b, [
+        { x: index.x + 63, y: index.y - 27, align: 'left' },
+        { x: index.x + 63, y: index.y + 21, align: 'left' },
+        { x: index.x - 58, y: index.y - 27, align: 'right' },
+      ], {
+        size: typeSize,
+      });
+      callouts.place('HORIZON MIRROR', horizonEnds.a, [
+        { x: horizon.x - 32, y: horizon.y + 40, align: 'right' },
+        { x: horizon.x + 28, y: horizon.y + 42, align: 'left' },
+        { x: horizon.x - 24, y: horizon.y - 31, align: 'right' },
+      ], {
+        size: typeSize,
+      });
+      const armMid = pointOnFrame(armA, frameInnerR * 0.58);
+      const armPointsLeft = armMid.x < index.x;
+      callouts.place('INDEX ARM – DRAG', armMid, [
+        {
+          x: armMid.x + (armPointsLeft ? -17 : 17),
+          y: armMid.y - 8,
+          align: armPointsLeft ? 'right' : 'left',
+        },
+        {
+          x: armMid.x + (armPointsLeft ? 17 : -17),
+          y: armMid.y + 18,
+          align: armPointsLeft ? 'left' : 'right',
+        },
+        { x: index.x + 65, y: index.y + 52, align: 'left' },
+      ], {
+        size: typeSize,
+      });
+    } else {
+      callouts.place('INDEX MIRROR', index, [
+        { x: index.x + 9, y: index.y - 9, align: 'left' },
+        { x: index.x + 10, y: index.y + 12, align: 'left' },
+      ], {
+        size: 8,
+      });
+      callouts.place('HORIZON MIRROR', horizon, [
+        { x: horizon.x - 9, y: horizon.y + 10, align: 'right' },
+        { x: horizon.x + 10, y: horizon.y + 13, align: 'left' },
+      ], {
+        size: 8,
+      });
+    }
+
+    callouts.place(compact ? 'VEGA' : 'VEGA LIGHT', source, [
+      { x: source.x + 10, y: source.y + 12, align: 'left' },
+      { x: source.x - 10, y: source.y + 12, align: 'right' },
+      { x: index.x + 17, y: titleBottom + 10, align: 'left' },
+    ], {
+      size: typeSize,
+      leader: false,
+    });
+    callouts.place(compact ? 'HORIZON' : 'HORIZON LIGHT', directStart, [
+      { x: directStart.x, y: horizon.y + (compact ? 11 : 15), align: 'left' },
+      { x: directStart.x, y: horizon.y - (compact ? 11 : 15), align: 'left' },
+    ], {
+      size: typeSize,
+      leader: false,
+    });
+    if (outgoingVisible) {
+      callouts.place('Reflected light', opticalEnd, [
+        {
+          x: opticalEnd.x - 5,
+          y: opticalEnd.y - (compact ? 10 : 13),
+          align: 'right',
+        },
+        {
+          x: opticalEnd.x + 5,
+          y: opticalEnd.y + (compact ? 10 : 13),
+          align: 'left',
+        },
+      ], {
+        size: compact ? 7.5 : 8,
+        leader: false,
+        fallback: 'hide',
+      });
+    } else if (!reachesMirror) {
+      const exitsAbove = opticalEnd.y < index.y;
+      callouts.place('Misses horizon mirror', opticalEnd, [
+        {
+          x: opticalEnd.x + (opticalEnd.x < index.x ? -5 : 5),
+          y: opticalEnd.y + (exitsAbove ? (compact ? 10 : 13) : -(compact ? 10 : 13)),
+          align: opticalEnd.x < index.x ? 'right' : 'left',
+        },
+        {
+          x: opticalEnd.x + (opticalEnd.x < index.x ? 5 : -5),
+          y: opticalEnd.y + (exitsAbove ? (compact ? 18 : 22) : -(compact ? 18 : 22)),
+          align: opticalEnd.x < index.x ? 'left' : 'right',
+        },
+      ], {
+        size: compact ? 7.5 : 8,
+        leader: false,
+        backed: true,
+      });
+    }
+    callouts.place(imageResult === 'contact' ? 'SHARED ROUTE TO TELESCOPE' : 'TO TELESCOPE',
+      directEnd, [
+      { x: eyeX - 2, y: horizon.y + (compact ? 11 : 15), align: 'right' },
+      { x: eyeX - 2, y: horizon.y - (compact ? 11 : 15), align: 'right' },
+    ], {
+      size: compact ? 7.5 : typeSize,
+      leader: false,
+    });
+
+    plateRule(ctx, ruleY, 14, w - 14);
+    const pathSummary = imageResult === 'contact'
+      ? `Arc ${fmtDM(2 * arm, 1)} · Vega and horizon coincide`
+      : reachesMirror
+        ? `Arc ${fmtDM(2 * arm, 1)} · image ${fmtDM(Math.abs(state.error), 1)} ${state.error < 0 ? 'above' : 'below'} horizon`
+        : `Arc ${fmtDM(2 * arm, 1)} · first reflection misses horizon mirror`;
+    plateDataText(ctx, pathSummary, w / 2, ruleY + (h - ruleY) / 2, {
+      size: compact ? 8 : 9.5,
+      align: 'center',
+    });
+
+    setOpticalStatus(state.error, reachesMirror);
   }
 })();

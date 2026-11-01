@@ -5,16 +5,26 @@ page spec governs everything around the canvas (type, rules, page color); this s
 everything inside it. The reference implementation is `demoAltitude` in `app.js`: read it first,
 match its standard.
 
+Every figure is drawn in the monochrome Lunar Orbiter plate style specified in
+[`DIAGRAM_STYLE.md`](DIAGRAM_STYLE.md). That guide includes the source image and supersedes this
+document's color and drawing-vocabulary rules wherever they disagree; this document keeps the
+architecture, shared state, and verification rules. The earlier A/B/C alternatives (color and
+plate treatments side by side, viewable with `?variants=1`) are preserved on the git branch
+`sextant-figure-variants-archive` for reference.
+
 ## 1. Architecture
 
-* one figure per file in `demos/`, loaded by its own `<script defer>` tag after `app.js`
+* one figure per file in `demos/`, loaded by its own `<script defer>` tag after `app.js`,
+  `story.js`, and any shared data it needs
 * all files are classic scripts sharing global scope; helpers, palette, and scaffolding come
   from `app.js`
 * register the figure in three places: a `<figure class="demo" id="demo-name">` block in
   `index.html` (canvas + empty `.demo-controls` + figcaption), a script tag, and the `figIds`
   list in `app.js`'s layout controller so the scroll-spy panel knows it
-* `createDemo(id, {aspect, maxH, draw})` handles sizing, DPR, theme, and the render loop; the
-  draw callback runs every frame while visible
+* `createDemo(id, {aspect, maxH, compactAspect, compactMaxH, draw})` handles sizing, DPR,
+  theme, and the render loop; the draw callback runs every frame while visible. The compact
+  sizes apply when the canvas is narrower than 500 CSS px.
+* each figure has exactly one treatment. The figcaption lives in `index.html`.
 * `demos/world.js` holds shared coastline data for globe figures: `const LAND`, simplified
   Natural Earth 110m land as flat `[lon,lat,lon,lat,...]` polylines in degrees, with the
   super-continents split at Suez and Panama (stroke draws the stored polylines as-is, so the
@@ -29,6 +39,12 @@ match its standard.
   `canvas._spin` QA hook in demo-gp)
 * controls: `addSlider`, `addStat` (values in ink; red is reserved for slider numerals),
   `addButton`, `addCheck`; dragging via `addDrag`
+* `addSlider(...).set(value, {emit: true})` is the explicit programmatic-change contract.
+  Omit `emit` while synchronizing a control from shared state; emit only when the programmatic
+  change is meant to behave like user input. This prevents update loops.
+* register curated states with `d.addPreset(name, apply)`. Prose controls use
+  `data-figure="demo-name" data-demo-preset="name"`; a preset must restore one meaningful,
+  fully explained state rather than merely moving a slider.
 * the canvas must paint its own `P.paper` ground: the panel behind it is paper and figures must
   invert cleanly with the theme
 * figures live in a sticky side panel on desktop; `createDemo` caps canvas height against the
@@ -69,8 +85,12 @@ Read live from CSS variables; both themes must be verified.
 | role | token |
 |---|---|
 | structure | `P.ink`, `P.inkSoft`, `P.line`, `P.paper`, `P.paperDeep` |
-| the measured quantity | `P.s2` ink blue |
-| its derived counterpart | `P.s1` crimson |
+| raw measured `Hs` | `P.measured` |
+| corrected `Ho` | `P.corrected` |
+| UTC / almanac / GP data | `P.ephemeris` |
+| predicted `Hc` / `Zn` | `P.predicted` |
+| plotted ring or LOP | `P.constraint` |
+| final fix / confirmed state | `P.fix` |
 | the sun and its family | `P.s3` signal orange, always |
 | success states | `P.green` |
 | page wayfinding (slider numerals, sparing error marks) | `P.red` |
@@ -120,7 +140,9 @@ Before building, answer three questions (owner's criteria):
 
 Practices that follow: put the reader's first-person experience before the outside view when
 both exist (the §1 dual pane); make a punchline visible, not just stated in a readout (the clock's
-false GP); exaggerations are allowed but must be labeled on the drawing ("shown ×100").
+false GP); exaggerations are allowed but must be labeled on the drawing ("shown ×100"). A staged
+exercise must not open on an empty canvas: seed one completed construction or show a restrained
+preview so the reader understands what the next action will produce.
 
 The established dual-view pattern (owner's sketch, 2026-08): measurement figures split into a
 left "from the deck" pane and a right "from outside – the same moment" pane, sharing one state
@@ -128,20 +150,33 @@ that either side can drag. The left pane is a vertical height gauge – a gradua
 with an arrowhead, the horizon with sea hatching at zero, the star riding the scale, and the
 altitude drawn as a linear dimension. See `demoAltitude` (app.js) and `demos/polaris.js`.
 
+The worked sight lives in `story.js`. Canonical figures subscribe to `SIGHT_STORY` only for
+quantities they actually represent, and every subscription must be loop-safe. The default
+19-figure reading path must be complete without clicking: interaction can reveal evidence,
+invite prediction, or permit exploration, but it must never gate the next paragraph. Reset and
+`worked` presets are deterministic so screenshots, instruction, and numerical checks all return
+to the same dated Vega sight.
+
+Desktop figure choreography is bound explicitly from prose with `data-figure="demo-name"`.
+Introduce the visual claim in that beat; do not rely on the old location of the inline figure.
+Mobile keeps every figure inline, so the same paragraph must still lead naturally into it.
+
 ## 8. Verification, non-negotiable
 
 * `node --check` the file; zero page errors in the browser
 * screenshot both color schemes AND the interaction extremes (slider ends, aligned states,
   degenerate geometry); look at the screenshots critically for collisions before calling it done
+* a figure is incomplete if it loses its interaction or relies on the caption to explain its
+  punchline
 * serve with `python3 -m http.server 8123` from the repo root; drive with playwright-core plus
   local Chrome. Figures hide in the desktop side panel until active, so scroll the text column
-  to the figure's anchor first:
+  to an introducing prose beat first:
 
 ```js
 await page.evaluate(() => {
   const ls = document.querySelector('.left-scroll');
-  const el = document.querySelector('.fig-anchor[data-fig=demo-name]');
-  ls.scrollTop += el.getBoundingClientRect().top - ls.getBoundingClientRect().top - ls.clientHeight * 0.7;
+  const el = document.querySelector('[data-figure="demo-name"]:not(button)');
+  ls.scrollTop += el.getBoundingClientRect().top - ls.getBoundingClientRect().top - ls.clientHeight * 0.52;
 });
 ```
 
