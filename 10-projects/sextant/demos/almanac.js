@@ -139,18 +139,12 @@
     ctx.fillRect(0, 0, w, h);
 
     const compact = w < 500;
-    const titleSize = compact ? 8.5 : 11;
     const size = compact ? 7.6 : 9.2;
     const row = size * PLATE_TEXT_SCALE * 1.55;
     const pad = 14;
 
-    plateText(ctx, compact ? 'One Aries column, one offset per star'
-      : 'One Aries column, plus one offset per star', w / 2,
-    compact ? 11 : 15, {
-      size: titleSize, weight: 600, tracking: titleSize * 0.12, align: 'center',
-    });
-    const titleRule = compact ? 25 : 32;
-    plateRule(ctx, titleRule, pad, w - pad);
+    // the figure's title is set in its caption, so the tables start at the top
+    const titleRule = compact ? 2 : 4;
 
     // the two tables an almanac page actually prints: Aries hour by hour,
     // and a short star list whose offsets barely change all year

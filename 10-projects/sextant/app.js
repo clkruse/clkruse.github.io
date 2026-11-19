@@ -136,6 +136,11 @@ const PLATE = Object.freeze({
 // up as soon as they arrive.
 if (document.fonts?.load) {
   ['400', '600'].forEach(weight => document.fonts.load(`${weight} 12px Jost`));
+  // labels pick their seats on the first frames, possibly in a fallback
+  // face; once Jost arrives, let every figure choose again
+  document.fonts.ready.then(() => {
+    document.querySelectorAll('canvas').forEach(c => { c._plateLabelMemory = new Map(); });
+  });
 }
 
 // Demos lay out in nominal plate sizes; every glyph is drawn this much
@@ -584,13 +589,21 @@ function sunGlyph(ctx, x, y, r) {
 
 /* ––––– demo scaffolding ––––– */
 
-// fixed figure numbers: the desktop layout moves figures into the side
-// panel, which would otherwise restart a CSS counter at 1
+// figure numbers, NASA style: section, then count within it ("1-2", "B-3").
+// Part openers are skipped; a figure before any numbered section counts as 0.
 // (set on the caption: CSS attr() in ::before reads the caption itself)
-document.querySelectorAll('figure.demo').forEach((figure, i) => {
-  figure.dataset.no = String(i + 1);
-  figure.querySelector('figcaption')?.setAttribute('data-no', figure.dataset.no);
-});
+{
+  let section = '0', count = 0;
+  document.querySelectorAll('.article h2, figure.demo').forEach(el => {
+    if (el.tagName === 'H2') {
+      const m = (el.querySelector('.sec-no')?.textContent || '').trim().match(/^(\d+)\.0$|^([A-Z])$/);
+      if (m) { section = m[1] || m[2]; count = 0; }
+      return;
+    }
+    el.dataset.no = `${section}-${++count}`;
+    el.querySelector('figcaption')?.setAttribute('data-no', el.dataset.no);
+  });
+}
 
 const allDemos = [];
 const visibleDemos = new Set();
@@ -1635,64 +1648,4 @@ function drawGlobeBase(ctx, toView, cx, cy, R, options = {}) {
   if (showCenter) centerMark(ctx, cx, cy, 7, P.globeLimb);
 }
 
-/* ––––––––––––––––––––––––––––––––––––––––––––––––
-   Contents. One column on every screen; where the window leaves a wide
-   left gutter, a small contents list sits there (CSS shows it) and marks
-   the section being read.
-   –––––––––––––––––––––––––––––––––––––––––––––––– */
-
-(function contents() {
-  const heads = [...document.querySelectorAll('.article h2')];
-  if (!heads.length) return;
-  const nav = document.createElement('nav');
-  nav.className = 'toc';
-  nav.setAttribute('aria-label', 'Contents');
-  const list = document.createElement('ol');
-  nav.append(list);
-  const items = [];
-  for (const h of heads) {
-    const no = h.querySelector('.sec-no')?.textContent.trim() || '';
-    const title = h.querySelector('.sec-title')?.textContent.trim() || h.textContent.trim();
-    const li = document.createElement('li');
-    if (h.classList.contains('part-title')) {
-      li.className = 'toc-part';
-      li.textContent = no;
-      list.append(li);
-      continue;
-    }
-    if (!h.id) continue;
-    const a = document.createElement('a');
-    a.href = `#${h.id}`;
-    const n = document.createElement('span');
-    n.className = 'toc-no';
-    n.textContent = no;
-    const t = document.createElement('span');
-    t.className = 'toc-title';
-    t.textContent = title;
-    a.append(n, t);
-    li.append(a);
-    list.append(li);
-    items.push({ h, li });
-  }
-  document.body.append(nav);
-
-  let current = null, queued = false;
-  const update = () => {
-    queued = false;
-    // stay out of the way through the title and opening: appear once the
-    // first section's head has scrolled off the top of the window
-    nav.classList.toggle('is-shown', items.length > 0 && items[0].h.getBoundingClientRect().top < 0);
-    const line = window.innerHeight * 0.3;
-    let active = null;
-    for (const item of items) if (item.h.getBoundingClientRect().top < line) active = item;
-    if (active === current) return;
-    current?.li.classList.remove('is-current');
-    active?.li.classList.add('is-current');
-    current = active;
-  };
-  window.addEventListener('scroll', () => {
-    if (!queued) { queued = true; requestAnimationFrame(update); }
-  }, { passive: true });
-  update();
-})();
 

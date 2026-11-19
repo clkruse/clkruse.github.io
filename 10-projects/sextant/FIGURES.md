@@ -33,7 +33,7 @@ The earlier color and A/B/C treatments are preserved on the git branch
       <canvas></canvas>
       <div class="demo-controls"></div>
     </div>
-    <figcaption>One or two sentences, sentence case.</figcaption>
+    <figcaption><span class="fig-title">Short title</span> One or two sentences, sentence case.</figcaption>
   </figure>
   ```
 
@@ -64,16 +64,21 @@ The earlier color and A/B/C treatments are preserved on the git branch
   captions; paragraphs keep a reading measure; figures reach 8rem past the text on wide
   screens. Put each figure right after the paragraph that introduces it.
 * section heads are `<h2 id><span class="sec-no">3.0</span><span class="sec-title">…</span></h2>`;
-  part openers are `h2.part-title` with "Part one" as their `.sec-no`. app.js builds the
-  contents list (shown in the left gutter on wide screens) from these heads.
+  part openers are `h2.part-title` with "Part one" as their `.sec-no`. (A contents list in
+  the left gutter was tried and removed as too distracting; it is in commit 6960c6d.)
 * a term definition is `<aside class="gloss"><span class="gloss-term">Term</span>One line.</aside>`
   placed immediately BEFORE the paragraph that introduces the term; it sits beside that
   paragraph in the margin (and above it on phones). Keep it to a line or two, and only for
   terms the reader needs again later. The definitions are not in the draft: the owner reviews them.
 * a takeaway is a `div.note` with a `span.note-label` ("Note") and a paragraph, a ruled box
   like a checklist caution
-* captions are numbered automatically: `app.js` sets `data-no` on each figure and its
-  figcaption in page order, and CSS prints "Fig. N". Do not type numbers into captions.
+* every figure's title is the `span.fig-title` that opens its caption, set bold under the
+  "Figure 1-2" number (inline after it on phones), the way a NASA technical report sets
+  "Figure 2-4. Title". Do not draw a figure-level title on the canvas; headings for panes or stages inside
+  a figure are fine.
+* captions are numbered automatically, NASA style: `app.js` sets `data-no` to the section
+  number and the figure's count within that section ("1-2", "B-3"), and CSS prints
+  "Figure 1-2". Part openers don't count as sections. Do not type numbers into captions.
 
 ## 3. Controls and readouts
 
@@ -188,6 +193,10 @@ Practices that follow:
   lays out the gauge.
 
 ## 9. Verification, non-negotiable
+
+Scale the check to the change. A small visual tweak (a line weight, a label's wording, a size)
+needs only `node --check`; the owner judges it on reload. The full routine below is for new
+figures and for changes to layout or label placement.
 
 * `node --check` the file; zero page errors in the browser
 * screenshot both color schemes, desktop (1440) and phone (390 and 320), and the interaction

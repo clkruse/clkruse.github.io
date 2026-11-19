@@ -548,7 +548,6 @@ strong { font-weight: 800; }
 .demo { margin: var(--rhythm) 0; width: 100%; }
 
 .demo-panel {
-  border: 1px solid var(--hair);
   background: var(--paper);
   overflow: hidden;
   animation: figure-in 180ms ease-out;
@@ -681,10 +680,12 @@ strong { font-weight: 800; }
 
 /* numeric readouts: a data strip of NAME over value cells, divided by
    hairlines like the plate's ruled tables */
+/* the panel has no frame, so the strip sits inside the controls' inset
+   like the dashed rule above it, with no outer edge lines */
 .ctl-readouts {
   display: flex;
   flex-wrap: wrap;
-  margin: 0 -1rem;
+  margin: 0;
   border-top: 1px solid var(--hair);
 }
 .ctl-readout {
@@ -698,6 +699,7 @@ strong { font-weight: 800; }
   box-shadow: -1px 0 0 var(--hair), 0 -1px 0 var(--hair);
 }
 .ctl-readout.wide { flex: 2 1 19rem; }
+.ctl-readout:first-child { padding-left: 0; box-shadow: 0 -1px 0 var(--hair); }
 .ctl-readout .ctl-label:empty { display: none; }
 .ctl-readout .ctl-label { white-space: normal; }
 .ctl-readout .ctl-value { overflow-wrap: anywhere; }
@@ -718,7 +720,7 @@ figcaption {
   text-wrap: pretty;
 }
 figcaption[data-no]::before {
-  content: "Fig. " attr(data-no);
+  content: "Figure " attr(data-no);
   font-weight: 600;
   font-size: 0.78em;
   letter-spacing: 0.1em;
@@ -817,7 +819,7 @@ input[type="range"]::-moz-range-thumb {
     padding: 0.2rem 0;
   }
   .ctl input[type="range"] { grid-column: 1 / -1; grid-row: 2; }
-  .ctl-readouts { margin: 0 -0.75rem; }
+  .ctl-readouts { margin: 0; }
   .demo-controls { background-position: 0.75rem 0, 0 0; background-size: calc(100% - 1.5rem) 1px, auto; }
   .ctl-readout { padding: 0.5rem 0.75rem 0.55rem; }
   .sight-log dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }

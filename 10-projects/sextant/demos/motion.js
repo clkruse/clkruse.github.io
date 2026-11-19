@@ -51,10 +51,10 @@
     ctx.fillRect(0, 0, w, h);
 
     const compact = w < 500 || h < 330;
-    const titleSize = compact ? 8.5 : 11;
     const bodySize = compact ? 8 : 9.2;
     const dataSize = compact ? 8 : 9;
-    const fieldTop = compact ? 29 : 44;
+    // the figure's title is set in its caption, so the field starts at the top
+    const fieldTop = compact ? 10 : 16;
     const ruleY = h - (compact ? 42 : 54);
     const fieldBottom = ruleY - (compact ? 5 : 9);
     const fieldH = fieldBottom - fieldTop;
@@ -71,12 +71,6 @@
     const movedA = startA + moved * D2R;
     const wrap360 = value => ((value % 360) + 360) % 360;
     const currentGha = wrap360(sight.gha + moved);
-
-    plateText(ctx, 'Vega’s GP moves west', w / 2,
-      compact ? 11 : 15, {
-        size: titleSize, weight: 600, tracking: titleSize * 0.12, align: 'center',
-      });
-    plateRule(ctx, compact ? 25 : 32, 14, w - 14);
 
     plateText(ctx, compact ? 'GP TRAVEL' : 'VEGA’S GP TRAVEL AROUND EARTH',
       cx, fieldTop + (compact ? 5 : 8), {

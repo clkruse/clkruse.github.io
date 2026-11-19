@@ -175,10 +175,10 @@
     ctx.fillStyle = PLATE.paper;
     ctx.fillRect(0, 0, w, h);
     const compact = w < 560 || h < 420;
-    const titleSize = compact ? 8 : 10.4;
     const ruleY = compact ? h - 24 : h - 76;
     const fieldBottom = ruleY - (compact ? 4 : 9);
-    const ledgerY = compact ? 31 : 42;
+    // the figure's title is set in its caption, so the ledger starts at the top
+    const ledgerY = compact ? 8 : 14;
     const ledgerW = w - (compact ? 16 : 28);
     const ledgerTitle = 'SIGHT LEDGER';
     const ledgerFormula = 'a = 60(Ho − Hc) · + TOWARD / − AWAY';
@@ -210,14 +210,6 @@
       h: Math.max(compact ? 36 : 60, fieldBottom - ledger.y - ledger.h - gap),
     };
 
-    plateText(ctx, 'From signed intercept to LOP',
-      w / 2, compact ? 11 : 15, {
-        size: titleSize,
-        weight: 600,
-        tracking: titleSize * 0.15,
-        align: 'center',
-      });
-    plateRule(ctx, compact ? 25 : 32, 14, w - 14);
 
     ctx.save();
     ctx.strokeStyle = PLATE.ink;

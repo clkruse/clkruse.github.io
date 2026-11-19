@@ -137,7 +137,6 @@
     ctx.fillRect(0, 0, w, h);
 
     const compact = w < 500 || h < 330;
-    const titleSize = compact ? 8.5 : 11;
     const bodySize = compact ? 8 : 9.2;
     const dataSize = compact ? 8 : 9;
     const line = size => size * PLATE_TEXT_SCALE * 1.45;
@@ -149,12 +148,8 @@
       + (clamp(seconds, -120, 120) + 120) / 240 * (x1 - x0);
     const markerX = errorX(s.errorSeconds);
 
-    plateText(ctx, 'Earth turns about 1′ in four seconds', w / 2,
-      compact ? 11 : 15, {
-        size: titleSize, weight: 600, tracking: titleSize * 0.12, align: 'center',
-      });
-    const titleRule = compact ? 25 : 32;
-    plateRule(ctx, titleRule, 14, w - 14);
+    // the figure's title is set in its caption, so the band starts at the top
+    const titleRule = compact ? 2 : 4;
 
     // top band: the clock readings beside the why-box (stacked on phones,
     // where the readings already sit in the footer)

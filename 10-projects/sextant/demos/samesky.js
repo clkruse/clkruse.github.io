@@ -112,19 +112,13 @@
     ctx.fillRect(0, 0, w, h);
 
     const compact = w < 500 || h < 330;
-    const titleSize = compact ? 8.5 : 11;
     const bodySize = compact ? 8 : 9.2;
     const dataSize = compact ? 8 : 9;
-    const fieldTop = compact ? 29 : 44;
+    // the figure's title is set in its caption, so the field starts at the top
+    const fieldTop = compact ? 10 : 16;
     const ruleY = h - (compact ? 38 : 62);
     const frac = clamp((gmt - referenceUtc) / MATCH_WINDOW_HOURS, 0, 1);
     const margin = compact ? 8 : 16;
-
-    plateText(ctx, 'Same distance west, same local sky', w / 2,
-      compact ? 11 : 15, {
-        size: titleSize, weight: 600, tracking: titleSize * 0.12, align: 'center',
-      });
-    plateRule(ctx, compact ? 25 : 32, 14, w - 14);
 
     const boxTitle = 'WHY THE VIEW REPEATS';
     const boxLines = [

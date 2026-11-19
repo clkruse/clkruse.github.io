@@ -21,18 +21,37 @@
     value: 25,
     fmt: v => v.toFixed(0) + '°',
   });
-  const altStat = addStat(d, 'star’s altitude');
 
+  // the star sits 20° off vertical, so its GP reads as any point on the
+  // globe rather than the pole at the top of the drawing
+  const TILT = 20;
   // which side of the GP the observer stands on; dragging picks it
   let side = 1;
   let geo = null;
   d.canvas.classList.add('grab');
+  // a drag that starts in "what you see" moves the star up and down that
+  // panel, under the pointer; anywhere else it walks you around the globe
+  let dragView = false;
+  const inView = p => geo && geo.view && p.x >= geo.view.x && p.x <= geo.view.x + geo.view.w
+    && p.y >= geo.view.y && p.y <= geo.view.y + geo.view.h;
   addDrag(d.canvas, {
+    start(p) {
+      dragView = inView(p);
+      if (dragView) this.move(p);
+    },
     move(p) {
       if (!geo) return;
-      const fromUp = Math.atan2(p.x - geo.cx, geo.cy - p.y);
-      if (Math.abs(fromUp) > 0.002) side = Math.sign(fromUp);
-      dist.set(clamp(Math.round(Math.abs(fromUp) * R2D), 0, 100), { emit: false });
+      if (dragView) {
+        const v = geo.view;
+        const alt = clamp(90 * (v.horizonY - p.y) / (v.horizonY - v.topY), 0, 90);
+        dist.set(Math.round(90 - alt), { emit: false });
+        return;
+      }
+      let fromGp = Math.atan2(p.y - geo.cy, p.x - geo.cx) - geo.gpA;
+      while (fromGp > Math.PI) fromGp -= TAU;
+      while (fromGp < -Math.PI) fromGp += TAU;
+      if (Math.abs(fromGp) > 0.002) side = Math.sign(fromGp);
+      dist.set(clamp(Math.round(Math.abs(fromGp) * R2D), 0, 100), { emit: false });
     },
   });
 
@@ -44,18 +63,10 @@
     const compact = w < 500;
     const z = clamp(dist.v, 0, 100);
     const alt = 90 - z;
-    altStat.set(alt >= 0
-      ? `90° − ${fmtDeg(z)} = ${fmtDeg(alt)}`
-      : 'below the horizon');
 
+    // the figure's title is set in its caption, so the field starts at the top
     const pad = compact ? 10 : 16;
-    const titleY = compact ? 15 : 19;
-    plateText(ctx, compact
-      ? 'THE STAR SINKS AS YOU WALK'
-      : 'WALK AWAY FROM THE GP AND THE STAR SINKS',
-    pad, titleY, { size: compact ? 8.5 : 10.5, weight: 600 });
-
-    const fieldTop = titleY + (compact ? 14 : 20);
+    const fieldTop = pad;
     const fieldBottom = h - pad;
     let globeBox, viewBox;
     if (compact) {
@@ -74,18 +85,30 @@
 
   function drawGlobe(ctx, box, z, alt, compact) {
     const size = compact ? 8 : 9;
-    const rayTop = box.y + (compact ? 14 : 18);
+    // the star, drawn as in Figure 1-1, at the head of the GP's starlight
+    const starR = compact ? 7.5 : 9;
+    const starY = box.y + starR + 2;
+    const rayTop = starY + starR + 6;
     const R = Math.min(box.w * (compact ? 0.3 : 0.33), (box.y + box.h - rayTop) * (compact ? 0.35 : 0.37));
-    const cx = box.x + box.w / 2;
-    const cy = box.y + box.h - R - (compact ? 22 : 28);
-    geo = { cx, cy };
-    const up = -Math.PI / 2;
+    // a little left of centre: the tilted starlight carries everything right
+    const cx = box.x + box.w * (compact ? 0.44 : 0.45);
+    const cy = box.y + box.h - R - (compact ? 14 : 18);
+    // the direction to the star, which is also the direction from the
+    // centre to the GP
+    const up = -Math.PI / 2 + TILT * D2R;
+    geo = { cx, cy, gpA: up };
+    const toStar = { x: Math.cos(up), y: Math.sin(up) };
+    // a ray of starlight into point p, starting level with the others
+    const rayFrom = p => {
+      const len = (p.y - rayTop) / -toStar.y;
+      return { x: p.x + toStar.x * len, y: p.y + toStar.y * len };
+    };
 
     plateWireSphere(ctx, cx, cy, R, {
       tilt: 0, graticule: false, axis: false, northLabel: false,
     });
 
-    const gp = { x: cx, y: cy - R };
+    const gp = { x: cx + toStar.x * R, y: cy + toStar.y * R };
     const a = up + side * z * D2R;
     const you = { x: cx + Math.cos(a) * R, y: cy + Math.sin(a) * R };
     const visible = alt > 0;
@@ -109,16 +132,18 @@
       ctx.restore();
     }
 
-    // parallel starlight: one ray to the GP, one to the observer while the
-    // star is still above their horizon
+    // the star is so far away that the lines to it from the GP and from you
+    // are parallel; both run outward with an arrow toward it, and yours is
+    // labelled as aimed at the same star
     const head = compact ? 3.2 : 4;
-    plateVector(ctx, { x: gp.x, y: rayTop }, gp, { kind: 'long', weight: compact ? 0.8 : 1, head });
+    const gpRay = rayFrom(gp);
+    const youRay = rayFrom(you);
+    plateVector(ctx, gp, gpRay, { kind: 'long', weight: compact ? 0.8 : 1, head });
     if (visible) {
-      plateVector(ctx, { x: you.x, y: rayTop }, you, { kind: 'long', weight: compact ? 0.8 : 1, head });
+      plateVector(ctx, you, youRay, { kind: 'long', weight: compact ? 0.8 : 1, head });
     }
-    plateText(ctx, 'STARLIGHT', cx, rayTop - (compact ? 6 : 8), {
-      size: compact ? 7.5 : 8.5, align: 'center',
-    });
+    const star = { x: gpRay.x + toStar.x * ((rayTop - starY) / -toStar.y), y: starY };
+    starGlyph(ctx, star.x, star.y, starR, PLATE.ink);
 
     // the observer's horizon, tangent to the ground under their feet
     const horizonHalf = Math.min(R * 0.42, compact ? 32 : 48);
@@ -168,7 +193,7 @@
     ctx.restore();
 
     const labels = createPlateLabeler(ctx, {
-      left: box.x, top: rayTop, right: box.x + box.w, bottom: box.y + box.h, gap: compact ? 2 : 3,
+      left: box.x, top: box.y, right: box.x + box.w, bottom: box.y + box.h, gap: compact ? 2 : 3,
     });
     // keep labels off the marks and lines they describe
     const reserveSegment = (p, q) => {
@@ -184,8 +209,9 @@
     reserveSegment(you, zenithEnd);
     reserveSegment({ x: cx, y: cy }, you);
     reserveSegment({ x: cx, y: cy }, gp);
-    if (visible) reserveSegment({ x: you.x, y: rayTop }, you);
-    reserveSegment({ x: gp.x, y: rayTop }, gp);
+    if (visible) reserveSegment(youRay, you);
+    reserveSegment(gpRay, gp);
+    labels.reserve({ x: star.x - starR - 3, y: star.y - starR - 3, w: starR * 2 + 6, h: starR * 2 + 6 });
     // the globe outline itself
     for (let t = 0; t < TAU; t += 0.05) {
       labels.reserve({ x: cx + Math.cos(t) * R - 2, y: cy + Math.sin(t) * R - 2, w: 4, h: 4 }, 1);
@@ -197,6 +223,7 @@
       const tw = plateTextWidth(ctx, text, { ...opts, font: PLATE.dataFont, uppercase: false, tracking: 0 });
       const th = plateSize(opts.size) * 1.2;
       labels.reserve({ x: at.x - tw / 2, y: at.y - th / 2, w: tw, h: th });
+      return { x: at.x, y: at.y, hw: tw / 2, hh: th / 2 };
     };
     const wedgeRadius = (halfW, spanDeg, minR) =>
       Math.max(minR, (halfW + 4) / Math.sin(Math.max(1e-3, spanDeg * D2R / 2)));
@@ -222,22 +249,48 @@
         const r = wedgeRadius(hw, z, altArcR + (compact ? 12 : 15));
         at = { x: you.x + Math.cos(mid) * r, y: you.y + Math.sin(mid) * r };
       }
+      // named in the "what you see" panel, where there is room beside the star
       angleText(text, at, { size: altSize, weight: 700 });
     }
     if (z >= 7) {
+      // the figure and its name travel together as one block, "25°" over
+      // "FROM THE GP": inside the wedge where it is wide enough, otherwise
+      // just across the GP line, level with the arc
       const text = fmtDeg(z);
+      const word = 'FROM THE GP';
       const zSize = compact ? 7.5 : 9;
-      const hw = halfWidth(text, zSize);
-      const r = wedgeRadius(hw, z, centerArcR + (compact ? 11 : 14));
-      let at;
-      if (r < R * 0.8) {
-        const mid = up + side * z * D2R / 2;
-        at = { x: cx + Math.cos(mid) * r, y: cy + Math.sin(mid) * r };
-      } else {
-        // narrow wedge: set the figure beside the GP line, level with its arc
-        at = { x: cx - side * (hw + 7), y: cy - centerArcR + 2 };
+      const wordSize = compact ? 6.8 : 7.5;
+      const numH = plateSize(zSize) * 1.15, wordH = plateSize(wordSize) * 1.15;
+      const bhw = Math.max(halfWidth(text, zSize), plateTextWidth(ctx, word, { size: wordSize }) / 2);
+      const bhh = (numH + wordH) / 2;
+      // walk out along the bisector until every corner of the block clears
+      // both sides of the wedge
+      const mid = up + side * z * D2R / 2;
+      const fits = q => [[-1, -1], [1, -1], [1, 1], [-1, 1]].every(([sx, sy]) => {
+        const dx = q.x + sx * bhw - cx, dy = q.y + sy * bhh - cy;
+        let rel = Math.atan2(dy, dx) - up;
+        while (rel > Math.PI) rel -= TAU;
+        while (rel < -Math.PI) rel += TAU;
+        rel *= side;
+        const dist = Math.hypot(dx, dy);
+        return rel > 0 && rel < z * D2R && dist > centerArcR + 3
+          && dist * Math.sin(rel) > 4 && dist * Math.sin(z * D2R - rel) > 4;
+      });
+      let at = null;
+      for (let r = centerArcR + bhh; r < R * 0.8 && !at; r += 2) {
+        const q = { x: cx + Math.cos(mid) * r, y: cy + Math.sin(mid) * r };
+        if (fits(q)) at = q;
       }
-      angleText(text, at, { size: zSize });
+      if (!at) {
+        const p = { x: cx + toStar.x * centerArcR, y: cy + toStar.y * centerArcR };
+        const pa = up - side * Math.PI / 2;
+        const px = Math.cos(pa), py = Math.sin(pa);
+        const off = (compact ? 5 : 7) + Math.abs(px) * bhw + Math.abs(py) * bhh;
+        at = { x: p.x + px * off, y: p.y + py * off };
+      }
+      plateDataText(ctx, text, at.x, at.y - bhh + numH / 2, { size: zSize, align: 'center' });
+      plateText(ctx, word, at.x, at.y + bhh - wordH / 2, { size: wordSize, align: 'center' });
+      labels.reserve({ x: at.x - bhw, y: at.y - bhh, w: bhw * 2, h: bhh * 2 });
     }
     const out = side;
     const align = out < 0 ? 'right' : 'left';
@@ -261,16 +314,26 @@
         });
       }
     }
-    labels.place(atGp ? 'YOU, AT THE GP' : 'YOU', you, youCandidates, { size, weight: 700, backed: false, leader: false });
+    labels.place(atGp && !compact ? 'YOU, AT THE GP · DRAG' : 'YOU · DRAG', you, youCandidates,
+      { size, weight: 700, backed: false, leader: false });
+    // your line aims at the same star as the GP's, far off the top of the page
+    if (visible && !atGp) {
+      // set level with the star, over the tip of your line, the way the star
+      // itself sits over the tip of the GP's
+      const word = compact ? 'SAME STAR' : 'TO THE SAME STAR';
+      const thw = plateTextWidth(ctx, word, { size: 7.5 }) / 2;
+      const tx0 = clamp(youRay.x, box.x + thw + 2, box.x + box.w - thw - 2);
+      const clearOfStar = Math.abs(tx0 - star.x) > thw + starR + 8;
+      if (clearOfStar && Math.abs(tx0 - youRay.x) < thw) {
+        plateText(ctx, word, tx0, star.y, { size: 7.5, align: 'center' });
+      }
+    }
     if (!compact) {
       labels.place('HORIZON', { x: you.x + tx, y: you.y + ty }, [
         { x: you.x - tx * 1.05 - side * 4, y: you.y - ty * 1.05 - 10, align: 'center' },
         { x: you.x + tx * 1.05, y: you.y + ty * 1.05 + 10, align: 'center' },
         { x: you.x - tx * 1.05, y: you.y - ty * 1.05 + 10, align: 'center' },
       ], { size: 7.5, leader: false, fallback: 'hide' });
-      plateText(ctx, 'DRAG YOURSELF AROUND THE GLOBE', box.x + box.w / 2, box.y + box.h - 6, {
-        size: 7.5, align: 'center',
-      });
     }
   }
 
@@ -291,6 +354,7 @@
     const horizonY = box.y + box.h - seaH;
     const topY = ruleY + (compact ? 14 : 22);
     const yOf = deg => horizonY - (horizonY - topY) * deg / 90;
+    if (geo) geo.view = { ...box, horizonY, topY };
     const scaleX = box.x + (compact ? 34 : 42);
     const right = box.x + box.w - 8;
 
@@ -338,7 +402,10 @@
       plateLine(ctx, { x: starX, y: horizonY }, { x: starX, y: sy + 9 }, { kind: 'long', weight: 0.7 });
       starGlyph(ctx, starX, sy, compact ? 5.5 : 7, PLATE.ink);
       // low stars lift their figure clear of the HORIZON label
-      plateDataText(ctx, fmtDeg(alt), starX + (compact ? 10 : 13), clamp(sy, topY + 4, horizonY - (compact ? 18 : 24)), {
+      const ay = clamp(sy, topY + 4, horizonY - (compact ? 18 : 24));
+      const ax = starX + (compact ? 10 : 13);
+      plateText(ctx, 'ALTITUDE', ax, ay, { size: compact ? 7 : 7.5 });
+      plateDataText(ctx, fmtDeg(alt), ax + plateTextWidth(ctx, 'ALTITUDE', { size: compact ? 7 : 7.5 }) + 5, ay, {
         size: compact ? 8.5 : 10, weight: 700,
       });
     } else {

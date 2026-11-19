@@ -13,13 +13,16 @@
   });
 
   const SNAP = 1.5;
+  // the slider holds the sight's direction, 0° (right horizon) through 90°
+  // (overhead) to 180° (left horizon); it reads out the altitude
+  const altOf = v => (v <= 90 ? v : 180 - v);
   const sight = addSlider(d, {
     label: 'line of sight',
     min: 0,
-    max: 90,
+    max: 180,
     step: 1,
     value: 30,
-    fmt: v => v.toFixed(0) + '°',
+    fmt: v => altOf(v).toFixed(0) + '°',
   });
 
   let geo = null;
@@ -28,10 +31,10 @@
     move(p) {
       if (!geo) return;
       let a = Math.atan2(geo.eye.y - p.y, p.x - geo.eye.x) * R2D;
-      // pointing past vertical, or below the horizon, pins to the ends
-      if (a > 90 || a < -90) a = a > 0 || a < -90 ? 90 : 0;
-      a = clamp(a, 0, 90);
-      if (90 - a <= SNAP) a = 90;
+      // below the horizon pins to the nearer end
+      if (a < 0) a = a < -90 ? 180 : 0;
+      a = clamp(a, 0, 180);
+      if (Math.abs(90 - a) <= SNAP) a = 90;
       sight.set(Math.round(a), { emit: false });
     },
   });
@@ -40,21 +43,22 @@
     ctx.fillStyle = PLATE.paper;
     ctx.fillRect(0, 0, w, h);
     const compact = w < 500;
-    const overhead = 90 - sight.v <= SNAP;
-    const alt = overhead ? 90 : sight.v;
+    const overhead = Math.abs(90 - sight.v) <= SNAP;
+    const alt = overhead ? 90 : altOf(sight.v);
+    // which horizon the altitude is measured from: +1 right, -1 left
+    const side = sight.v <= 90 ? 1 : -1;
+    // a screen angle that many degrees up from the measured horizon
+    const upFrom = deg => (side > 0 ? -deg : 180 + deg) * D2R;
     const altText = `${alt.toFixed(0)}°`;
 
     const pad = compact ? 10 : 16;
     const titleY = compact ? 15 : 19;
-    plateText(ctx, compact
-      ? 'ALTITUDE: ANGLE UP FROM THE HORIZON'
-      : 'ALTITUDE: THE ANGLE UP FROM THE HORIZON',
-    pad, titleY, { size: compact ? 8.5 : 10.5, weight: 600 });
+    // the figure's title is set in its caption; titleY now only anchors the drag hint
 
     const starY = titleY + (compact ? 40 : 42);
     const groundY = h - (compact ? 62 : 64);
     const span = groundY - starY;
-    const cx = compact ? w * 0.42 : w * 0.44;
+    const cx = w * 0.5;
     const eye = { x: cx, y: groundY };
     geo = { eye };
 
@@ -79,7 +83,7 @@
 
     // horizon: the level line tangent at the observer
     const horizonLeft = Math.max(pad, cx - (compact ? cx - pad : Math.min(cx - pad, span * 1.05)));
-    const horizonRight = w - pad;
+    const horizonRight = cx + (cx - horizonLeft);
     plateLine(ctx, { x: horizonLeft, y: groundY }, { x: horizonRight, y: groundY }, {
       kind: 'long', weight: compact ? 0.9 : 1,
     });
@@ -94,7 +98,8 @@
     });
     starGlyph(ctx, star.x, star.y, starR, PLATE.ink);
 
-    // flagpole at the GP, flag streaming left, away from the sight line
+    // flagpole at the GP, flag streaming away from the sight line
+    const fs = -side;
     plateLine(ctx, eye, poleTop, { weight: compact ? 1.3 : 1.5 });
     const flagW = compact ? 14 : 17, flagH = compact ? 9 : 11;
     ctx.save();
@@ -103,17 +108,18 @@
     ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.moveTo(poleTop.x, poleTop.y);
-    ctx.lineTo(poleTop.x - flagW, poleTop.y + flagH / 2);
+    ctx.lineTo(poleTop.x + fs * flagW, poleTop.y + flagH / 2);
     ctx.lineTo(poleTop.x, poleTop.y + flagH);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
     ctx.restore();
-    rightAngleMark(ctx, eye.x, eye.y, Math.PI, -Math.PI / 2, compact ? 8 : 9, PLATE.ink);
+    rightAngleMark(ctx, eye.x, eye.y, side > 0 ? Math.PI : 0, -Math.PI / 2, compact ? 8 : 9, PLATE.ink);
 
     // the reader's line of sight, pivoting at the eye
-    const a = -alt * D2R;
-    const reach = Math.min(span * 0.8, w - pad - cx - (compact ? 18 : 30));
+    const a = upFrom(alt);
+    // one length on both sides: an arrow's length never changes with state
+    const reach = Math.min(span * 0.8, cx - pad - (compact ? 18 : 30));
     const sightLen = overhead ? span - starR - 10 : reach;
     const end = { x: eye.x + Math.cos(a) * sightLen, y: eye.y + Math.sin(a) * sightLen };
     if (overhead) {
@@ -129,7 +135,8 @@
       ctx.strokeStyle = PLATE.ink;
       ctx.lineWidth = compact ? 1 : 1.15;
       ctx.beginPath();
-      ctx.arc(eye.x, eye.y, arcR, a, 0);
+      if (side > 0) ctx.arc(eye.x, eye.y, arcR, a, 0);
+      else ctx.arc(eye.x, eye.y, arcR, Math.PI, a);
       ctx.stroke();
       ctx.restore();
     }
@@ -152,15 +159,15 @@
     // keep labels off the marks they describe
     labels.reserve({ x: eye.x - 6, y: eye.y - 6, w: 12, h: 12 });
     labels.reserve({ x: star.x - starR - 2, y: star.y - starR - 2, w: starR * 2 + 4, h: starR * 2 + 4 });
-    labels.reserve({ x: poleTop.x - flagW - 2, y: poleTop.y - 2, w: flagW + 4, h: flagH + 4 });
+    labels.reserve({ x: (fs < 0 ? poleTop.x - flagW : poleTop.x) - 2, y: poleTop.y - 2, w: flagW + 4, h: flagH + 4 });
 
     // a wide angle labels inside its arc; a shallow one lifts clear of
     // the sight line so the number never sits on a stroke
-    const labelAngle = alt >= 24 ? a / 2 : -(alt + 14) * D2R;
+    const labelAngle = upFrom(alt >= 24 ? alt / 2 : alt + 14);
     const angleOut = arcR + (compact ? 19 : 23);
     labels.place(altText, null, [
       { x: eye.x + Math.cos(labelAngle) * angleOut, y: eye.y + Math.sin(labelAngle) * angleOut, align: 'center' },
-      { x: eye.x + arcR + 8, y: eye.y - arcR * 0.5 - 14, align: 'left' },
+      { x: eye.x + side * (arcR + 8), y: eye.y - arcR * 0.5 - 14, align: side > 0 ? 'left' : 'right' },
     ], { size: compact ? 9.5 : 11, weight: 600, font: PLATE.dataFont, uppercase: false, tracking: 0, leader: false, backed: false });
 
     if (overhead) {
@@ -169,24 +176,28 @@
         { x: star.x + starR + 8, y: star.y + 16, align: 'left' },
       ], { size, weight: 600, leader: false });
     } else {
+      const out = side > 0 ? 'left' : 'right', back = side > 0 ? 'right' : 'left';
       labels.place('STAR', star, [
-        { x: star.x + starR + 8, y: star.y, align: 'left' },
-        { x: star.x - starR - 8, y: star.y, align: 'right' },
+        { x: star.x - side * (starR + 8), y: star.y, align: back },
+        { x: star.x + side * (starR + 8), y: star.y, align: out },
       ], { size, weight: 600, leader: false });
       labels.place('LINE OF SIGHT', end, [
-        { x: end.x + 8, y: end.y - 10, align: 'left' },
-        { x: end.x - 8, y: end.y - 12, align: 'right' },
-        { x: end.x + 8, y: end.y + 12, align: 'left' },
+        { x: end.x + side * 8, y: end.y - 10, align: out },
+        { x: end.x - side * 8, y: end.y - 12, align: back },
+        { x: end.x + side * 8, y: end.y + 12, align: out },
         { x: end.x, y: end.y - 16, align: 'center' },
       ], { size, leader: false, fallback: 'hide' });
     }
 
     labels.place('FLAGPOLE', poleTop, [
-      { x: poleTop.x - flagW - 8, y: poleTop.y + flagH / 2, align: 'right' },
-      { x: poleTop.x - 8, y: poleTop.y + flagH + 14, align: 'right' },
+      { x: poleTop.x + fs * (flagW + 8), y: poleTop.y + flagH / 2, align: fs < 0 ? 'right' : 'left' },
+      { x: poleTop.x + fs * 8, y: poleTop.y + flagH + 14, align: fs < 0 ? 'right' : 'left' },
     ], { size, leader: false, fallback: 'hide' });
+    // the horizon label sits at the end the sight line is not near
     labels.place('HORIZON 0°', null, [
-      { x: horizonLeft, y: groundY - (compact ? 10 : 12), align: 'left' },
+      side > 0
+        ? { x: horizonLeft, y: groundY - (compact ? 10 : 12), align: 'left' }
+        : { x: horizonRight, y: groundY - (compact ? 10 : 12), align: 'right' },
     ], { size, leader: false });
     labels.place(compact ? 'YOU, AT THE GP' : 'YOU, STANDING AT THE STAR’S GP', eye, [
       { x: eye.x, y: groundY + band + (compact ? 14 : 17), align: 'center' },

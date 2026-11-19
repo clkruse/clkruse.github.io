@@ -452,7 +452,7 @@ html .footer {
    –––––––––––––––––––––––––––––––––––––––––––––––– */
 
 :root {
-  --m: 8.75rem;          /* margin column */
+  --m: 9.75rem;          /* margin column */
   --m-gap: 1.6rem;
   --text: 1fr;           /* text column */
   --over: 0rem;          /* how far figures reach past the text */
@@ -547,7 +547,7 @@ html .gloss {
   margin-top: 0.3rem;
   padding-top: 0.45rem;
   border-top: 1px solid var(--ink);
-  font: 400 0.8rem/1.38 var(--font-plate);
+  font: 400 0.875rem/1.4 var(--font-plate);
   color: var(--ink);
 }
 
@@ -595,14 +595,23 @@ html .article figure.demo > figcaption {
   margin: 0.3rem 0 0;
   padding-top: 0.5rem;
   border-top: 1px solid var(--ink);
-  font-size: 0.8rem;
-  line-height: 1.38;
+  font-size: 0.875rem;
+  line-height: 1.4;
 }
 
 html .article figure.demo > figcaption[data-no]::before {
   display: block;
   margin: 0 0 0.3rem;
   font-size: 0.7rem;
+}
+
+/* the figure's title opens its caption, under the number, the way a
+   technical report sets "Figure 2-4. Title" */
+html .article figure.demo .fig-title {
+  display: block;
+  margin: 0 0 0.35rem;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
 /* wide screens: a reading measure for text, figures reach 8rem past it */
@@ -671,72 +680,6 @@ html .journal-byline { padding-top: 0; }
   html body { font-size: 1.0625rem; }
 }
 
-/* contents list in the left gutter, only where there is room for it. It
-   is navigation, not part of the document, so it stays visibly apart: a
-   clear gap, a hairline down its right edge, and no rules of its own that
-   could be mistaken for the margin column's. */
-.toc { display: none; }
-
-@media (min-width: 1440px) {
-  .toc {
-    --toc-w: 10rem;
-    --toc-gap: 4.5rem;
-    display: block;
-    position: fixed;
-    top: 2.6rem;
-    left: max(0.85rem, calc(50vw - var(--page) / 2 - 2rem - var(--toc-gap) - var(--toc-w) - 0.9rem));
-    width: calc(var(--toc-w) + 0.9rem);
-    max-height: calc(100vh - 5rem);
-    overflow-y: auto;
-    padding: 0 1.1rem 0 0.9rem; /* left padding holds the current-section tick */
-    border-right: 1px solid var(--hair);
-    font: 400 0.72rem/1.3 var(--font-plate);
-    scrollbar-width: none;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.4s, visibility 0.4s;
-  }
-  .toc.is-shown { opacity: 1; visibility: visible; }
-  /* nudge the page right so the contents list keeps clear air around it */
-  html :is(.pixel-header, .article, .footer) {
-    position: relative;
-    left: 3rem;
-  }
-  .toc ol { list-style: none; margin: 0; padding: 0; }
-  .toc li { margin: 0 0 0.4rem; }
-  .toc .toc-part {
-    margin: 1.2rem 0 0.45rem;
-    font-weight: 600;
-    font-size: 0.62rem;
-    letter-spacing: 0.14em;
-    text-transform: uppercase;
-    color: color-mix(in srgb, var(--faint) 55%, var(--paper));
-  }
-  .toc .toc-part:first-child { margin-top: 0; }
-  /* quiet by default so it never pulls the eye from the text; the current
-     section only darkens a step and gains a short tick, with no weight
-     change, so nothing reflows as you read */
-  .toc a {
-    position: relative;
-    display: grid;
-    grid-template-columns: 2rem 1fr;
-    color: color-mix(in srgb, var(--faint) 55%, var(--paper));
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .toc a:hover { color: var(--ink); }
-  .toc .toc-no { font-variant-numeric: tabular-nums; }
-  .toc .is-current a { color: var(--faint); }
-  .toc .is-current a::before {
-    content: "";
-    position: absolute;
-    left: -0.75rem;
-    top: 0.62em;
-    width: 0.4rem;
-    border-top: 1px solid var(--faint);
-  }
-}
-
 /* phones: one plain column; definitions and captions fold inline */
 @media (max-width: 720px) {
   html .pixel-header,
@@ -773,6 +716,8 @@ html .journal-byline { padding-top: 0; }
     margin: 0 0.8em 0 0;
     font-size: 0.78em;
   }
+  html .article figure.demo .fig-title { display: inline; margin: 0; }
+  html .article figure.demo .fig-title::after { content: "\A"; white-space: pre; }
 }
 
 /* phones, spacing: the same single-column grid as wider screens, so the
