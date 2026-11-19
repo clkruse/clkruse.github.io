@@ -124,25 +124,44 @@ function label(ctx, text, x, y, opts = {}) {
 const PLATE = Object.freeze({
   get ink() { return P.ink; },
   get paper() { return P.paper; },
-  font: '"Avenir Next Condensed", "Helvetica Neue", Helvetica, sans-serif',
-  dataFont: '"SFMono-Regular", Menlo, Consolas, monospace',
+  // one bundled face (assets/fonts, declared in style.css) for labels and
+  // values alike, as the period plates set everything in Futura.
+  // plateDataText still differs: untracked and case-preserving.
+  font: 'Jost, "Avenir Next Condensed", "Helvetica Neue", Helvetica, sans-serif',
+  dataFont: 'Jost, "Avenir Next Condensed", "Helvetica Neue", Helvetica, sans-serif',
 });
+
+// Canvas text never asks the browser to fetch a web font, so request the
+// plate faces up front; visible figures redraw every frame and pick them
+// up as soon as they arrive.
+if (document.fonts?.load) {
+  ['400', '600'].forEach(weight => document.fonts.load(`${weight} 12px Jost`));
+}
+
+// Demos lay out in nominal plate sizes; every glyph is drawn this much
+// larger so figure text reads at article scale.
+const PLATE_TEXT_SCALE = 1.22;
+const plateSize = size => (size || 9) * PLATE_TEXT_SCALE;
+// digits advance on one fixed width so changing numbers never shift the
+// text around them (tabular figures, which canvas cannot request)
+const DIGIT = /[0-9]/;
 
 function plateTextWidth(ctx, text, opts = {}) {
   const value = opts.uppercase === false ? String(text) : String(text).toUpperCase();
-  const size = opts.size || 9;
+  const size = plateSize(opts.size);
   const tracking = opts.tracking ?? size * 0.075;
   ctx.save();
   ctx.font = `${opts.weight || 500} ${size}px ${opts.font || PLATE.font}`;
+  const figure = ctx.measureText('0').width;
   let width = 0;
-  for (const char of value) width += ctx.measureText(char).width;
+  for (const char of value) width += DIGIT.test(char) ? figure : ctx.measureText(char).width;
   ctx.restore();
   return width + Math.max(0, value.length - 1) * tracking;
 }
 
 function plateText(ctx, text, x, y, opts = {}) {
   const value = opts.uppercase === false ? String(text) : String(text).toUpperCase();
-  const size = opts.size || 9;
+  const size = plateSize(opts.size);
   const tracking = opts.tracking ?? size * 0.075;
   const width = plateTextWidth(ctx, value, opts);
   const align = opts.align || 'left';
@@ -153,9 +172,16 @@ function plateText(ctx, text, x, y, opts = {}) {
   ctx.fillStyle = PLATE.ink;
   ctx.textAlign = 'left';
   ctx.textBaseline = opts.baseline || 'middle';
+  const figure = ctx.measureText('0').width;
   for (const char of value) {
-    ctx.fillText(char, cursor, y);
-    cursor += ctx.measureText(char).width + tracking;
+    if (DIGIT.test(char)) {
+      const glyph = ctx.measureText(char).width;
+      ctx.fillText(char, cursor + (figure - glyph) / 2, y);
+      cursor += figure + tracking;
+    } else {
+      ctx.fillText(char, cursor, y);
+      cursor += ctx.measureText(char).width + tracking;
+    }
   }
   if (opts.underline) {
     const start = align === 'center' ? x - width / 2 : align === 'right' ? x - width : x;
@@ -245,6 +271,17 @@ function createPlateLabeler(ctx, {
   gap = 3,
 } = {}) {
   const occupied = [];
+  // Labelers are rebuilt every frame; the canvas remembers which candidate
+  // each label used last, so a label only moves when its spot is blocked
+  // rather than hopping back and forth as the geometry changes.
+  const memory = ctx.canvas._plateLabelMemory ??= new Map();
+  const seen = new Map();
+  const memoryKey = (text, opts) => {
+    const base = opts.key ?? String(text).replace(/[−+-]?\d[\d,]*(\.\d+)?/g, '#');
+    const n = (seen.get(base) || 0) + 1;
+    seen.set(base, n);
+    return `${base}|${n}`;
+  };
   const expand = (rect, amount) => ({
     x: rect.x - amount,
     y: rect.y - amount,
@@ -261,7 +298,7 @@ function createPlateLabeler(ctx, {
     Math.max(0, Math.min(a.x + a.w, b.x + b.w) - Math.max(a.x, b.x))
     * Math.max(0, Math.min(a.y + a.h, b.y + b.h) - Math.max(a.y, b.y));
   const rectFor = (text, candidate, opts) => {
-    const size = opts.size || 9;
+    const size = plateSize(opts.size);
     const padding = opts.padding ?? 2;
     const width = plateTextWidth(ctx, text, opts) + padding * 2;
     const height = size * 1.25 + padding * 2;
@@ -290,12 +327,20 @@ function createPlateLabeler(ctx, {
           + (outside(rect) ? 1e6 : 0);
         return { candidate, rect, penalty };
       });
-      let choice = tested.find(item => item.penalty === 0);
+      const key = memoryKey(text, opts);
+      const seat = memory.get(key) || {};
+      const last = tested[seat.index];
+      let choice = last && last.penalty === 0 ? last : tested.find(item => item.penalty === 0);
       if (!choice) {
-        if (opts.fallback === 'hide') return null;
+        if (opts.fallback === 'hide') {
+          memory.delete(key);
+          return null;
+        }
         choice = tested.reduce((best, item) => item.penalty < best.penalty ? item : best);
         choice = { ...choice, rect: clamped(choice.rect) };
       }
+
+      memory.set(key, { index: tested.findIndex(item => item.candidate === choice.candidate) });
 
       const moved = choice !== tested[0] || choice.penalty > 0;
       const rect = choice.rect;
@@ -332,7 +377,7 @@ function createPlateLabeler(ctx, {
 function plateBox(ctx, x, y, width, lines, opts = {}) {
   const padding = opts.padding || 7;
   const size = opts.size || 7.5;
-  const lineHeight = opts.lineHeight || size * 1.35;
+  const lineHeight = (opts.lineHeight || size * 1.35) * PLATE_TEXT_SCALE;
   const titleGap = opts.title ? lineHeight + 5 : 0;
   const height = opts.height || padding * 2 + titleGap + lines.length * lineHeight;
 
@@ -539,6 +584,14 @@ function sunGlyph(ctx, x, y, r) {
 
 /* ––––– demo scaffolding ––––– */
 
+// fixed figure numbers: the desktop layout moves figures into the side
+// panel, which would otherwise restart a CSS counter at 1
+// (set on the caption: CSS attr() in ::before reads the caption itself)
+document.querySelectorAll('figure.demo').forEach((figure, i) => {
+  figure.dataset.no = String(i + 1);
+  figure.querySelector('figcaption')?.setAttribute('data-no', figure.dataset.no);
+});
+
 const allDemos = [];
 const visibleDemos = new Set();
 const io = new IntersectionObserver(entries => {
@@ -559,9 +612,17 @@ function createDemo(figId, {
   const fig = document.getElementById(figId);
   const canvas = fig.querySelector('canvas');
   const controls = fig.querySelector('.demo-controls');
+  // sliders, then actions, then the numeric readout strip, whatever order
+  // a demo adds them in
+  const group = cls => controls && el('div', cls, controls);
+  const groups = {
+    rows: group('ctl-rows'),
+    actions: group('ctl-actions'),
+    readouts: group('ctl-readouts'),
+  };
   const humanName = figId.replace(/^demo-/, '').replaceAll('-', ' ');
   const d = {
-    fig, canvas, controls, ctx: canvas.getContext('2d'),
+    fig, canvas, controls, groups, ctx: canvas.getContext('2d'),
     w: 0, h: 0, dpr: 1, t: 0, draw,
     presets: new Map(),
   };
@@ -591,8 +652,10 @@ function createDemo(figId, {
     const compact = cssW < 500;
     const activeAspect = Math.max(0.25, Number(compact ? compactAspect : aspect) || 1.6);
     const activeMaxH = Math.max(120, Number(compact ? compactMaxH : maxH) || 560);
-    // never let a panel outgrow the viewport (matters for the sticky right panel)
-    const availH = Math.max(280, window.innerHeight - 330);
+    // a figure and its controls should fit on one screen, so a reader can
+    // move a slider and watch the drawing without scrolling
+    const chrome = (controls?.offsetHeight || 0) + 56;
+    const availH = Math.max(260, Math.round(window.innerHeight * 0.94) - chrome);
     const cssH = Math.min(activeMaxH, Math.round(cssW / activeAspect), availH);
     d.dpr = Math.min(2, window.devicePixelRatio || 1);
     d.w = cssW; d.h = cssH;
@@ -609,6 +672,8 @@ function createDemo(figId, {
 
 const allFits = [];
 window.addEventListener('resize', () => allFits.forEach(f => f()));
+// controls are added after createDemo returns, so size once more when the page settles
+window.addEventListener('load', () => allFits.forEach(f => f()));
 
 let lastTS = 0;
 function frame(ts) {
@@ -645,7 +710,7 @@ function el(tag, cls, parent) {
 }
 
 function addSlider(d, { label: lab, min, max, step = 1, value, fmt = v => v, onchange }) {
-  const wrap = el('div', 'ctl', d.controls);
+  const wrap = el('div', 'ctl', d.groups.rows);
   const l = el('span', 'ctl-label', wrap);
   l.textContent = lab;
   const input = el('input', '', wrap);
@@ -673,30 +738,30 @@ function addSlider(d, { label: lab, min, max, step = 1, value, fmt = v => v, onc
 }
 
 function addStat(d, lab, wide) {
-  const wrap = el('div', 'ctl', d.controls);
-  if (wide) wrap.style.flex = '2 1 340px';
+  const wrap = el('div', 'ctl-readout', d.groups.readouts);
+  if (wide) wrap.classList.add('wide');
   const l = el('span', 'ctl-label', wrap);
-  l.textContent = lab;
+  l.textContent = lab.trim();
   const val = el('span', 'ctl-value', wrap);
-  val.style.textAlign = 'left';
-  val.style.minWidth = '0';
-  val.style.whiteSpace = 'normal';
-  val.style.lineHeight = '1.4';
   return {
-    // stats default to ink: the red is reserved for the slider numerals
-    set(text, color) { val.textContent = text; val.style.color = color || 'var(--ink)'; },
+    // figure chrome stays monochrome like the plates; a demo's status
+    // color only marks the readout as a flagged state
+    set(text, color) {
+      val.textContent = text;
+      wrap.classList.toggle('flagged', Boolean(color));
+    },
   };
 }
 
 function addButton(d, lab, fn, cls = '') {
-  const b = el('button', 'demo-btn ' + cls, d.controls);
+  const b = el('button', 'demo-btn ' + cls, d.groups.actions);
   b.textContent = lab;
   b.addEventListener('click', fn);
   return b;
 }
 
 function addCheck(d, lab, fn) {
-  const wrap = el('label', 'ctl-check', d.controls);
+  const wrap = el('label', 'ctl-check', d.groups.actions);
   const input = el('input', '', wrap);
   input.type = 'checkbox';
   const span = el('span', '', wrap);
@@ -1571,113 +1636,63 @@ function drawGlobeBase(ctx, toView, cx, cy, R, options = {}) {
 }
 
 /* ––––––––––––––––––––––––––––––––––––––––––––––––
-   layout controller – the /ml/embeddings pattern:
-   on wide screens the figures live in a sticky right
-   panel and swap with the section being read; on
-   narrow screens they sit inline in the text.
+   Contents. One column on every screen; where the window leaves a wide
+   left gutter, a small contents list sits there (CSS shows it) and marks
+   the section being read.
    –––––––––––––––––––––––––––––––––––––––––––––––– */
 
-(function layoutController() {
-  const figIds = ['demo-center', 'demo-setting', 'demo-altitude', 'demo-arcminute',
-    'demo-twopoints', 'demo-circle',
-    'demo-twostar', 'demo-mirror', 'demo-sextant', 'demo-scope', 'demo-dip', 'demo-refraction',
-    'demo-motion', 'demo-samesky', 'demo-clock', 'demo-almanac', 'demo-lopzoom', 'demo-intercept',
-    'demo-workflow', 'demo-polaris', 'demo-noon'];
-  const figs = figIds.map(id => document.getElementById(id)).filter(Boolean);
-  const panel = document.getElementById('right-panel');
-  const leftScroll = document.querySelector('.left-scroll');
-  const header = document.querySelector('.pixel-header');
-  if (!panel || !leftScroll) return;
-  const figureIds = new Set(figs.map(figure => figure.id));
-  const beats = [...leftScroll.querySelectorAll('[data-figure]')]
-    .filter(node => node.tagName !== 'BUTTON' && figureIds.has(node.dataset.figure));
-
-  // each figure leaves a marker at its home spot; demo markers double as scroll anchors
-  const homes = new Map();
-  for (const f of figs) {
-    const a = document.createElement('div');
-    a.className = 'fig-anchor';
-    a.dataset.fig = f.id;
-    f.before(a);
-    homes.set(f, a);
-  }
-
-  const mq = window.matchMedia('(min-width: 1100px)');
-  let desktop = false, active = null;
-
-  function setHeaderVar() {
-    document.documentElement.style.setProperty('--header-h', (header.offsetHeight + 26) + 'px');
-  }
-
-  function show(id) {
-    if (active === id) return;
-    active = id;
-    for (const f of figs) f.style.display = id && f.id === id ? '' : 'none';
-    if (!id) {
-      panel.scrollTop = 0;
-      return;
+(function contents() {
+  const heads = [...document.querySelectorAll('.article h2')];
+  if (!heads.length) return;
+  const nav = document.createElement('nav');
+  nav.className = 'toc';
+  nav.setAttribute('aria-label', 'Contents');
+  const list = document.createElement('ol');
+  nav.append(list);
+  const items = [];
+  for (const h of heads) {
+    const no = h.querySelector('.sec-no')?.textContent.trim() || '';
+    const title = h.querySelector('.sec-title')?.textContent.trim() || h.textContent.trim();
+    const li = document.createElement('li');
+    if (h.classList.contains('part-title')) {
+      li.className = 'toc-part';
+      li.textContent = no;
+      list.append(li);
+      continue;
     }
-    const pnl = document.getElementById(id).querySelector('.demo-panel');
-    if (pnl) { // restart the fade
-      pnl.style.animation = 'none';
-      void pnl.offsetWidth;
-      pnl.style.animation = '';
-    }
-    panel.scrollTop = 0;
+    if (!h.id) continue;
+    const a = document.createElement('a');
+    a.href = `#${h.id}`;
+    const n = document.createElement('span');
+    n.className = 'toc-no';
+    n.textContent = no;
+    const t = document.createElement('span');
+    t.className = 'toc-title';
+    t.textContent = title;
+    a.append(n, t);
+    li.append(a);
+    list.append(li);
+    items.push({ h, li });
   }
+  document.body.append(nav);
 
-  function spy() {
-    if (!desktop) return;
-    const leftTop = leftScroll.getBoundingClientRect().top;
-    // Prose beats name the figure that should answer them. Crossing the
-    // reading midpoint, rather than an arbitrary figure home, activates it.
-    const trigger = leftTop + leftScroll.clientHeight * 0.52;
-    let cur = figs[0] ? figs[0].id : null;
-    for (const beat of beats) {
-      if (beat.getBoundingClientRect().top <= trigger) cur = beat.dataset.figure;
-    }
-    show(cur);
-  }
-
-  function enter() {
-    setHeaderVar();
-    for (const f of figs) {
-      panel.appendChild(f);
-      f.style.display = 'none';
-    }
-    active = '__unset__';
-    spy();
-  }
-
-  function exit() {
-    for (const f of figs) {
-      homes.get(f).after(f);
-      f.style.display = '';
-    }
-    active = null;
-  }
-
-  function apply() {
-    const isDesktop = mq.matches;
-    if (isDesktop === desktop) { if (isDesktop) setHeaderVar(); return; }
-    desktop = isDesktop;
-    if (desktop) enter(); else exit();
-  }
-
-  leftScroll.addEventListener('scroll', spy, { passive: true });
-  // scrolling with the cursor over the figure panel should still read the article
-  panel.addEventListener('wheel', e => {
-    if (panel.scrollHeight <= panel.clientHeight + 4) {
-      leftScroll.scrollTop += e.deltaY;
-      e.preventDefault();
-    }
-  }, { passive: false });
-  mq.addEventListener('change', apply);
-  document.addEventListener('story:activate-figure', event => {
-    const id = event.detail?.id;
-    if (desktop && figureIds.has(id)) show(id);
-  });
-  window.addEventListener('resize', () => { if (desktop) setHeaderVar(); });
-  apply();
+  let current = null, queued = false;
+  const update = () => {
+    queued = false;
+    // stay out of the way through the title and opening: appear once the
+    // first section's head has scrolled off the top of the window
+    nav.classList.toggle('is-shown', items.length > 0 && items[0].h.getBoundingClientRect().top < 0);
+    const line = window.innerHeight * 0.3;
+    let active = null;
+    for (const item of items) if (item.h.getBoundingClientRect().top < line) active = item;
+    if (active === current) return;
+    current?.li.classList.remove('is-current');
+    active?.li.classList.add('is-current');
+    current = active;
+  };
+  window.addEventListener('scroll', () => {
+    if (!queued) { queued = true; requestAnimationFrame(update); }
+  }, { passive: true });
+  update();
 })();
 

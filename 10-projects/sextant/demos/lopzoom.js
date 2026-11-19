@@ -39,6 +39,29 @@
     return (Math.atan2(y, x) * R2D + 360) % 360;
   }
 
+  // Reserve a drawn line in a labeler as a chain of thin boxes, so labels
+  // avoid the line itself rather than only its end points.
+  function reserveLine(labels, a, b, pad = 1) {
+    const length = Math.hypot(b.x - a.x, b.y - a.y);
+    const steps = Math.max(1, Math.ceil(length / 6));
+    for (let i = 0; i < steps; i++) {
+      const p = { x: a.x + (b.x - a.x) * i / steps, y: a.y + (b.y - a.y) * i / steps };
+      const q = { x: a.x + (b.x - a.x) * (i + 1) / steps, y: a.y + (b.y - a.y) * (i + 1) / steps };
+      labels.reserve({
+        x: Math.min(p.x, q.x),
+        y: Math.min(p.y, q.y),
+        w: Math.abs(q.x - p.x),
+        h: Math.abs(q.y - p.y),
+      }, pad);
+    }
+  }
+
+  // Pane titles use the longest wording that fits the pane.
+  function fittedTitle(ctx, options, width, size) {
+    return options.find(text =>
+      plateTextWidth(ctx, text, { size, weight: 600 }) <= width) || options[options.length - 1];
+  }
+
   function draw(ctx, w, h) {
     ctx.fillStyle = PLATE.paper;
     ctx.fillRect(0, 0, w, h);
@@ -49,12 +72,6 @@
     const compactPlate = w < 500 || h < 320;
     const directText = (text, x, y, opts = {}) =>
       plateText(ctx, text, x, y, {
-        size: opts.size || (compactPlate ? 8 : 9),
-        weight: opts.weight,
-        align: opts.align,
-      });
-    const dataText = (text, x, y, opts = {}) =>
-      plateDataText(ctx, text, x, y, {
         size: opts.size || (compactPlate ? 8 : 9),
         weight: opts.weight,
         align: opts.align,
@@ -113,11 +130,35 @@
       ctx.restore();
     }
 
-    directText('VEGA POSITION CIRCLE · GLOBAL SCALE', splitX * 0.5, 18, {
-      size: compactPlate ? 8 : 10,
+    const titleSize = compactPlate ? 8 : 10;
+    directText(fittedTitle(ctx, [
+      'VEGA POSITION CIRCLE · GLOBAL SCALE',
+      'VEGA CIRCLE · GLOBE',
+      'GLOBE',
+    ], splitX - 16, titleSize), splitX * 0.5, 18, {
+      size: titleSize,
       weight: 600,
       align: 'center',
     });
+
+    // Globe labels avoid the ring, the radius, the limb and the AP box;
+    // their paper knockout only ever covers coastline and graticule.
+    const globeLabels = createPlateLabeler(ctx, {
+      left: 6,
+      top: 30,
+      right: splitX - 6,
+      bottom: h - 6,
+      gap: 2,
+    });
+    for (let i = 1; i < ring.length; i++) {
+      if (ring[i].front && ring[i - 1].front) reserveLine(globeLabels, ring[i - 1], ring[i]);
+    }
+    for (let i = 0; i < 72; i++) {
+      const a0 = (i / 72) * TAU, a1 = ((i + 1) / 72) * TAU;
+      reserveLine(globeLabels,
+        { x: cx + Math.cos(a0) * R, y: cy + Math.sin(a0) * R },
+        { x: cx + Math.cos(a1) * R, y: cy + Math.sin(a1) * R });
+    }
 
     // Radius from the GP to the worked ring, on the great circle through AP.
     const N = 20;
@@ -141,35 +182,73 @@
       ctx.setLineDash([]);
       const end = ray[ray.length - 1], prev = ray[ray.length - 2];
       dimHead(ctx, end.x, end.y, Math.atan2(end.y - prev.y, end.x - prev.x), 7, 2.3);
+      for (let i = 1; i < ray.length; i++) reserveLine(globeLabels, ray[i - 1], ray[i]);
     }
 
     const gp = g.proj(GP.lat, GP.lon, R, cx, cy);
+    const ap = g.proj(AP.lat, AP.lon, R, cx, cy);
+    const apBox = 16;
     if (gp.front) {
       starGlyph(ctx, gp.x, gp.y, 7, PLATE.ink);
-      directText('Vega GP', gp.x, gp.y - 16, {
-        size: compactPlate ? 8 : 9,
-        align: 'center',
-      });
+      globeLabels.reserve({ x: gp.x - 7, y: gp.y - 7, w: 14, h: 14 }, 1);
     }
-    const ap = g.proj(AP.lat, AP.lon, R, cx, cy);
     if (ap.front) {
       pointMark(ctx, ap.x, ap.y, PLATE.ink);
       // The 3 nm AP-to-ring gap is sub-pixel here; the local pane resolves it.
-      const box = 16;
       ctx.strokeStyle = PLATE.ink;
       ctx.lineWidth = 1;
-      ctx.strokeRect(ap.x - box, ap.y - box, box * 2, box * 2);
-      const labelRight = ap.x < splitX * 0.52;
-      const labelPoint = {
-        x: ap.x + (labelRight ? 24 : -24),
-        y: ap.y - 20,
-      };
-      plateLeader(ctx, { x: ap.x, y: ap.y }, labelPoint, { head: 2.8 });
-      directText(globeCompact ? 'AP' : 'ASSUMED POSITION', labelPoint.x,
-        labelPoint.y - 5, {
-          size: compactPlate ? 8 : 9,
-          align: labelRight ? 'left' : 'right',
+      ctx.strokeRect(ap.x - apBox, ap.y - apBox, apBox * 2, apBox * 2);
+      globeLabels.reserve({ x: ap.x - apBox, y: ap.y - apBox, w: apBox * 2, h: apBox * 2 }, 1);
+    }
+    const globeLabelSize = compactPlate ? 8 : 9;
+    if (gp.front) {
+      // Beside the star when there is room; when a small ring hugs the GP,
+      // the label stands outside it on a leader.
+      const around = off => [
+        { x: gp.x, y: gp.y - off - 2, align: 'center' },
+        { x: gp.x + off, y: gp.y - off + 2, align: 'left' },
+        { x: gp.x - off, y: gp.y - off + 2, align: 'right' },
+        { x: gp.x + off, y: gp.y + off - 2, align: 'left' },
+        { x: gp.x - off, y: gp.y + off - 2, align: 'right' },
+        { x: gp.x, y: gp.y + off + 2, align: 'center' },
+        { x: gp.x + off + 2, y: gp.y, align: 'left' },
+        { x: gp.x - off - 2, y: gp.y, align: 'right' },
+      ];
+      const near = globeLabels.place('Vega GP', null, around(13), {
+        key: 'globe-gp-near',
+        size: globeLabelSize,
+        leader: false,
+        fallback: 'hide',
+      });
+      if (!near) {
+        globeLabels.place('Vega GP', gp, [...around(30), ...around(46)], {
+          key: 'globe-gp-far',
+          size: globeLabelSize,
+          head: 2.8,
         });
+      }
+    }
+    if (ap.front) {
+      // The label stands off the AP box on a leader, on whichever side the
+      // ring and limb leave open.
+      const apCandidates = [];
+      for (const d of [apBox + 10, apBox + 26, apBox + 44]) {
+        apCandidates.push(
+          { x: ap.x + d, y: ap.y + d, align: 'left' },
+          { x: ap.x, y: ap.y + d + 4, align: 'center' },
+          { x: ap.x - d, y: ap.y + d, align: 'right' },
+          { x: ap.x + d, y: ap.y - d, align: 'left' },
+          { x: ap.x - d, y: ap.y - d, align: 'right' },
+          { x: ap.x, y: ap.y - d - 4, align: 'center' },
+          { x: ap.x + d + 6, y: ap.y, align: 'left' },
+          { x: ap.x - d - 6, y: ap.y, align: 'right' },
+        );
+      }
+      globeLabels.place(globeCompact ? 'AP' : 'ASSUMED POSITION', ap, apCandidates, {
+        key: 'globe-ap',
+        size: globeLabelSize,
+        head: 2.8,
+      });
     }
     const rp = g.proj(ringPoint.lat, ringPoint.lon, R, cx, cy);
     if (rp.front) pointMark(ctx, rp.x, rp.y, PLATE.ink, 2.2);
@@ -191,10 +270,23 @@
     const compactLocal = w - splitX < 230;
     const toPx = (e, n) => ({ x: chx + e * scale, y: chy - n * scale });
 
-    directText('VEGA LOP · LOCAL TANGENT', splitX + (w - splitX) * 0.5, 18, {
-      size: compactPlate ? 8 : 10,
+    directText(fittedTitle(ctx, [
+      'VEGA LOP · LOCAL TANGENT',
+      'LOCAL TANGENT',
+      'LOCAL',
+    ], w - splitX - 16, titleSize), splitX + (w - splitX) * 0.5, 18, {
+      size: titleSize,
       weight: 600,
       align: 'center',
+    });
+    const pane = { left: splitX + 8, top: 28, right: w - 8, bottom: h - 12 };
+    const inPane = p => p.x > pane.left && p.x < pane.right && p.y > pane.top && p.y < pane.bottom;
+    const chartLabels = createPlateLabeler(ctx, {
+      left: pane.left,
+      top: pane.top,
+      right: pane.right,
+      bottom: pane.bottom,
+      gap: 2,
     });
 
     ctx.save();
@@ -228,17 +320,18 @@
     // The observed circle lies offset from the AP by Ho − Hc. It bends toward
     // its GP; the straight plotting line touches it at the ring point.
     const arcSpan = compactLocal ? 32 : 40;
+    const arcPoints = [];
+    for (let s = -arcSpan; s <= arcSpan; s += 1) {
+      const sag = rho - Math.sqrt(Math.max(0, rho * rho - s * s));
+      arcPoints.push(localPoint(s, offsetNm + sag));
+    }
     ctx.save();
     ctx.globalAlpha = 1;
     ctx.strokeStyle = PLATE.ink;
     ctx.lineWidth = 0.65;
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
-    for (let s = -arcSpan; s <= arcSpan; s += 1) {
-      const sag = rho - Math.sqrt(Math.max(0, rho * rho - s * s));
-      const p = localPoint(s, offsetNm + sag);
-      if (s === -arcSpan) ctx.moveTo(p.x, p.y); else ctx.lineTo(p.x, p.y);
-    }
+    arcPoints.forEach((p, i) => (i ? ctx.lineTo(p.x, p.y) : ctx.moveTo(p.x, p.y)));
     ctx.stroke();
     ctx.restore();
 
@@ -255,14 +348,8 @@
     ctx.stroke();
     ctx.setLineDash([]);
     dimHead(ctx, far.x, far.y, Math.atan2(far.y - chy, far.x - chx), 7, 2.3);
-    starGlyph(ctx, far.x + u.x * 8, far.y - u.y * 8, 5.5, PLATE.ink);
-    dataText(compactLocal
-      ? `Zn ${String(Math.round(zn)).padStart(3, '0')}° · TO GP`
-      : `Zn ${zn.toFixed(1)}° · TOWARD VEGA GP`,
-    far.x + (u.x >= 0 ? -8 : 8), far.y - (compactLocal ? 14 : 15), {
-      size: compactPlate ? 8 : 9,
-      align: u.x >= 0 ? 'right' : 'left',
-    });
+    const gpStar = { x: far.x + u.x * 8, y: far.y - u.y * 8 };
+    starGlyph(ctx, gpStar.x, gpStar.y, 5.5, PLATE.ink);
 
     // LOP: the perpendicular tangent at the observed Vega ring.
     const L1 = localPoint(40, offsetNm);
@@ -273,12 +360,6 @@
     ctx.moveTo(L1.x, L1.y);
     ctx.lineTo(L2.x, L2.y);
     ctx.stroke();
-    const tangentTag = localPoint(compactLocal ? 15 : 27, offsetNm);
-    directText(compactLocal ? 'VEGA LOP' : 'VEGA LOP · CIRCLE TANGENT',
-      tangentTag.x, tangentTag.y - 11, {
-        size: compactPlate ? 8 : 9,
-        align: tangentTag.x < chx ? 'left' : 'right',
-      });
 
     const aAz = Math.atan2(-u.y, u.x); // canvas angle of azimuth (y down)
     const aPerp = Math.atan2(-perp.y, perp.x);
@@ -291,26 +372,21 @@
 
     // The AP is the sight-reduction origin, not quite on the observed ring.
     pointMark(ctx, chx, chy, PLATE.ink);
-    directText(compactLocal ? 'AP' : 'AP · ASSUMED POSITION', chx, chy + 18, {
-      size: compactPlate ? 8 : 9,
-      align: 'center',
-    });
 
-    // north arrow
+    // north arrow and scale bar share the bottom edge, out of the way of
+    // the azimuth line and its label.
     ctx.strokeStyle = PLATE.ink;
     ctx.fillStyle = PLATE.ink;
     ctx.lineWidth = 0.9;
-    const nx = splitX + 28, ny = 58;
+    const nx = splitX + (compactLocal ? 20 : 26), ny = h - (compactLocal ? 44 : 52);
     ctx.beginPath();
     ctx.moveTo(nx, ny + 22); ctx.lineTo(nx, ny);
     ctx.stroke();
     dimHead(ctx, nx, ny, -Math.PI / 2);
-    directText('N', nx, ny - 12, {
+    plateText(ctx, 'N', nx + 6, ny + 4, {
       size: compactPlate ? 8 : 9,
-      align: 'center',
     });
 
-    // scale bar
     ctx.strokeStyle = PLATE.ink;
     ctx.lineWidth = 1;
     const sbX2 = w - 22, sbX1 = sbX2 - 10 * scale, sbY = h - 24;
@@ -319,10 +395,85 @@
     ctx.moveTo(sbX1, sbY - 5); ctx.lineTo(sbX1, sbY);
     ctx.moveTo(sbX2, sbY - 5); ctx.lineTo(sbX2, sbY);
     ctx.stroke();
-    dataText('10 nm', (sbX1 + sbX2) / 2, h - 36, {
+
+    // Chart labels: every mark is reserved first, then labels take the
+    // first clear seat. Their paper knockout only covers grid lines.
+    const chartSize = compactPlate ? 8 : 9;
+    const dataOpts = { size: chartSize, font: PLATE.dataFont, tracking: 0, uppercase: false };
+    const visibleSegments = (points) => {
+      for (let i = 1; i < points.length; i++) {
+        if (inPane(points[i - 1]) || inPane(points[i])) reserveLine(chartLabels, points[i - 1], points[i]);
+      }
+    };
+    visibleSegments(arcPoints);
+    visibleSegments([L2, ...Array.from({ length: 19 }, (_, i) => localPoint(-40 + (i + 1) * 4, offsetNm)), L1]);
+    reserveLine(chartLabels, { x: chx, y: chy }, far);
+    chartLabels.reserve({ x: gpStar.x - 6, y: gpStar.y - 6, w: 12, h: 12 }, 1);
+    if (inPane(tangentPoint)) {
+      const m = compactLocal ? 10 : 12;
+      chartLabels.reserve({ x: tangentPoint.x - m, y: tangentPoint.y - m, w: m * 2, h: m * 2 }, 1);
+    }
+    chartLabels.reserve({ x: chx - 4, y: chy - 4, w: 8, h: 8 }, 1);
+    chartLabels.reserve({ x: nx - 4, y: ny - 2, w: 20, h: 26 }, 1);
+    chartLabels.reserve({ x: sbX1, y: sbY - 6, w: sbX2 - sbX1, h: 7 }, 1);
+
+    chartLabels.place('10 nm', null, [
+      { x: (sbX1 + sbX2) / 2, y: sbY - 12, align: 'center' },
+    ], {
+      ...dataOpts,
       size: compactPlate ? 7.5 : 8,
-      align: 'center',
+      leader: false,
     });
+
+    const apText = compactLocal ? 'AP' : 'AP · ASSUMED POSITION';
+    chartLabels.place(apText, null, [
+      { x: chx, y: chy + 16, align: 'center' },
+      { x: chx - 8, y: chy + 14, align: 'right' },
+      { x: chx + 8, y: chy + 14, align: 'left' },
+      { x: chx - 10, y: chy, align: 'right' },
+      { x: chx + 10, y: chy, align: 'left' },
+      { x: chx, y: chy + 30, align: 'center' },
+    ], {
+      key: 'chart-ap',
+      size: chartSize,
+      leader: false,
+    });
+
+    const znText = compactLocal
+      ? `Zn ${String(Math.round(zn)).padStart(3, '0')}° · TO GP`
+      : `Zn ${zn.toFixed(1)}° · TOWARD VEGA GP`;
+    const side = u.x >= 0 ? 1 : -1;
+    const midZn = localPoint(0, farNm * 0.62);
+    chartLabels.place(znText, null, [
+      { x: far.x - side * 10, y: far.y - 12, align: side > 0 ? 'right' : 'left' },
+      { x: far.x - side * 10, y: far.y + 4, align: side > 0 ? 'right' : 'left' },
+      { x: midZn.x - side * 10, y: midZn.y, align: side > 0 ? 'right' : 'left' },
+      { x: far.x + side * 12, y: far.y + 12, align: side > 0 ? 'left' : 'right' },
+      { x: midZn.x + side * 10, y: midZn.y, align: side > 0 ? 'left' : 'right' },
+    ], {
+      ...dataOpts,
+      leader: false,
+    });
+
+    if (inPane(tangentPoint)) {
+      // A horizontal label clears a sloping line only on the side the line
+      // falls away from: above and toward its low end, or below and toward
+      // its high end.
+      const step = localPoint(1, offsetNm);
+      const fallsRight = (step.y - tangentPoint.y) * (step.x - tangentPoint.x) >= 0;
+      const lopCandidates = [];
+      for (const along of [-30, 30, -22, 22, -14, 14, -36, 36]) {
+        const tag = localPoint(along, offsetNm);
+        lopCandidates.push(
+          { x: tag.x + (fallsRight ? 4 : -4), y: tag.y - 15, align: fallsRight ? 'left' : 'right' },
+          { x: tag.x + (fallsRight ? -4 : 4), y: tag.y + 15, align: fallsRight ? 'right' : 'left' }
+        );
+      }
+      chartLabels.place('VEGA LOP', null, lopCandidates, {
+        size: chartSize,
+        leader: false,
+      });
+    }
 
     const signedOffset = `${Math.abs(offsetNm).toFixed(1)} nm ${offsetNm >= 0 ? 'toward GP' : 'away from GP'}`;
     note.set(compactLocal

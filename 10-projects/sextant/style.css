@@ -1,77 +1,54 @@
 /* ––––––––––––––––––––––––––––––––––––––––––––––––
-   Celestial Navigation – shared figure styling and
-   the opt-in ?typography=typeset treatment.
-   style-original.css restores the web-first default.
-   Interactive diagrams stay crisp in either mode.
+   Celestial Navigation – tokens, layout, and figure
+   styling. style-original.css, loaded after this,
+   sets the page typography.
    –––––––––––––––––––––––––––––––––––––––––––––––– */
 
+/* Figure face, bundled so the plates look the same on every device:
+   Jost (SIL OFL, license beside the file), a Futura revival, for labels,
+   values, controls and captions. Latin subset. */
 @font-face {
-  font-family: "Alegreya";
-  src: url("assets/fonts/alegreya-variable-latin.woff2") format("woff2");
+  font-family: "Jost";
+  src: url("assets/fonts/jost-variable-latin.woff2") format("woff2");
   font-style: normal;
-  font-weight: 400 900;
+  font-weight: 100 900;
   font-display: swap;
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC,
-    U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
-    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-@font-face {
-  font-family: "Alegreya";
-  src: url("assets/fonts/alegreya-variable-greek.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 400 900;
-  font-display: swap;
-  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C,
-    U+038E-03A1, U+03A3-03FF;
-}
 
-@font-face {
-  font-family: "Alegreya";
-  src: url("assets/fonts/alegreya-italic-variable-latin.woff2") format("woff2");
-  font-style: italic;
-  font-weight: 400 900;
-  font-display: swap;
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC,
-    U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
-    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
 
+/* Body face: Charter, which Bitstream gave away for any use
+   (license beside the files). */
 @font-face {
-  font-family: "Alegreya";
-  src: url("assets/fonts/alegreya-italic-variable-greek.woff2") format("woff2");
-  font-style: italic;
-  font-weight: 400 900;
-  font-display: swap;
-  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C,
-    U+038E-03A1, U+03A3-03FF;
-}
-
-@font-face {
-  font-family: "Alegreya SC";
-  src: url("assets/fonts/alegreya-sc-latin-regular.woff2") format("woff2");
+  font-family: "Charter";
+  src: url("assets/fonts/charter-regular.woff2") format("woff2");
   font-style: normal;
   font-weight: 400;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "Alegreya SC";
-  src: url("assets/fonts/alegreya-sc-latin-medium.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 500;
+  font-family: "Charter";
+  src: url("assets/fonts/charter-italic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 400;
   font-display: swap;
 }
 
 @font-face {
-  font-family: "JetBrains Mono";
-  src: url("assets/fonts/jetbrains-mono-variable-latin.woff2") format("woff2");
+  font-family: "Charter";
+  src: url("assets/fonts/charter-bold.woff2") format("woff2");
   font-style: normal;
-  font-weight: 400 800;
+  font-weight: 700;
   font-display: swap;
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC,
-    U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F,
-    U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: "Charter";
+  src: url("assets/fonts/charter-bold-italic.woff2") format("woff2");
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
 }
 
 :root {
@@ -85,9 +62,9 @@
   /* section 8 chart series, fixed order, never cycled */
   --s1: #a6192e;
   --s2: #16326b;
-  --s3: #c45100;
+  --s3: #ee7203;
   --s4: #00857c;
-  --s7: #3c7f20;
+  --s7: #4a9b25;
   --measured: var(--s2);
   --corrected: var(--s1);
   --ephemeris: var(--s4);
@@ -97,26 +74,29 @@
   --rhythm: 1.2rem;
   --half-rhythm: 0.6rem;
   --rule: 1px;
-  --font-body: "Alegreya", Georgia, "Times New Roman", serif;
-  --font-display: "Alegreya", Georgia, "Times New Roman", serif;
-  --font-caps: "Alegreya SC", "Alegreya", Georgia, "Times New Roman", serif;
-  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas,
-    monospace;
-  --font-utility: var(--font-mono);
+  --font-body: Charter, "Bitstream Charter", Georgia, serif;
+  /* title block and section headings share the figures' face */
+  --font-display: var(--font-plate);
+  --font-caps: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --font-utility: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  /* the faces drawn inside every plate (PLATE.font / PLATE.dataFont) */
+  --font-plate: Jost, "Avenir Next Condensed", "Helvetica Neue", Helvetica, sans-serif;
+  --font-plate-data: var(--font-plate);
 }
 @media (prefers-color-scheme: dark) {
   :root {
     --paper: #131416;
-    --ink: #eeeeec;
-    --faint: #b5b6b8;
-    --hair: #4b4d51;
-    --codebg: #202226;
-    --red: #e6818f;
-    --s1: #e36f81;
-    --s2: #82a6df;
-    --s3: #f39a4a;
-    --s4: #47bdb1;
-    --s7: #82c65e;
+    --ink: #d9d9d9;
+    --faint: #969696;
+    --hair: #333333;
+    --codebg: #1d1e20;
+    --red: #dc7684;
+    --s1: #c23f52;
+    --s2: #4d6fa8;
+    --s3: #ee7203;
+    --s4: #14a599;
+    --s7: #63b833;
   }
 }
 
@@ -145,28 +125,15 @@ body {
 /* ––––– header ––––– */
 
 .home-link {
-  position: absolute;
-  top: 1.2rem;
-  right: 2rem;
-  z-index: 30;
-  font-family: var(--font-utility);
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
   color: var(--faint);
   text-decoration: none;
-  border-bottom: 1px solid var(--hair);
 }
-.home-link:hover { color: var(--ink); border-bottom-color: var(--ink); }
+.home-link:hover { color: var(--ink); text-decoration: underline; }
 
 .pixel-header {
-  max-width: 88rem;
+  max-width: 66ch;
   margin: 0 auto;
   padding: calc(var(--rhythm) * 1.5) 2rem 0;
-  display: grid;
-  grid-template-columns: minmax(0, 66ch) 1.25fr;
-  column-gap: 2.75rem;
   text-align: left;
 }
 
@@ -193,7 +160,10 @@ body {
 }
 
 .journal-byline {
-  grid-column: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
   margin-top: var(--half-rhythm);
   font-family: var(--font-caps);
   font-size: 0.875rem;
@@ -482,6 +452,34 @@ body {
 }
 .article a:hover { text-decoration-color: var(--ink); }
 
+/* the two part openers */
+h2.part-title {
+  font-size: 1.35rem;
+  letter-spacing: 0.08em;
+  border-bottom: 0;
+  border-top: 2px solid var(--ink);
+  margin-top: calc(var(--rhythm) * 2.5);
+  padding-top: var(--half-rhythm);
+}
+h2.part-title .part-no {
+  display: block;
+  font: 600 0.7rem/1.4 var(--font-plate);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: 0.15rem;
+}
+h2.part-title + h2 { margin-top: var(--rhythm); }
+
+.article .draft-note {
+  color: var(--faint);
+  font-style: italic;
+  text-indent: 0;
+}
+.bench { margin-top: calc(var(--rhythm) * 3); }
+.bench > p { text-indent: 0; margin-bottom: var(--half-rhythm); }
+.bench > p + figure { margin-top: var(--half-rhythm); }
+
 /* Chapter heads share the same rhythm and rule as the technical furniture. */
 h2 {
   font-family: var(--font-caps);
@@ -546,7 +544,6 @@ strong { font-weight: 800; }
 
 /* ––––– figures ––––– */
 
-.fig-anchor { height: 0; }
 
 .demo { margin: var(--rhythm) 0; width: 100%; }
 
@@ -573,43 +570,68 @@ strong { font-weight: 800; }
 .demo canvas.grab { cursor: grab; }
 .demo canvas.grabbing { cursor: grabbing; }
 
-/* controls: uniform page chrome under every figure, light or dark */
-.demo-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem 1.6rem;
-  align-items: center;
-  font-family: var(--font-utility);
-  padding: 0.65rem 0.85rem;
-  border-top: 1px solid var(--hair);
-  background: var(--paper);
-}
+/* ––––– figure chrome –––––
+   Everything under and beside a plate is set in the plate's own two
+   faces: condensed tracked capitals for names, mono for numbers, ink on
+   paper, rules instead of boxes. Shared by both typography modes. */
 
-.ctl {
-  display: flex;
-  align-items: center;
-  gap: 0.7rem;
-  flex: 1 1 300px;
-  min-width: 270px;
+.demo-controls {
+  --rule-dash: repeating-linear-gradient(to right,
+      var(--ink) 0 8px, transparent 8px 13px);
+  font-family: var(--font-plate);
+  color: var(--ink);
+  padding: 0 1rem;
+  /* the same long-dash rule the plates draw, inset to the plate margin */
+  background:
+    var(--rule-dash) 1rem 0 / calc(100% - 2rem) 1px no-repeat,
+    var(--paper);
 }
+.demo-controls:empty { display: none; }
+
+.ctl-rows:empty,
+.ctl-actions:empty,
+.ctl-readouts:empty { display: none; }
+
 .ctl-label {
-  font-size: 0.8rem;
-  color: var(--faint);
+  font: 600 0.74rem/1.2 var(--font-plate);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink);
   white-space: nowrap;
 }
 .ctl-value {
-  font-size: 0.84rem;
-  font-weight: 700;
-  color: var(--red);
-  min-width: 74px;
-  text-align: right;
-  white-space: nowrap;
+  font: 500 0.86rem/1.35 var(--font-plate-data);
+  letter-spacing: 0;
+  color: var(--ink);
   font-variant-numeric: tabular-nums;
 }
 
+/* slider rows: NAME ──●── value */
+.ctl-rows { padding: 0.55rem 0 0.35rem; }
+.ctl {
+  display: grid;
+  grid-template-columns: minmax(7.5rem, max-content) minmax(90px, 1fr) minmax(5.5rem, max-content);
+  align-items: center;
+  column-gap: 1rem;
+  min-height: 2rem;
+}
+.ctl .ctl-value { text-align: right; white-space: nowrap; }
+
+/* buttons and toggles */
+.ctl-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.6rem;
+  padding: 0.55rem 0;
+}
+.ctl-rows:not(:empty) + .ctl-actions { padding-top: 0.15rem; }
+
 .demo-btn {
-  font: 700 0.8rem/1.4 var(--font-utility);
-  padding: 0.32rem 0.8rem;
+  font: 600 0.74rem/1 var(--font-plate);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 0.5rem 0.75rem 0.45rem;
   border: 1px solid var(--ink);
   background: var(--paper);
   color: var(--ink);
@@ -618,77 +640,133 @@ strong { font-weight: 800; }
 }
 .demo-btn:hover { background: var(--ink); color: var(--paper); }
 .demo-btn:focus-visible {
-  outline: 2px solid var(--red);
+  outline: 1px solid var(--ink);
   outline-offset: 2px;
 }
 .demo-btn:disabled {
-  border-color: var(--hair);
+  border-style: dashed;
+  border-color: var(--faint);
   color: var(--faint);
   background: var(--paper);
   cursor: default;
 }
-.demo-btn.subtle { border-color: var(--hair); color: var(--faint); font-weight: 400; }
+.demo-btn.subtle { border-color: var(--hair); }
 .demo-btn.subtle:hover { border-color: var(--ink); color: var(--ink); background: var(--paper); }
 
 .ctl-check {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-size: 0.8rem;
-  color: var(--faint);
+  font: 600 0.74rem/1 var(--font-plate);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink);
   cursor: pointer;
   white-space: nowrap;
 }
-.ctl-check input { accent-color: var(--ink); width: 14px; height: 14px; cursor: pointer; }
+.ctl-check input {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 13px;
+  height: 13px;
+  margin: 0;
+  border: 1px solid var(--ink);
+  background: var(--paper);
+  cursor: pointer;
+}
+.ctl-check input:checked {
+  background: linear-gradient(var(--ink), var(--ink)) center / 7px 7px no-repeat var(--paper);
+}
+.ctl-check input:focus-visible { outline: 1px solid var(--ink); outline-offset: 2px; }
 
+/* numeric readouts: a data strip of NAME over value cells, divided by
+   hairlines like the plate's ruled tables */
+.ctl-readouts {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0 -1rem;
+  border-top: 1px solid var(--hair);
+}
+.ctl-readout {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 0.22rem;
+  flex: 1 1 9.5rem;
+  min-width: 0;
+  padding: 0.55rem 1rem 0.6rem;
+  box-shadow: -1px 0 0 var(--hair), 0 -1px 0 var(--hair);
+}
+.ctl-readout.wide { flex: 2 1 19rem; }
+.ctl-readout .ctl-label:empty { display: none; }
+.ctl-readout .ctl-label { white-space: normal; }
+.ctl-readout .ctl-value { overflow-wrap: anywhere; }
+.ctl-readout.flagged .ctl-value { font-weight: 700; }
+
+/* legends: the caption reads as the plate's own title block */
 figcaption {
-  font-family: var(--font-body);
+  font-family: var(--font-plate);
   max-width: none;
-  margin: var(--half-rhythm) 3ch 0;
-  font-size: 0.875rem;
+  margin: 0.55rem 0 0;
+  font-size: 0.95rem;
+  font-weight: 500;
   font-style: normal;
-  color: var(--faint);
-  line-height: var(--rhythm);
+  letter-spacing: 0.01em;
+  color: var(--ink);
+  line-height: 1.4;
   text-align: left;
   text-wrap: pretty;
 }
+figcaption[data-no]::before {
+  content: "Fig. " attr(data-no);
+  font-weight: 600;
+  font-size: 0.78em;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-right: 0.8em;
+}
 
-/* ––––– sliders: flat fader, no chrome ––––– */
+/* ––––– sliders: a plate scale, hollow index mark ––––– */
 
 input[type="range"] {
+  --thumb: 13px;
   -webkit-appearance: none;
   appearance: none;
-  flex: 1;
-  height: 22px;
-  background: transparent;
+  width: 100%;
+  height: 26px;
+  min-width: 0;
   cursor: pointer;
-  min-width: 90px;
+  /* scale ticks: ten divisions under the track, aligned to thumb travel */
+  background:
+    linear-gradient(to right, var(--ink) 0 1px, transparent 1px)
+      calc(var(--thumb) / 2) calc(50% + 6px) / calc((100% - var(--thumb)) / 10) 4px repeat-x;
 }
 input[type="range"]:focus-visible {
-  outline: 1px solid var(--red);
-  outline-offset: 2px;
+  outline: 1px solid var(--ink);
+  outline-offset: 3px;
 }
 input[type="range"]::-webkit-slider-runnable-track {
-  height: 2px;
-  background: linear-gradient(to right, var(--ink) var(--fill, 50%), var(--hair) var(--fill, 50%));
+  height: 1px;
+  background: var(--ink);
 }
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 8px;
-  height: 18px;
-  border-radius: 0;
-  background: var(--ink);
-  border: none;
-  margin-top: -8px;
+  width: var(--thumb);
+  height: var(--thumb);
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
+  margin-top: calc(var(--thumb) / -2);
 }
-input[type="range"]::-moz-range-track { height: 2px; background: var(--hair); }
-input[type="range"]::-moz-range-progress { height: 2px; background: var(--ink); }
+input[type="range"]:active::-webkit-slider-thumb { background: var(--ink); }
+input[type="range"]::-moz-range-track { height: 1px; background: var(--ink); }
 input[type="range"]::-moz-range-thumb {
-  width: 8px;
-  height: 18px;
-  border-radius: 0;
-  background: var(--ink);
-  border: none;
+  width: var(--thumb);
+  height: var(--thumb);
+  box-sizing: border-box;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 1.5px solid var(--ink);
 }
 
 /* ––––– footer ––––– */
@@ -716,78 +794,6 @@ input[type="range"]::-moz-range-thumb {
 }
 .footer a:hover { text-decoration-color: var(--ink); }
 
-/* ––––– wide screens: text scrolls left, figures hold right ––––– */
-
-.right-panel { display: none; }
-
-@media (max-width: 1099px) {
-  .pixel-header {
-    display: block;
-    max-width: calc(66ch + 4rem);
-  }
-}
-
-@media (min-width: 1100px) {
-  html, body {
-    overflow: hidden;
-    height: 100%;
-    overscroll-behavior: none;
-  }
-
-  .pixel-header { padding-top: calc(var(--rhythm) * 1.5); }
-  .pixel-tagline { margin-bottom: 0; }
-
-  .main-grid {
-    max-width: 88rem;
-    margin: 0 auto;
-    display: grid;
-    grid-template-columns: minmax(0, 66ch) 1.25fr;
-    gap: 2.75rem;
-    align-items: start;
-    padding: 0 2rem;
-  }
-
-  .left-scroll {
-    height: calc(100vh - var(--header-h, 190px));
-    overflow-y: auto;
-    padding-right: 10px;
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .left-scroll::-webkit-scrollbar { display: none; }
-  .left-scroll::after { content: ""; display: block; height: 55vh; }
-
-  .article {
-    max-width: 66ch;
-    margin: 0;
-    padding: 0.6rem 0 0;
-  }
-
-  .footer {
-    max-width: 66ch;
-    margin: 3rem 0 0;
-    padding: 0 0 3rem;
-  }
-
-  .right-panel {
-    display: block;
-    position: sticky;
-    top: 0;
-    align-self: start;
-    max-height: calc(100vh - var(--header-h, 190px));
-    overflow-y: auto;
-    min-width: 0;
-    padding: 0.6rem 2px 1.5rem;
-  }
-
-  .right-panel .demo {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    max-width: none;
-  }
-}
-
 /* ––––– phones ––––– */
 
 @media (max-width: 720px) {
@@ -804,11 +810,16 @@ input[type="range"]::-moz-range-thumb {
   .journal-byline { margin-top: var(--half-rhythm); }
   .article { padding: var(--rhythm) 1.5ch calc(var(--rhythm) * 2); }
   .footer { padding: 0 1.5ch calc(var(--rhythm) * 2); }
-  .demo-controls { padding: 0.55rem 0.7rem; }
-  .ctl { min-width: 100%; gap: 0.5rem; }
-  .ctl-label { font-size: 0.76rem; }
-  .ctl-value { min-width: 0; }
-  .home-link { right: 1.5ch; }
+  .demo-controls { padding: 0 0.75rem; }
+  .ctl {
+    grid-template-columns: 1fr max-content;
+    row-gap: 0;
+    padding: 0.2rem 0;
+  }
+  .ctl input[type="range"] { grid-column: 1 / -1; grid-row: 2; }
+  .ctl-readouts { margin: 0 -0.75rem; }
+  .demo-controls { background-position: 0.75rem 0, 0 0; background-size: calc(100% - 1.5rem) 1px, auto; }
+  .ctl-readout { padding: 0.5rem 0.75rem 0.55rem; }
   .sight-log dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sight-log--split dl > .sight-log__result,
   .sight-log--final dl > .sight-log__result { grid-column: auto; }

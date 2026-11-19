@@ -156,7 +156,7 @@
       return;
     }
     if (Math.abs(s.settingError) < 0.6 && Math.abs(s.beta) < 0.01) {
-      status.set(`✓ ${body} on the horizon – ${s.mode === 'vega' ? 'record Hs' : 'read at the minimum'}`, P.good);
+      status.set(`✓ ${body} on the horizon: ${s.mode === 'vega' ? 'record Hs' : 'read at the minimum'}`, P.good);
     } else if (Math.abs(s.settingError) < 0.6) {
       status.set('setting is right – keep the bottom of the swing', P.measured);
     } else if (s.settingError > 0) {
@@ -316,39 +316,20 @@
     ctx.stroke();
     ctx.restore();
 
-    if (!liveVisible) {
-      const above = livePoint.y < field.y;
-      const marker = {
-        x: clamp(livePoint.x, field.x - fieldR * 0.55, field.x + fieldR * 0.55),
-        y: field.y + (above ? -1 : 1) * fieldR * 0.76,
-      };
-      plateArrowhead(ctx, marker, above ? -Math.PI / 2 : Math.PI / 2,
-        compact ? 3.2 : 4);
-      plateText(ctx,
-        `${scopeMode === 'sun' ? 'Sun' : 'Vega'} is ${above ? 'above' : 'below'} this view`,
-        field.x, field.y + (above ? -0.48 : 0.56) * fieldR, {
-          size: compact ? 8 : 9,
-          align: 'center',
-        });
-    }
-
-    plateText(ctx, compact ? 'Through the telescope' : 'Through the telescope while rocking',
-      field.x, field.y - fieldR - (compact ? 8 : 11), {
-        size: compact ? 8 : 9,
-        align: 'center',
-      });
-    plateText(ctx, 'direct horizon', field.x - fieldR + (compact ? 3 : 5),
-      horizonY + (compact ? 7 : 10), {
-        size: compact ? 7.5 : 8,
-        align: 'left',
-      });
-    plateDataText(ctx, compact
-      ? `Exact ±4° lift ${edgeLift.toFixed(1)}′`
-      : `Exact ±4° lift: image ${edgeLift.toFixed(1)}′ higher`,
-      field.x, field.y + fieldR + (compact ? 8 : 12), {
-        size: compact ? 8 : 9,
-        align: 'center',
-      });
+    const labelSize = compact ? 8 : 9;
+    const smallSize = compact ? 7.5 : 8;
+    const textHeight = size => size * PLATE_TEXT_SCALE;
+    const ringOuter = fieldR + (compact ? 3 : 5);
+    // half the field's width at height y, a little inside the limb
+    const halfChord = (y, inset = 3) => {
+      const dy = Math.abs(y - field.y);
+      const r = fieldR - inset;
+      return dy >= r ? 0 : Math.sqrt(r * r - dy * dy);
+    };
+    const rectInField = rect => [rect.y, rect.y + rect.h].every(y => {
+      const half = halfChord(y);
+      return rect.x >= field.x - half && rect.x + rect.w <= field.x + half;
+    });
 
     // The end view connects the side-to-side rock with the image motion.
     const roll = {
@@ -359,6 +340,7 @@
       fieldR * (compact ? 0.70 : 0.72),
       w - roll.x - (compact ? 11 : 20)
     );
+    const axisOvershoot = compact ? 5 : 7;
     ctx.save();
     ctx.strokeStyle = PLATE.ink;
     ctx.lineWidth = compact ? 0.75 : 0.95;
@@ -368,10 +350,10 @@
     ctx.restore();
     plateLine(ctx, {
       x: roll.x,
-      y: roll.y - rollR - (compact ? 5 : 8),
+      y: roll.y - rollR - axisOvershoot,
     }, {
       x: roll.x,
-      y: roll.y + rollR + (compact ? 5 : 8),
+      y: roll.y + rollR + axisOvershoot,
     }, {
       kind: 'construction',
       weight: compact ? 0.5 : 0.65,
@@ -410,28 +392,43 @@
       ctx.stroke();
       ctx.restore();
     }
-    plateText(ctx, 'End view: roll', roll.x,
-      roll.y - rollR - (compact ? 8 : 11), {
-        size: compact ? 8 : 9,
+    // the live roll rides in the heading so it never crosses the end view;
+    // the heading sits clear above the end of the centre line
+    plateText(ctx, `End view: roll ${liveBeta >= 0 ? '+' : '−'}${Math.abs(liveBeta).toFixed(1)}°`,
+      roll.x, roll.y - rollR - axisOvershoot - 3 - textHeight(labelSize) * 0.45, {
+        size: labelSize,
         align: 'center',
       });
-    plateDataText(ctx, `roll ${liveBeta >= 0 ? '+' : '−'}${Math.abs(liveBeta).toFixed(1)}°`,
-      roll.x + (compact ? 8 : 12), roll.y - rollR * 0.46, {
-        size: compact ? 8 : 9,
-        align: 'left',
-      });
 
-    const methodY = roll.y + rollR + (compact ? 9 : 14);
-    const boxW = compact ? Math.min(128, w * 0.45) : Math.min(220, w * 0.34);
+    // The note is sized from its measured lines, so a wider face cannot
+    // push its words past the border.
+    const boxSize = labelSize;
+    const boxLine = compact ? 11 : 14;
+    const boxPad = compact ? 5 : 8;
+    const boxTitle = 'Why the minimum';
+    const boxLines = compact
+      ? ['Tilt only lifts the image', 'Lowest when vertical']
+      : ['Tilt can only lift the image', 'Lowest when held vertical'];
+    const recordWidth = plateTextWidth(ctx, 'Record', { size: boxSize });
+    const hsWidth = plateTextWidth(ctx, 'Hs', {
+      size: boxSize,
+      font: PLATE.dataFont,
+      tracking: 0,
+      uppercase: false,
+    });
+    const thereWidth = plateTextWidth(ctx, 'there', { size: boxSize });
+    const boxW = Math.ceil(boxPad * 2 + Math.max(
+      plateTextWidth(ctx, boxTitle, { size: boxSize, weight: 600, tracking: boxSize * 0.09 }),
+      ...boxLines.map(text => plateTextWidth(ctx, text, { size: boxSize })),
+      recordWidth + hsWidth + thereWidth + boxSize * 1.1
+    ));
     const boxX = compact
       ? clamp(roll.x - boxW / 2, w * 0.52, w - boxW - 8)
       : clamp(roll.x - boxW / 2, w * 0.53, w - boxW - 14);
-    const boxY = methodY - 3;
-    const boxH = Math.min(compact ? 62 : 78,
-      Math.max(compact ? 58 : 72, ruleY - boxY - 5));
-    const boxSize = compact ? 8 : 9;
-    const boxLine = compact ? 11 : 14;
-    const boxPad = compact ? 5 : 8;
+    const boxY = roll.y + rollR + axisOvershoot + 3;
+    const boxBodyY = boxY + boxPad + boxLine + (compact ? 9 : 11);
+    const recordY = boxBodyY + boxLine * 2;
+    const boxH = Math.ceil(recordY + textHeight(boxSize) * 0.5 + boxPad - boxY);
     ctx.save();
     ctx.fillStyle = PLATE.paper;
     ctx.strokeStyle = PLATE.ink;
@@ -439,7 +436,7 @@
     ctx.fillRect(boxX, boxY, boxW, boxH);
     ctx.strokeRect(boxX, boxY, boxW, boxH);
     ctx.restore();
-    plateText(ctx, 'Why the minimum', boxX + boxPad,
+    plateText(ctx, boxTitle, boxX + boxPad,
       boxY + boxPad + boxSize * 0.45, {
         size: boxSize,
         weight: 600,
@@ -452,30 +449,17 @@
       x: boxX + boxW - boxPad,
       y: boxY + boxPad + boxLine,
     }, { weight: 0.55 });
-    const boxBodyY = boxY + boxPad + boxLine + (compact ? 9 : 11);
-    plateText(ctx, compact ? 'Tilt only lifts the image' : 'Tilt can only lift the image',
-      boxX + boxPad, boxBodyY, {
-        size: boxSize,
-      });
-    plateText(ctx, compact ? 'Lowest contact is vertical' : 'The lowest contact is vertical',
-      boxX + boxPad, boxBodyY + boxLine, {
-        size: boxSize,
-      });
-    const recordY = boxBodyY + boxLine * 2;
+    boxLines.forEach((text, row) => {
+      plateText(ctx, text, boxX + boxPad, boxBodyY + boxLine * row, { size: boxSize });
+    });
     plateText(ctx, 'Record', boxX + boxPad, recordY, { size: boxSize });
-    const recordWidth = plateTextWidth(ctx, 'Record', { size: boxSize });
     plateDataText(ctx, 'Hs', boxX + boxPad + recordWidth + boxSize * 0.55,
       recordY, { size: boxSize });
-    const hsWidth = plateTextWidth(ctx, 'Hs', {
-      size: boxSize,
-      font: PLATE.dataFont,
-      tracking: 0,
-      uppercase: false,
-    });
     plateText(ctx, 'there',
       boxX + boxPad + recordWidth + hsWidth + boxSize * 1.1,
       recordY, { size: boxSize });
 
+    // Everything inside the field the labels must not sit on.
     const labels = createPlateLabeler(ctx, {
       left: 7,
       top: fieldTop,
@@ -484,36 +468,148 @@
       gap: compact ? 2 : 3,
     });
     labels.reserve({ x: boxX, y: boxY, w: boxW, h: boxH }, compact ? 2 : 3);
-    if (bodyFits(minimumPoint, scopeMode === 'sun' ? sunR : 5)) {
-      labels.place(compact
-        ? (scopeMode === 'sun' ? 'LOWEST CONTACT' : 'VEGA MINIMUM')
-        : (scopeMode === 'sun' ? 'LOWEST LOWER-LIMB CONTACT' : 'VEGA’S LOWEST POINT'),
-        minimumPoint, [
-          {
-            x: minimumPoint.x + (compact ? 8 : 12),
-            y: minimumPoint.y + (compact ? 9 : 13),
-            align: 'left',
-          },
-          {
-            x: minimumPoint.x - (compact ? 8 : 12),
-            y: minimumPoint.y + (compact ? 9 : 13),
-            align: 'right',
-          },
-        ], {
-          size: compact ? 8 : 9,
-          head: compact ? 2.5 : 3,
-          fallback: 'hide',
-        });
+    const reservePoint = (x, y, half) =>
+      labels.reserve({ x: x - half, y: y - half, w: half * 2, h: half * 2 }, 0);
+    for (let i = 0; i <= 32; i++) {
+      const beta = -betaMax + 2 * betaMax * i / 32;
+      const point = { x: xOf(beta), y: contactYOf(beta) };
+      if (Math.hypot(point.x - field.x, point.y - field.y) < fieldR) {
+        reservePoint(point.x, point.y, 1);
+      }
+    }
+    for (let y = field.y - fieldR; y <= field.y + fieldR; y += 4) {
+      reservePoint(field.x, y, 2);
+    }
+    const bodyHalf = scopeMode === 'sun' ? sunR + 1 : (compact ? 5 : 7);
+    const bodyCenter = point => scopeMode === 'sun'
+      ? { x: point.x, y: point.y - sunR }
+      : point;
+    if (liveVisible) {
+      const c = bodyCenter(livePoint);
+      reservePoint(c.x, c.y, bodyHalf);
+    }
+    if (rocking && Math.abs(liveBeta) > 0.08) {
+      const c = bodyCenter(minimumPoint);
+      reservePoint(c.x, c.y, bodyHalf);
+    }
+
+    if (!liveVisible) {
+      const above = livePoint.y < field.y;
+      const marker = {
+        x: clamp(livePoint.x, field.x - fieldR * 0.55, field.x + fieldR * 0.55),
+        y: field.y + (above ? -1 : 1) * fieldR * 0.76,
+      };
+      plateArrowhead(ctx, marker, above ? -Math.PI / 2 : Math.PI / 2,
+        compact ? 3.2 : 4);
+      reservePoint(marker.x, marker.y + (above ? 2 : -2), compact ? 4 : 5);
+      // One line when it fits inside the field at its height, else two.
+      const body = scopeMode === 'sun' ? 'Sun' : 'Vega';
+      const first = `${body} is ${above ? 'above' : 'below'}`;
+      const noteY = field.y + (above ? -0.42 : 0.52) * fieldR;
+      const oneLine = `${first} this view`;
+      const lineGap = textHeight(labelSize) * 1.25;
+      const lines = plateTextWidth(ctx, oneLine, { size: labelSize }) + 8
+        <= 2 * halfChord(noteY + (above ? -1 : 1) * textHeight(labelSize) / 2)
+        ? [oneLine] : [first, 'this view'];
+      lines.forEach((line, row) => {
+        const y = noteY + (row - (lines.length - 1) / 2) * lineGap;
+        const width = plateTextWidth(ctx, line, { size: labelSize });
+        // a paper ground lifts the note off the dash-dot centre line
+        ctx.save();
+        ctx.fillStyle = PLATE.paper;
+        ctx.fillRect(field.x - width / 2 - 2, y - lineGap / 2, width + 4, lineGap);
+        ctx.restore();
+        plateText(ctx, line, field.x, y, { size: labelSize, align: 'center' });
+        labels.reserve({ x: field.x - width / 2 - 2, y: y - lineGap / 2, w: width + 4, h: lineGap }, 0);
+      });
+    }
+
+    // Headings clear the outer ring by a measured margin.
+    plateText(ctx, compact ? 'Through the telescope' : 'Through the telescope while rocking',
+      field.x, field.y - ringOuter - 4 - textHeight(labelSize) * 0.45, {
+        size: labelSize,
+        align: 'center',
+      });
+    plateDataText(ctx, compact
+      ? `Exact ±4° lift ${edgeLift.toFixed(1)}′`
+      : `Exact ±4° lift: image ${edgeLift.toFixed(1)}′ higher`,
+      field.x, field.y + ringOuter + 4 + textHeight(labelSize) * 0.45, {
+        size: labelSize,
+        align: 'center',
+      });
+
+    // The horizon label starts just inside the limb, on either side of the
+    // line; the minimum label below and beside the curve's lowest point.
+    // A seat that would cross the limb is moved off the plate, so the
+    // labeler skips it and the list (and the remembered seat) stays fixed.
+    const offPlate = { x: -1e4, y: -1e4, align: 'left' };
+    const fieldSeat = (text, size, seat) => {
+      const width = plateTextWidth(ctx, text, { size }) + 4;
+      const height = textHeight(size) * 1.25 + 4;
+      const x = seat.align === 'right' ? seat.x - width
+        : seat.align === 'center' ? seat.x - width / 2 : seat.x;
+      return rectInField({ x, y: seat.y - height / 2, w: width, h: height }) ? seat : offPlate;
+    };
+    const horizonOffset = compact ? 9 : 11;
+    const horizonSeats = [1, -1].map(side => {
+      const y = horizonY + side * horizonOffset;
+      const edgeY = y + side * textHeight(smallSize) * 0.8;
+      return fieldSeat('horizon', smallSize,
+        { x: field.x - halfChord(edgeY) + 4, y, align: 'left' });
+    });
+    // First choice: just past the ring, at the clear end of the horizon's
+    // own line, when the gap before the end view is wide enough.
+    const horizonWidth = plateTextWidth(ctx, 'horizon', { size: smallSize });
+    const outsideX = field.x + ringOuter + 4;
+    const rollDy = Math.abs(horizonY - roll.y);
+    const endViewLeft = rollDy < rollR + 3
+      ? roll.x - Math.sqrt((rollR + 3) ** 2 - rollDy * rollDy)
+      : roll.x;
+    if (outsideX + horizonWidth + 4 <= endViewLeft) {
+      plateText(ctx, 'horizon', outsideX, horizonY, { size: smallSize });
+    } else {
+      labels.place('horizon', null, horizonSeats, { size: smallSize, leader: false });
+    }
+
+    // The phone field is too narrow for a minimum label beside the curve's
+    // lowest point without crowding the horizon label; the note and the
+    // heading carry that idea there.
+    if (!compact && bodyFits(minimumPoint, scopeMode === 'sun' ? sunR : 5)) {
+      // the longest wording that fits beside the minimum when Vega sits on
+      // the horizon; fixed by the field size, so it does not change as the
+      // drum turns
+      const minimumSize = labelSize;
+      const step = 12;
+      const drop = 13;
+      const reachX = halfChord(horizonY + drop + textHeight(minimumSize) * 0.8) - step - 4;
+      const wordings = scopeMode === 'sun'
+        ? ['Lowest lower-limb contact', 'Lowest contact', 'Lowest']
+        : ['Vega’s lowest point', 'Lowest point', 'Lowest'];
+      const minimumText = wordings.find(text =>
+        plateTextWidth(ctx, text, { size: minimumSize }) <= reachX) || 'Lowest';
+      // below the point, or below the horizon line when that would cross it
+      let below = minimumPoint.y + drop;
+      if (Math.abs(below - horizonY) < textHeight(minimumSize) * 0.8 + 2) below = horizonY + drop;
+      labels.place(minimumText, minimumPoint, [
+        { x: minimumPoint.x + step, y: below, align: 'left' },
+        { x: minimumPoint.x - step, y: below, align: 'right' },
+      ].map(seat => fieldSeat(minimumText, minimumSize, seat)), {
+        size: minimumSize,
+        head: compact ? 2.5 : 3,
+        fallback: 'hide',
+        key: 'minimum',
+      });
     }
     if (rocking && liveVisible && Math.abs(liveBeta) > 0.2) {
-      labels.place('IMAGE WHILE ROLLED', livePoint, [
-        {
-          x: livePoint.x + (liveBeta < 0 ? -8 : 8),
-          y: livePoint.y - (compact ? 8 : 11),
-          align: liveBeta < 0 ? 'right' : 'left',
-        },
-      ], {
-        size: compact ? 7.5 : 8,
+      // fixed seats in the empty upper field, on the image's side, with a
+      // leader down to it; the label holds still while the image swings
+      const out = liveBeta < 0 ? -1 : 1;
+      const besideAxis = 7 + (plateTextWidth(ctx, 'Rolled image', { size: smallSize }) + 4) / 2;
+      labels.place('Rolled image', livePoint, [
+        { x: field.x + out * besideAxis, y: field.y - fieldR * 0.2, align: 'center' },
+        { x: field.x + out * besideAxis, y: field.y - fieldR * 0.4, align: 'center' },
+      ].map(seat => fieldSeat('Rolled image', smallSize, seat)), {
+        size: smallSize,
         head: compact ? 2.5 : 3,
         fallback: 'hide',
       });

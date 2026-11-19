@@ -135,8 +135,12 @@
     ctx.fillStyle = PLATE.paper;
     ctx.fillRect(0, 0, w, h);
     const compact = w < 560 || h < 340;
+    const tickSize = compact ? 7.5 : 8;
+    const DATA = size => ({ size, font: PLATE.dataFont, uppercase: false, tracking: 0 });
     const left = compact ? 38 : 52;
-    const right = w - (compact ? 10 : 16);
+    // the last time label is centred on the right edge of the plot; leave it room
+    const right = w - Math.max(compact ? 10 : 16,
+      plateTextWidth(ctx, '22:00', DATA(tickSize)) / 2 + 3);
     const top = compact ? 27 : 34;
     const bottom = h - (compact ? 31 : 42);
     const sx = (right - left) / (T1 - T0);
@@ -207,7 +211,7 @@
         weight: 0.55,
       });
       plateDataText(ctx, `${altitude}°`, left - 6, y, {
-        size: compact ? 7.5 : 8,
+        size: tickSize,
         align: 'right',
       });
     }
@@ -218,26 +222,23 @@
         weight: 0.55,
       });
       plateDataText(ctx, `${String(time).padStart(2, '0')}:00`, x,
-        bottom + (compact ? 10 : 12), {
-          size: compact ? 7.5 : 8,
+        bottom + (compact ? 12 : 14), {
+          size: tickSize,
           align: 'center',
         });
     }
-    plateText(ctx, 'UTC', right, bottom + (compact ? 23 : 28), {
+    plateText(ctx, 'UTC', right, bottom + (compact ? 24 : 29), {
       size: compact ? 8 : 9,
       align: 'right',
     });
 
+    const labelSize = compact ? 8 : 9;
     if (best) {
       const bestY = yOf(best.h);
       plateLine(ctx, { x: left, y: bestY }, { x: xOf(best.t), y: bestY }, {
         kind: 'short',
         weight: compact ? 0.55 : 0.7,
       });
-      plateDataText(ctx, `BEST SAMPLE · ${clock(best.t)} · Ho ${best.h.toFixed(1)}°`,
-        left + 5, Math.max(top + 8, bestY - (compact ? 7 : 9)), {
-          size: compact ? 8 : 9,
-        });
     }
 
     plateLine(ctx, { x: currentX, y: top }, { x: currentX, y: bottom }, {
@@ -252,13 +253,80 @@
     ctx.fill();
     ctx.stroke();
 
-    const currentAlign = currentX < w * 0.68 ? 'left' : 'right';
-    plateDataText(ctx, `CURRENT SAMPLE · ${clock(cursorT)} · Ho ${ch.toFixed(1)}°`,
-      currentX + (currentAlign === 'left' ? 7 : -7),
-      clamp(currentY + (currentY < top + 22 ? 10 : -9), top + 7, bottom - 7), {
-        size: compact ? 8 : 9,
-        align: currentAlign,
+    // The current sample is named at the top end of its own cursor line,
+    // above the highest the Sun can climb here, so the curve never runs
+    // through it. It sits right of the line on the left half of the plot
+    // and left of it on the right half: one flip, at the middle. The
+    // longest wording that fits half the plot is used.
+    const clockText = clock(cursorT);
+    const hoText = `Ho ${ch.toFixed(1)}°`;
+    const halfPlot = (right - left) / 2;
+    const currentText = [
+      `CURRENT SAMPLE · ${clockText} · ${hoText}`,
+      `SAMPLE · ${clockText} · ${hoText}`,
+      `${clockText} · ${hoText}`,
+    ].find(text => plateTextWidth(ctx, text, DATA(labelSize)) + 9 <= halfPlot)
+      || `${clockText} · ${hoText}`;
+    const currentWidth = plateTextWidth(ctx, currentText, DATA(labelSize));
+    const currentAlign = currentX <= left + halfPlot ? 'left' : 'right';
+    const currentLabelX = currentX + (currentAlign === 'left' ? 6 : -6);
+    const currentLabelY = top + plateSize(labelSize) * 0.5 + 2;
+    const currentRect = {
+      x: currentAlign === 'left' ? currentLabelX - 2 : currentLabelX - currentWidth - 2,
+      y: currentLabelY - plateSize(labelSize) * 0.5,
+      w: currentWidth + 4,
+      h: plateSize(labelSize),
+    };
+    ctx.fillStyle = PLATE.paper;
+    ctx.fillRect(currentRect.x, currentRect.y, currentRect.w, currentRect.h);
+    plateDataText(ctx, currentText, currentLabelX, currentLabelY, {
+      size: labelSize,
+      align: currentAlign,
+    });
+
+    if (best) {
+      // The best sample's label keeps clear of the curve, the cursor line
+      // and the current label; it takes the first clear seat by its line.
+      const labels = createPlateLabeler(ctx, {
+        left: left + 2,
+        top: top + 1,
+        right: right - 2,
+        bottom: bottom - 2,
+        gap: compact ? 1.5 : 2,
       });
+      for (let time = T0; time <= T1; time += 0.05) {
+        const y = yOf(altAt(time));
+        labels.reserve({ x: xOf(time) - 1, y: y - 1, w: 2, h: 2 }, 1);
+      }
+      for (let y = top; y <= bottom; y += 4) {
+        labels.reserve({ x: currentX - 0.5, y, w: 1, h: 1 }, 1);
+      }
+      labels.reserve(currentRect, 1);
+      const bestY = yOf(best.h);
+      const bestX = xOf(best.t);
+      const off = plateSize(labelSize) * 0.625 + 6;
+      const seats = [
+        { x: left + 5, y: bestY - off, align: 'left' },
+        { x: left + 5, y: bestY + off, align: 'left' },
+        { x: bestX - 6, y: bestY - off, align: 'right' },
+        { x: bestX - 6, y: bestY + off, align: 'right' },
+        { x: bestX + 8, y: bestY - off, align: 'left' },
+        { x: bestX + 8, y: bestY + off, align: 'left' },
+      ];
+      const bestOpts = {
+        size: labelSize,
+        font: PLATE.dataFont,
+        uppercase: false,
+        tracking: 0,
+        padding: 1,
+        leader: false,
+        fallback: 'hide',
+      };
+      // the shorter wording is tried only when no seat holds the full one
+      const values = `${clock(best.t)} · Ho ${best.h.toFixed(1)}°`;
+      labels.place(`BEST SAMPLE · ${values}`, null, seats, bestOpts)
+        || labels.place(`BEST · ${values}`, null, seats, bestOpts);
+    }
 
     sample.set(`${clock(cursorT)} – ${ch < 0 ? 'below horizon' : `Ho ${fmtDM(ch, 1)}`}`);
     if (peakFound && currentAtPeak) {

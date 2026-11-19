@@ -167,6 +167,52 @@
         : 'pole altitude equals latitude exactly; Polaris needs a small hour-angle correction');
   }
 
+  // Label geometry helpers. Lines are reserved as chains of small points so
+  // the labeler keeps text off every stroke; seat() puts a label's nearest
+  // corner a fixed distance from a point in a given direction.
+  const reservePoints = (labels, points, pad = 1.5) => {
+    for (const p of points) labels.reserve({ x: p.x - 0.75, y: p.y - 0.75, w: 1.5, h: 1.5 }, pad);
+  };
+  const segmentPoints = (a, b, step = 3) => {
+    const n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / step));
+    return Array.from({ length: n + 1 }, (_, i) => ({
+      x: a.x + (b.x - a.x) * i / n,
+      y: a.y + (b.y - a.y) * i / n,
+    }));
+  };
+  const arcPoints = (cx, cy, r, a1, a2, step = 3) => {
+    const n = Math.max(2, Math.ceil(Math.abs(a2 - a1) * r / step));
+    return Array.from({ length: n + 1 }, (_, i) => {
+      const a = a1 + (a2 - a1) * i / n;
+      return { x: cx + Math.cos(a) * r, y: cy + Math.sin(a) * r };
+    });
+  };
+  const LABEL_PAD = 1;
+  const seat = (ctx, text, size, p, dir, dist) => {
+    const width = plateTextWidth(ctx, text, { size }) + LABEL_PAD * 2;
+    const height = plateSize(size) * 1.25 + LABEL_PAD * 2;
+    const fx = clamp(dir.x * 3, -1, 1);
+    const fy = clamp(dir.y * 3, -1, 1);
+    return {
+      x: p.x + dir.x * dist + fx * width / 2,
+      y: p.y + dir.y * dist + fy * height / 2,
+      align: 'center',
+    };
+  };
+  const unit = deg => ({ x: Math.cos(deg * D2R), y: Math.sin(deg * D2R) });
+  // An angle's symbol sits on the bisector while the wedge is wide enough
+  // to hold it; a narrow wedge moves it once, to a fixed seat just outside.
+  const angleSymbolPoint = (ctx, symbol, size, center, fromDeg, toDeg, rho, outsideDeg) => {
+    const width = plateTextWidth(ctx, symbol, { size, font: PLATE.dataFont, uppercase: false, tracking: 0 });
+    const clearance = Math.max(width, plateSize(size) * 0.75) / 2 + 3;
+    const half = Math.abs(toDeg - fromDeg) / 2;
+    const deg = rho * Math.sin(half * D2R) >= clearance
+      ? (fromDeg + toDeg) / 2
+      : outsideDeg(Math.asin(Math.min(1, clearance / rho)) * R2D);
+    const p = { x: center.x + Math.cos(deg * D2R) * rho, y: center.y + Math.sin(deg * D2R) * rho };
+    return { ...p, rect: { x: p.x - width / 2 - 1, y: p.y - plateSize(size) * 0.45, w: width + 2, h: plateSize(size) * 0.9 } };
+  };
+
   function drawPlateGlobeProof(ctx, bounds, { compact, paired }) {
     const { x, y, w, h } = bounds;
     const titleY = y + (compact ? 10 : 15);
@@ -247,24 +293,25 @@
     const rPhi = R * 0.36;
     angleDim(ctx, cx, cy, rPhi, 0, aObs, PLATE.ink,
       compact ? 0.8 : 1);
-    const phiMid = aObs * 0.5;
-    plateDataText(ctx, 'φ',
-      cx + Math.cos(phiMid) * (rPhi + (lat < 12 ? 8 : compact ? 9 : 12)),
-      cy + Math.sin(phiMid) * (rPhi + (compact ? 9 : 12)), {
-        size: compact ? 8 : 10,
-        align: 'center',
-      });
+    const symbolSize = compact ? 8 : 10;
+    // φ: between the equator and the radius; when narrow, just above the radius.
+    const phiAt = angleSymbolPoint(ctx, 'φ', symbolSize, { x: cx, y: cy },
+      0, -lat, rPhi + (compact ? 9 : 12), off => -lat - off);
+    plateDataText(ctx, 'φ', phiAt.x, phiAt.y, {
+      size: symbolSize,
+      align: 'center',
+    });
 
     const rH = Math.min(compact ? 16 : 29, R * 0.29);
     angleDim(ctx, O.x, O.y, rH, tangentAngle, -Math.PI / 2,
       PLATE.ink, compact ? 0.8 : 1);
-    const hMid = (tangentAngle - Math.PI / 2) * 0.5;
-    plateDataText(ctx, 'h',
-      O.x + Math.cos(hMid) * (rH + (lat < 12 ? 10 : compact ? 9 : 12)),
-      O.y + Math.sin(hMid) * (rH + (compact ? 9 : 12)), {
-        size: compact ? 8 : 10,
-        align: 'center',
-      });
+    // h: between the horizon and the vertical; when narrow, just right of the vertical.
+    const hAt = angleSymbolPoint(ctx, 'h', symbolSize, O,
+      tangentAngle * R2D, -90, rH + (compact ? 9 : 12), off => -90 + off);
+    plateDataText(ctx, 'h', hAt.x, hAt.y, {
+      size: symbolSize,
+      align: 'center',
+    });
 
     centerMark(ctx, cx, cy, compact ? 4 : 5.5, PLATE.ink);
     pointMark(ctx, O.x, O.y, PLATE.ink);
@@ -275,9 +322,11 @@
         size: labelSize,
         align: 'right',
       });
-      plateText(ctx, 'NCP', Math.min(x + w - 3, O.x + 7), starY + 6, {
+      // right of the pole line when it fits, else left of it
+      const ncpFitsRight = O.x + 7 + plateTextWidth(ctx, 'NCP', { size: labelSize }) <= x + w - 2;
+      plateText(ctx, 'NCP', ncpFitsRight ? O.x + 7 : O.x - 7, starY + 6, {
         size: labelSize,
-        align: O.x > x + w - 38 ? 'right' : 'left',
+        align: ncpFitsRight ? 'left' : 'right',
       });
     } else if (compact) {
       const rightLabelX = x + w - 3;
@@ -317,44 +366,79 @@
       });
       compactCallout('NCP', poleTop, diagramTop + 5);
     } else {
-      plateText(ctx, 'EQUATOR', Math.max(x + 2, cx - R - 8), cy + 9, {
-        size: labelSize,
-        align: 'right',
+      const labels = createPlateLabeler(ctx, {
+        left: x,
+        top: ruleY + 3,
+        right: x + w,
+        bottom: invariantY - 8,
+        gap: 1.5,
       });
-      plateText(ctx, 'POLAR AXIS', cx - 7, starY + 6, {
-        size: labelSize,
-        align: 'right',
-      });
-      plateText(ctx, compact ? 'NCP' : 'NCP DIRECTION', O.x + 8, starY + 6, {
-        size: labelSize,
-      });
+      reservePoints(labels, arcPoints(cx, cy, R, 0, TAU), 1.5);
+      reservePoints(labels, segmentPoints(
+        { x: cx - R - 18, y: cy }, { x: cx + R + 20, y: cy }));
+      reservePoints(labels, segmentPoints(
+        { x: cx, y: cy + R + 15 }, { x: cx, y: starY + 5 }));
+      reservePoints(labels, segmentPoints({ x: cx, y: cy }, O));
+      reservePoints(labels, segmentPoints(horizonA, horizonB));
+      reservePoints(labels, segmentPoints(O, poleTop));
+      reservePoints(labels, arcPoints(cx, cy, rPhi, aObs, 0));
+      reservePoints(labels, arcPoints(O.x, O.y, rH, tangentAngle, -Math.PI / 2));
+      labels.reserve({ x: cx - 6, y: cy - 11, w: 17, h: 17 }, 1);
+      labels.reserve({ x: O.x - 9, y: O.y - 9, w: 18, h: 18 }, 1);
+      labels.reserve(phiAt.rect, 1);
+      labels.reserve(hAt.rect, 1);
+      const opts = { size: labelSize, padding: LABEL_PAD, backed: false, leader: false };
+
+      labels.place('POLAR AXIS', null, [
+        { x: cx - 7, y: starY + 6, align: 'right' },
+        { x: cx - 7, y: starY + 20, align: 'right' },
+      ], opts);
+      labels.place('TO NCP', null, [
+        { x: O.x + 8, y: starY + 6, align: 'left' },
+        { x: O.x - 8, y: starY + 6, align: 'right' },
+        { x: O.x + 8, y: starY + 20, align: 'left' },
+      ], opts);
+      // outside the globe at the line's end when there is room, else just
+      // inside the limb, under the line
+      labels.place('EQUATOR', null, [
+        { x: cx - R - 8, y: cy + 10, align: 'right' },
+        { x: cx - R + 9, y: cy + 11, align: 'left' },
+        { x: cx - R + 9, y: cy - 11, align: 'left' },
+      ], opts);
+      // YOU sits in the open wedge between the zenith line and the south
+      // half of the horizon, on its bisector.
+      const youDeg = -lat / 2;
+      labels.place('YOU', null, [
+        seat(ctx, 'YOU', labelSize, O, unit(youDeg), 7),
+        seat(ctx, 'YOU', labelSize, O, unit(youDeg - 25), 8),
+        seat(ctx, 'YOU', labelSize, O, unit(youDeg + 25), 8),
+      ], opts);
+      // HORIZON at the clear south end of its own line, else in the open
+      // column beside the globe with a leader.
+      const south = { x: -tNorth.x, y: -tNorth.y };
+      const placed = labels.place('HORIZON', null, [
+        seat(ctx, 'HORIZON', labelSize, horizonB, south, 4),
+        seat(ctx, 'HORIZON', labelSize, horizonA, tNorth, 4),
+      ], { ...opts, fallback: 'hide' });
+      if (!placed) {
+        const target = {
+          x: O.x + south.x * horizonLength * 0.45,
+          y: O.y + south.y * horizonLength * 0.45,
+        };
+        labels.place('HORIZON', target, [12, -14, 26, -28, 40, 54].map(dy => ({
+          x: x + w - 2,
+          y: target.y + dy,
+          align: 'right',
+        })), { size: labelSize, padding: LABEL_PAD, backed: false });
+      }
     }
 
     if (compactCallout) {
       const youY = clamp(O.y + 13, diagramTop + 22, diagramBottom - 20);
       compactCallout('YOU', O, youY);
-      compactCallout('HORIZON', lat < 25 ? horizonA : horizonB,
+      // the south end stays below YOU, so the two leaders never cross
+      compactCallout('HORIZON', horizonB,
         clamp(youY + 15, diagramTop + 37, diagramBottom - 4));
-    } else {
-      const horizonLabelPoint = lat < 25 ? horizonA : horizonB;
-      if (!paired) {
-        plateText(ctx, 'HORIZON',
-          clamp(horizonLabelPoint.x, x + 4, x + w - 4),
-          clamp(horizonLabelPoint.y + (lat < 25 ? -7 : 9),
-            diagramTop + 6, diagramBottom - 3), {
-            size: labelSize,
-            align: horizonLabelPoint.x > x + w * 0.72 ? 'right' : 'left',
-          });
-      }
-
-      const youLabel = {
-        x: clamp(O.x + (lat > 65 ? 12 : 18), x + 8, x + w - 28),
-        y: clamp(O.y + (lat > 65 ? 16 : 13), diagramTop + 10, diagramBottom - 4),
-      };
-      plateLeader(ctx, O, youLabel, { head: compact ? 2.3 : 3 });
-      plateText(ctx, 'YOU', youLabel.x + 3, youLabel.y, {
-        size: labelSize,
-      });
     }
 
     plateText(ctx, paired ? 'IDEAL: PERPENDICULAR PAIRS' : 'TWO PERPENDICULAR PAIRS',
@@ -388,10 +472,17 @@
     const offset = (compact ? 4.5 : 3.5) * D2R;
     const polarisAngle = idealAngle - offset;
     const cosLat = Math.max(0.08, Math.cos(idealAngle));
-    const sinLat = Math.max(0.08, -Math.sin(idealAngle));
     const cap = paired ? Math.max(58, w - 34) : compact ? 230 : 185;
-    const maxByWidth = (right - origin.x) / cosLat;
-    const maxByHeight = (origin.y - diagramTop - 5) / sinLat;
+    const labelSize = compact ? 7.5 : 8.5;
+    const ncpText = paired ? 'NCP' : 'NCP · IDEAL';
+    // keep room beyond the tip for its label when the line runs flat
+    const tipRoom = plateTextWidth(ctx, ncpText, { size: labelSize }) + 10;
+    const maxByWidth = Math.max(44 * cosLat, right - tipRoom - origin.x) / cosLat;
+    // the star rides above the ideal line; keep a label's height clear above it
+    const starR = compact ? 5.5 : 6.5;
+    const topRoom = plateSize(labelSize) * 1.25 + starR + 4;
+    const maxByHeight = (origin.y - diagramTop - topRoom)
+      / Math.max(0.08, Math.sin(lat * D2R + offset));
     const sightLength = Math.max(44, Math.min(cap, maxByWidth, maxByHeight));
     const idealPole = {
       x: origin.x + Math.cos(idealAngle) * sightLength,
@@ -401,7 +492,6 @@
       x: origin.x + Math.cos(polarisAngle) * sightLength,
       y: origin.y + Math.sin(polarisAngle) * sightLength,
     };
-    const labelSize = compact ? 7.5 : 8.5;
 
     plateText(ctx, paired ? '(B) DECK HEIGHT' : '(B) DECK / LOCAL ALTITUDE',
       x, titleY, {
@@ -410,7 +500,8 @@
       });
     plateRule(ctx, ruleY, x, x + w);
 
-    plateLine(ctx, { x: origin.x - (compact ? 8 : 12), y: origin.y }, {
+    const horizonStart = { x: origin.x - (compact ? 8 : 12), y: origin.y };
+    plateLine(ctx, horizonStart, {
       x: right,
       y: origin.y,
     }, { weight: compact ? 0.9 : 1.1 });
@@ -422,18 +513,19 @@
       kind: 'short',
       weight: compact ? 0.65 : 0.75,
     });
-    starGlyph(ctx, polaris.x, polaris.y, compact ? 5.5 : 6.5, PLATE.ink);
+    starGlyph(ctx, polaris.x, polaris.y, starR, PLATE.ink);
 
     const rH = compact ? 24 : 32;
     angleDim(ctx, origin.x, origin.y, rH, 0, idealAngle,
       PLATE.ink, compact ? 0.85 : 1.05);
-    const hMid = idealAngle * 0.5;
-    plateDataText(ctx, 'h',
-      origin.x + Math.cos(hMid) * (rH + (lat < 12 ? 9 : compact ? 10 : 13)),
-      origin.y + Math.sin(hMid) * (rH + (compact ? 10 : 13)), {
-        size: compact ? 8.5 : 10,
-        align: 'center',
-      });
+    const symbolSize = compact ? 8.5 : 10;
+    // h: inside its wedge while it fits, else above the Polaris line
+    const hAt = angleSymbolPoint(ctx, 'h', symbolSize, origin,
+      0, -lat, rH + (compact ? 10 : 13), off => -lat - offset * R2D - off);
+    plateDataText(ctx, 'h', hAt.x, hAt.y, {
+      size: symbolSize,
+      align: 'center',
+    });
 
     pointMark(ctx, origin.x, origin.y, PLATE.ink);
     plateText(ctx, 'NORTH HORIZON', right, origin.y + (compact ? 10 : 12), {
@@ -444,36 +536,55 @@
       size: labelSize,
     });
 
-    const ncpAlign = idealPole.x > x + w * 0.72 ? 'right' : 'left';
-    const ncpY = clamp(idealPole.y + (lat < 30 ? 10 : -7),
-      diagramTop + 5, origin.y - 8);
-    plateText(ctx, paired ? 'NCP' : 'NCP · IDEAL',
-      idealPole.x + (ncpAlign === 'right' ? -4 : 6),
-      ncpY, {
-        size: labelSize,
-        align: ncpAlign,
-      });
-    const polarisAlign = polaris.x > x + w * 0.72 ? 'right' : 'left';
-    let polarisY = clamp(polaris.y + (lat < 30 ? -10 : 10),
-      diagramTop + 5, origin.y - 8);
-    const labelGap = labelSize * 1.55;
-    if (Math.abs(polarisY - ncpY) < labelGap) {
-      polarisY = ncpY + labelGap <= origin.y - 8
-        ? ncpY + labelGap
-        : ncpY - labelGap;
-    }
-    plateText(ctx, 'POLARIS',
-      polaris.x + (polarisAlign === 'right' ? -4 : 6),
-      clamp(polarisY, diagramTop + 5, origin.y - 8), {
-        size: labelSize,
-        align: polarisAlign,
-      });
+    const labels = createPlateLabeler(ctx, {
+      left: x,
+      top: ruleY + 3,
+      right: x + w,
+      bottom: origin.y - 2,
+      gap: 1.5,
+    });
+    reservePoints(labels, segmentPoints(horizonStart, { x: right, y: origin.y }), 0.5);
+    reservePoints(labels, segmentPoints(origin, idealPole));
+    reservePoints(labels, segmentPoints(origin, polaris));
+    reservePoints(labels, arcPoints(origin.x, origin.y, rH, idealAngle, 0));
+    labels.reserve({
+      x: polaris.x - starR, y: polaris.y - starR, w: starR * 2, h: starR * 2,
+    }, 1);
+    labels.reserve(hAt.rect, 1);
+    const opts = { size: labelSize, padding: LABEL_PAD, backed: false, leader: false };
     if (!paired) {
-      plateText(ctx, 'OFFSET ENLARGED', right, diagramTop + 7, {
-        size: compact ? 7.5 : 8,
-        align: 'right',
-      });
+      labels.place('OFFSET ENLARGED', null, [
+        { x: right, y: diagramTop + 7, align: 'right' },
+        { x: right, y: diagramTop + 21, align: 'right' },
+      ], { ...opts, size: compact ? 7.5 : 8 });
     }
+    // Polaris sits off the ideal line on one side; its label goes further
+    // out on that side, and the ideal pole's label on the other.
+    const chord = {
+      x: polaris.x - idealPole.x,
+      y: polaris.y - idealPole.y,
+    };
+    const chordLength = Math.hypot(chord.x, chord.y) || 1;
+    const outward = { x: chord.x / chordLength, y: chord.y / chordLength };
+    const inward = { x: -outward.x, y: -outward.y };
+    const along = { x: Math.cos(idealAngle), y: Math.sin(idealAngle) };
+    labels.place('POLARIS', null, [
+      seat(ctx, 'POLARIS', labelSize, polaris, outward, starR + 3),
+      seat(ctx, 'POLARIS', labelSize, polaris, { x: 0, y: -1 }, starR + 3),
+      seat(ctx, 'POLARIS', labelSize, polaris, { x: -1, y: 0 }, starR + 3),
+    ], opts);
+    // lean the ideal pole's label back along its line, away from the star
+    const awayLength = Math.hypot(inward.x - along.x * 0.5, inward.y - along.y * 0.5) || 1;
+    const away = {
+      x: (inward.x - along.x * 0.5) / awayLength,
+      y: (inward.y - along.y * 0.5) / awayLength,
+    };
+    labels.place(ncpText, null, [
+      seat(ctx, ncpText, labelSize, idealPole, away, 6),
+      seat(ctx, ncpText, labelSize, idealPole, inward, 6),
+      seat(ctx, ncpText, labelSize, idealPole, along, 8),
+      seat(ctx, ncpText, labelSize, idealPole, { x: 1, y: 0 }, 8),
+    ], opts);
 
     plateDataText(ctx, `ideal pole: h = φ = ${lat.toFixed(1)}°`,
       x + w / 2, idealEquationY, {

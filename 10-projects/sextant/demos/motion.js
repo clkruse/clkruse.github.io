@@ -25,15 +25,25 @@
       return `${hh}h ${String(mm).padStart(2, '0')}m`;
     },
   });
-  const travel = addStat(d, 'GP moved west');
-  const decStat = addStat(d, 'declination');
 
   SIGHT_STORY.subscribe(state => { sight = state; });
 
   function draw(ctx, w, h) {
     drawSiderealRatePlate(ctx, w, h);
-    travel.set((hours.v * STELLAR_RATE).toFixed(1) + '°');
-    decStat.set(fmtDM(Math.abs(sight.dec), 1) + (sight.dec < 0 ? ' S' : ' N'));
+  }
+
+  // GHA runs 0–360° west of Greenwich; as a longitude it is west up to
+  // 180° and east beyond
+  const lonText = gha => gha <= 180
+    ? `${fmtDM(gha, 1)} W`
+    : `${fmtDM(360 - gha, 1)} E`;
+
+  // largest nominal size (down to a floor) at which a line fits its column
+  function fitSize(ctx, text, width, size, opts = {}) {
+    let fitted = size;
+    while (fitted > size * 0.72
+      && plateTextWidth(ctx, text, { ...opts, size: fitted }) > width) fitted -= 0.25;
+    return fitted;
   }
 
   function drawSiderealRatePlate(ctx, w, h) {
@@ -154,47 +164,31 @@
       });
     }
 
+    // right column flows top to bottom so the larger plate text never
+    // collides: why-box, the GP's latitude, then the elapsed-time scale
     const boxY = fieldTop + (compact ? 2 : 5);
-    const boxH = compact ? 56 : 92;
-    plateBox(ctx, rightX, boxY, rightW, [
-      'EARTH TURNS EAST.',
-      'THE POINT UNDER VEGA MOVES WEST.',
-      'DECLINATION STAYS NEARLY FIXED.',
-    ], {
+    const why = compact
+      ? ['EARTH TURNS EAST.', 'THE GP MOVES WEST.', 'ITS LATITUDE HOLDS.']
+      : ['EARTH TURNS EAST.', 'THE POINT UNDER VEGA MOVES WEST.', 'ITS LATITUDE STAYS FIXED.'];
+    const boxH = plateBox(ctx, rightX, boxY, rightW, why, {
       title: 'WHY THE GP MOVES',
       size: bodySize,
-      lineHeight: compact ? 9.5 : 14,
-      padding: compact ? 6 : 7,
-      height: boxH,
+      lineHeight: compact ? 9.5 : 13,
+      padding: compact ? 6 : 8,
     });
 
-    const definitionY = boxY + boxH + (compact ? 8 : 19);
-    plateDataText(ctx, compact ? 'GHA = the GP’s angle' :
-      'GHA IS THE GP’S ANGLE WEST FROM GREENWICH',
-    rightX + rightW / 2, definitionY, {
-      size: bodySize, align: 'center',
+    const latLabel = 'LATITUDE OF THE GP';
+    const latValue = `${fmtDM(Math.abs(sight.dec), 1)} ${sight.dec < 0 ? 'S' : 'N'}, unchanged`;
+    const latY = boxY + boxH + (compact ? 13 : 22);
+    plateText(ctx, latLabel, rightX, latY, { size: bodySize, weight: 600 });
+    plateDataText(ctx, latValue, rightX, latY + (compact ? 12 : 17), {
+      size: fitSize(ctx, latValue, rightW, dataSize, { font: PLATE.dataFont, tracking: 0, uppercase: false }),
     });
-    if (compact) {
-      plateDataText(ctx, 'west from Greenwich', rightX + rightW / 2,
-        definitionY + 10, {
-          size: bodySize, align: 'center',
-        });
-    } else {
-      plateDataText(ctx, `GHA at sight  ${fmtDM(sight.gha, 1)}`,
-        rightX + rightW / 2, definitionY + 30, {
-          size: dataSize, align: 'center',
-        });
-      plateDataText(ctx, `GHA now  ${fmtDM(currentGha, 1)}`,
-        rightX + rightW / 2, definitionY + 50, {
-          size: dataSize, weight: 600, align: 'center',
-        });
-    }
 
-    const scaleY = fieldBottom - (compact ? 12 : 25);
-    plateText(ctx, compact ? 'ELAPSED TIME → WESTWARD MOVE' :
-      'ELAPSED MEAN-SOLAR TIME → PRECISE WESTWARD MOVE',
-    rightX + rightW / 2, scaleY - (compact ? 12 : 18), {
-      size: bodySize, align: 'center',
+    const scaleY = fieldBottom - (compact ? 12 : 22);
+    const scaleTitle = 'HOURS AFTER THE SIGHT';
+    plateText(ctx, scaleTitle, rightX + rightW / 2, scaleY - (compact ? 16 : 20), {
+      size: bodySize, weight: 600, align: 'center',
     });
     const scaleX0 = rightX + (compact ? 5 : 9);
     const scaleX1 = rightX + rightW - (compact ? 5 : 9);
@@ -210,7 +204,8 @@
         { x, y: scaleY + (compact ? 3 : 5) }, {
           weight: hour === 0 ? (compact ? 0.75 : 0.9) : 0.55,
         });
-      plateDataText(ctx, `${hour} h`, x, scaleY + (compact ? 9 : 13), {
+      // the 0 h label clears the heavy start tick
+      plateDataText(ctx, `${hour} h`, x + (hour === 0 ? 3 : 0), scaleY + (compact ? 10 : 14), {
         size: dataSize,
         align: hour === 0 ? 'left' : hour === 8 ? 'right' : 'center',
       });
@@ -222,14 +217,14 @@
       });
 
     plateRule(ctx, ruleY, 14, w - 14);
-    plateDataText(ctx, `${hours.v.toFixed(2)} h × ${STELLAR_RATE.toFixed(3)}°/h = ${moved.toFixed(2)}° west`,
-      w / 2, ruleY + (compact ? 11 : 17), {
-        size: dataSize, align: 'center',
-      });
-    plateDataText(ctx,
-      `GHA ${fmtDM(sight.gha, 1)} + ${fmtDM(moved, 1)} = ${fmtDM(currentGha, 1)}`,
-      w / 2, ruleY + (compact ? 27 : 36), {
-        size: dataSize, align: 'center',
-      });
+    const rateLine = `${hours.v.toFixed(2)} h × ${STELLAR_RATE.toFixed(3)}°/h = ${moved.toFixed(2)}° west`;
+    const lonLine = `GP longitude ${lonText(sight.gha)} → ${lonText(currentGha)}`;
+    const dataOpts = { font: PLATE.dataFont, tracking: 0, uppercase: false };
+    plateDataText(ctx, rateLine, w / 2, ruleY + (compact ? 11 : 17), {
+      size: fitSize(ctx, rateLine, w - 28, dataSize, dataOpts), align: 'center',
+    });
+    plateDataText(ctx, lonLine, w / 2, ruleY + (compact ? 27 : 36), {
+      size: fitSize(ctx, lonLine, w - 28, dataSize, dataOpts), align: 'center',
+    });
   }
 })();

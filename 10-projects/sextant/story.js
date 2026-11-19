@@ -265,3 +265,10 @@ document.addEventListener('click', event => {
     }
   }
 });
+
+// figures can open on a preset that matches the prose around them
+window.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('figure.demo[data-initial-preset]').forEach(figure => {
+    figure.querySelector('canvas')?._demo?.applyPreset(figure.dataset.initialPreset);
+  });
+});

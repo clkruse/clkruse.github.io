@@ -6,6 +6,7 @@
     aspect: 1,
     compactAspect: 0.95,
     maxH: 310,
+    compactMaxH: 330,
     draw: drawDeckView,
   });
   const eye = addSlider(d, {
@@ -50,13 +51,36 @@
     const compact = w < 500;
     const titleBottom = compact ? 28 : 32;
     const ruleY = h - (compact ? 30 : 38);
-    const splitX = compact ? w : w * 0.64;
+
+    // The note box is sized from its own measured text, so a font change
+    // resizes the box instead of overflowing it. The proof takes the rest.
+    const boxLines = [
+      'Sight line is a tangent',
+      'No refraction drawn',
+      'Numbers use average air',
+    ];
+    const boxTitle = 'What is drawn';
+    const boxSize = compact ? 8 : 9;
+    const boxPad = compact ? 6 : 8;
+    const boxLineHeight = (compact ? 15 : 17) * PLATE_TEXT_SCALE;
+    const boxTextW = Math.max(
+      plateTextWidth(ctx, boxTitle, { size: boxSize, weight: 600, tracking: boxSize * 0.09 }),
+      ...boxLines.map(line => plateTextWidth(ctx, line, { size: boxSize, tracking: boxSize * 0.055 }))
+    );
+    const boxW = compact ? w - 20 : Math.ceil(boxTextW + boxPad * 2 + 4);
+    const boxH = boxPad * 2 + boxLineHeight + 5 + boxLines.length * boxLineHeight;
+    const boxX = compact ? 10 : w - 14 - boxW;
+    const splitX = compact ? w : boxX - 8;
+    const boxY = compact
+      ? ruleY - 10 - boxH
+      : titleBottom + (ruleY - titleBottom - boxH) / 2;
+
     const proof = compact
       ? {
         left: 8,
         right: w - 8,
         top: titleBottom + 3,
-        bottom: Math.min(titleBottom + 120, ruleY - 116),
+        bottom: boxY - 8,
       }
       : {
         left: 10,
@@ -78,16 +102,23 @@
 
     // The sketch omits refraction. Radius and eye height are deliberately not
     // at one scale; the standard dip rule is reported separately below.
+    // Eye height is exaggerated further than the Earth so the dip wedge is
+    // wide enough to carry its own label. The radius leaves room above the
+    // highest eye for the EYE label.
+    const eyeScale = compact ? 1.9 : 1.5;
+    const maxGapRatio = 0.11 * eyeScale;
     const Rpx = Math.min(
-      proofH * (compact ? 0.70 : 0.84),
+      (proofH - (compact ? 22 : 26)) / (1 + maxGapRatio),
       proofW * (compact ? 0.36 : 0.50)
     );
+    // Earth sits left of centre: the open sky to the right of the tangent
+    // point carries the horizon label at every eye height.
     const C = {
-      x: proof.left + proofW * (compact ? 0.31 : 0.37),
-      y: proof.bottom + (compact ? -2 : 4),
+      x: proof.left + Math.max(compact ? 70 : 90, proofW * (compact ? 0.24 : 0.30)),
+      y: proof.bottom,
     };
     const S = { x: C.x, y: C.y - Rpx };
-    const eyeGap = Rpx * (0.055 + 0.055 * Math.sqrt(hm / 50));
+    const eyeGap = Rpx * (0.055 + 0.055 * Math.sqrt(hm / 50)) * eyeScale;
     const E = { x: S.x, y: S.y - eyeGap };
     const centerDistance = Math.hypot(E.x - C.x, E.y - C.y);
     const displayDip = Math.acos(clamp(Rpx / centerDistance, 0, 1));
@@ -125,10 +156,11 @@
       kind: 'construction',
       weight: compact ? 0.45 : 0.6,
     });
-    plateLine(ctx, E, {
+    const levelEnd = {
       x: proof.right - (compact ? 4 : 8),
       y: E.y,
-    }, {
+    };
+    plateLine(ctx, E, levelEnd, {
       kind: 'construction',
       weight: compact ? 0.6 : 0.75,
     });
@@ -153,19 +185,50 @@
       Math.atan2(E.y - T.y, E.x - T.x),
       compact ? 5 : 7, PLATE.ink);
 
+    const dipArcR = compact ? 22 : 39;
     ctx.save();
     ctx.strokeStyle = PLATE.ink;
     ctx.lineWidth = compact ? 0.6 : 0.8;
     ctx.beginPath();
-    arcBetween(ctx, E.x, E.y, compact ? 25 : 39, 0, tangentAngle);
+    arcBetween(ctx, E.x, E.y, dipArcR, 0, tangentAngle);
     ctx.stroke();
     ctx.restore();
+
+    const labels = createPlateLabeler(ctx, {
+      left: proof.left,
+      top: proof.top,
+      right: proof.right,
+      bottom: proof.bottom,
+      gap: compact ? 2 : 3,
+    });
+    // "dip" names the angle, so it sits in the wedge just outside its arc
+    // and nothing else may cover it.
+    const dipSize = compact ? 8 : 9.5;
+    const dipW = plateTextWidth(ctx, 'dip', { size: dipSize });
     const dipMid = tangentAngle / 2;
-    plateText(ctx, 'dip', E.x + Math.cos(dipMid) * (compact ? 32 : 49),
-      E.y + Math.sin(dipMid) * (compact ? 32 : 49), {
-        size: compact ? 8 : 9.5,
-        align: 'center',
-      });
+    // Smallest distance along the bisector at which the word clears the
+    // arc, the eye-level line and the tangent.
+    const dipHalfH = plateSize(dipSize) * 0.36 + 1.5;
+    const dipR = Math.max(
+      dipArcR + dipW / 2 + 4,
+      dipHalfH / Math.sin(dipMid),
+      (dipW / 2 * Math.tan(tangentAngle) + dipHalfH)
+        / (Math.cos(dipMid) * Math.tan(tangentAngle) - Math.sin(dipMid))
+    );
+    const dipPoint = {
+      x: E.x + Math.cos(dipMid) * dipR,
+      y: E.y + Math.sin(dipMid) * dipR,
+    };
+    plateText(ctx, 'dip', dipPoint.x, dipPoint.y, {
+      size: dipSize,
+      align: 'center',
+    });
+    labels.reserve({
+      x: dipPoint.x - dipW / 2,
+      y: dipPoint.y - plateSize(dipSize) * 0.55,
+      w: dipW,
+      h: plateSize(dipSize) * 1.1,
+    }, 1);
 
     // The full plate dimensions height at the observer. At 320 px the live
     // footer carries the value, leaving the tangent proof unobstructed.
@@ -184,77 +247,56 @@
           head: 3.3,
           offset: 10,
         });
-      plateDataText(ctx, `${hm.toFixed(1)} m`, dimX - 10, (E.y + S.y) / 2, {
+      const heightText = `${hm.toFixed(1)} m`;
+      plateDataText(ctx, heightText, dimX - 10, (E.y + S.y) / 2, {
         size: 9,
         align: 'right',
       });
+      labels.reserve({
+        x: dimX - 10 - plateTextWidth(ctx, heightText, { size: 9, font: PLATE.dataFont, tracking: 0, uppercase: false }),
+        y: Math.min(E.y, (E.y + S.y) / 2 - 7),
+        w: plateTextWidth(ctx, heightText, { size: 9, font: PLATE.dataFont, tracking: 0, uppercase: false }) + 40,
+        h: Math.max(S.y - E.y, 14),
+      }, 1);
     }
 
-    const boxX = compact ? 10 : splitX + 8;
-    const boxW = compact ? w - 20 : w - boxX - 14;
-    const boxY = compact
-      ? proof.bottom + (ruleY - proof.bottom - 98) / 2
-      : titleBottom + (ruleY - titleBottom - 110) / 2;
-    const boxH = compact ? 98 : Math.min(110, ruleY - boxY - 6);
-    plateBox(ctx, boxX, boxY, boxW, [
-      'Tangent is geometric',
-      'No refraction in this proof',
-      'Standard dip uses average air',
-      'Standard range uses average air',
-    ], {
-      title: 'What is drawn',
-      size: compact ? 8 : 9,
+    plateBox(ctx, boxX, boxY, boxW, boxLines, {
+      title: boxTitle,
+      size: boxSize,
       lineHeight: compact ? 15 : 17,
-      padding: compact ? 6 : 8,
-      height: boxH,
-      });
-
-    const labels = createPlateLabeler(ctx, {
-      left: proof.left,
-      top: proof.top,
-      right: proof.right,
-      bottom: proof.bottom,
-      gap: compact ? 2 : 3,
+      padding: boxPad,
     });
-    labels.place('EYE', E, [
-      { x: E.x - (compact ? 8 : 12), y: E.y - (compact ? 7 : 10), align: 'right' },
-      { x: E.x + (compact ? 8 : 12), y: E.y - (compact ? 7 : 10), align: 'left' },
+
+    // EYE sits straight above its point, clear of the height dimension.
+    labels.place('EYE', null, [
+      { x: E.x, y: E.y - (compact ? 10 : 13), align: 'center' },
+      { x: E.x - (compact ? 6 : 8), y: E.y - (compact ? 10 : 13), align: 'right' },
     ], {
       size: compact ? 8 : 9,
-      head: compact ? 2.6 : 3.2,
+      leader: false,
     });
     labels.place('EYE-LEVEL HORIZONTAL', null, [
       {
-        x: splitX - (compact ? 10 : 15),
-        y: E.y - (compact ? 6 : 9),
+        x: levelEnd.x - (compact ? 2 : 4),
+        y: E.y - (compact ? 8 : 10),
         align: 'right',
       },
     ], {
       size: compact ? 8 : 9,
       leader: false,
     });
-    labels.place('GEOMETRIC TANGENT', null, [
-      {
-        x: E.x + (T.x - E.x) * (compact ? 0.68 : 0.66),
-        y: E.y + (T.y - E.y) * (compact ? 0.68 : 0.66)
-          - (compact ? 9 : 13),
-        align: 'center',
-      },
-    ], {
-      size: compact ? 8 : 9,
-      leader: false,
-      backed: true,
-    });
+    // The horizon label continues the sight line past the tangent point,
+    // in the open sky between eye level and the falling Earth.
     labels.place('UNREFRACTED HORIZON', T, [
       {
-        x: T.x + (compact ? 9 : 13),
-        y: T.y + (compact ? 9 : 13),
+        x: T.x + (compact ? 16 : 22),
+        y: T.y - (compact ? 5 : 6),
         align: 'left',
       },
       {
-        x: T.x - (compact ? 9 : 13),
-        y: T.y + (compact ? 9 : 13),
-        align: 'right',
+        x: T.x + (compact ? 30 : 40),
+        y: T.y + (compact ? 20 : 26),
+        align: 'left',
       },
     ], {
       size: compact ? 7.5 : 8,
@@ -263,9 +305,9 @@
     if (!compact) {
       labels.place('EARTH', null, [
         {
-          x: C.x + Rpx * 0.76,
-          y: C.y - Rpx * 0.36,
-          align: 'left',
+          x: C.x + Rpx * 0.55,
+          y: C.y - Rpx * 0.38,
+          align: 'center',
         },
       ], {
         size: 8,
@@ -328,6 +370,23 @@
     return R;
   }
 
+  // Reserve a drawn line in a labeler as a chain of thin boxes, so labels
+  // avoid the line itself rather than only its end points.
+  function reserveLine(labels, a, b, pad = 1) {
+    const length = Math.hypot(b.x - a.x, b.y - a.y);
+    const steps = Math.max(1, Math.ceil(length / 6));
+    for (let i = 0; i < steps; i++) {
+      const p = { x: a.x + (b.x - a.x) * i / steps, y: a.y + (b.y - a.y) * i / steps };
+      const q = { x: a.x + (b.x - a.x) * (i + 1) / steps, y: a.y + (b.y - a.y) * (i + 1) / steps };
+      labels.reserve({
+        x: Math.min(p.x, q.x),
+        y: Math.min(p.y, q.y),
+        w: Math.abs(q.x - p.x),
+        h: Math.abs(q.y - p.y),
+      }, pad);
+    }
+  }
+
   function drawAltitudePair(ctx, w, h) {
     ctx.fillStyle = PLATE.paper;
     ctx.fillRect(0, 0, w, h);
@@ -338,13 +397,50 @@
     const compact = w < 500;
     const titleBottom = compact ? 28 : 32;
     const ruleY = h - (compact ? 30 : 38);
-    const splitX = compact ? w : w * 0.62;
+
+    // The explanation card is sized from its measured text (widest value
+    // states), so a font change resizes the card instead of overflowing it.
+    const textSize = compact ? 8 : 9;
+    const dataOpts = { size: textSize, font: PLATE.dataFont, tracking: 0, uppercase: false };
+    const cardTitle = compact ? 'Why it looks high' : 'Why the star looks high';
+    const rText = value => compact
+      ? `R ${value}′ · apparent above true`
+      : `R = ${value}′ · apparent above true`;
+    const htText = value => compact ? 'Ht = Ha − R' : `Ht = Ha − R = ${value}`;
+    const causes = [
+      'Denser air bends the ray',
+      'Eye extends it straight',
+      'Star appears high',
+    ];
+    const textW = Math.max(
+      plateTextWidth(ctx, rText('28.8'), dataOpts),
+      plateTextWidth(ctx, htText('59° 59.4′'), dataOpts),
+      ...causes.map(line => plateTextWidth(ctx, line, { size: textSize })),
+      compact ? 0 : plateTextWidth(ctx, cardTitle, { size: textSize, weight: 600 })
+    );
+    const cardPad = compact ? 8 : 10;
+    const rowH = (compact ? 11 : 14) * PLATE_TEXT_SCALE;
+    const insetLabelSize = compact ? 7.5 : 8;
+    const appLabel = 'apparent';
+    const trueLabel = 'true';
+    const appLabelW = plateTextWidth(ctx, appLabel, { size: insetLabelSize });
+    const trueLabelW = plateTextWidth(ctx, trueLabel, { size: insetLabelSize });
+
+    const cardH = compact ? Math.ceil(cardPad * 2 + rowH * 6) : ruleY - titleBottom - 20;
+    const cardW = compact ? w - 20 : Math.ceil(textW + cardPad * 2);
+    const card = {
+      x: compact ? 10 : w - 14 - cardW,
+      y: compact ? ruleY - 10 - cardH : titleBottom + 10,
+      w: cardW,
+      h: cardH,
+    };
+    const splitX = compact ? w : card.x - 8;
     const physical = compact
       ? {
         left: 8,
         right: w - 8,
         top: titleBottom + 3,
-        bottom: Math.min(titleBottom + 103, ruleY - 101),
+        bottom: card.y - 8,
       }
       : {
         left: 10,
@@ -363,21 +459,22 @@
     plateRule(ctx, titleBottom, 14, w - 14);
 
     const O = {
-      x: physical.left + (compact ? 10 : 19),
-      y: physical.bottom - (compact ? 10 : 22),
+      x: physical.left + (compact ? 12 : 19),
+      y: physical.bottom - (compact ? 18 : 22),
     };
     const mainRight = physical.right - (compact ? 2 : 7);
     const mainTop = physical.top + (compact ? 5 : 10);
 
     // Solid interfaces encode a denser medium toward the observer. They are
-    // sparse physical boundaries, not decorative atmospheric hatching.
-    const layerGap = compact ? 12 : 18;
-    for (let i = 1; i <= 3; i++) {
-      const y = O.y - i * layerGap;
-      plateLine(ctx, { x: O.x - (compact ? 8 : 12), y },
-        { x: mainRight, y }, {
-          weight: compact ? 0.35 : 0.5,
-        });
+    // sparse physical boundaries, not decorative atmospheric hatching. The
+    // bands are tall enough to hold one line of label text.
+    const layerGap = compact ? 20 : 24;
+    const layerYs = [1, 2, 3].map(i => O.y - i * layerGap);
+    const layerLeft = O.x - (compact ? 8 : 12);
+    for (const y of layerYs) {
+      plateLine(ctx, { x: layerLeft, y }, { x: mainRight, y }, {
+        weight: compact ? 0.35 : 0.5,
+      });
     }
     plateLine(ctx, O, { x: mainRight, y: O.y }, {
       kind: 'construction',
@@ -442,8 +539,9 @@
         compact ? 3 : 3.7);
     }
 
+    const starR = compact ? 4.2 : 6;
     const drawPlateStar = (point, hollow = false) => {
-      const r = compact ? 4.2 : 6;
+      const r = starR;
       ctx.save();
       ctx.strokeStyle = PLATE.ink;
       ctx.lineWidth = hollow ? (compact ? 0.5 : 0.65) : (compact ? 0.85 : 1.05);
@@ -476,74 +574,106 @@
     ctx.arc(O.x, O.y, compact ? 2 : 2.7, 0, TAU);
     ctx.fill();
 
-    plateText(ctx, compact ? 'DENSER AIR BELOW' : 'AIR GETS DENSER TOWARD THE SEA',
-      O.x, physical.top + (compact ? 3 : 5), {
-        size: compact ? 8 : 9,
-        align: 'left',
-      });
-    plateText(ctx, 'horizon', mainRight, O.y + (compact ? 7 : 10), {
-      size: compact ? 7.5 : 8,
-      align: 'right',
-    });
-
+    // Every drawn line is reserved, so labels pick a seat that touches none.
     const mainLabels = createPlateLabeler(ctx, {
       left: physical.left,
       top: physical.top,
       right: physical.right,
       bottom: physical.bottom,
-      gap: compact ? 2 : 3,
+      gap: compact ? 1.5 : 2,
+    });
+    for (const y of layerYs) {
+      mainLabels.reserve({ x: layerLeft, y, w: mainRight - layerLeft, h: 0 }, 1);
+    }
+    mainLabels.reserve({ x: O.x, y: O.y, w: mainRight - O.x, h: 0 }, 1);
+    reserveLine(mainLabels, O, apparentEnd);
+    for (let i = 0; i < steps; i++) reserveLine(mainLabels, path[i], path[i + 1]);
+    for (const star of [apparentEnd, trueEnd]) {
+      mainLabels.reserve({ x: star.x - starR, y: star.y - starR, w: starR * 2, h: starR * 2 }, 1);
+    }
+    mainLabels.reserve({ x: O.x - 3, y: O.y - 3, w: 6, h: 6 }, 1);
+
+    const smallSize = compact ? 7.5 : 8;
+    const labelSize = compact ? 8 : 9;
+    mainLabels.place('horizon', null, [
+      { x: mainRight, y: O.y + (compact ? 10 : 12), align: 'right' },
+    ], {
+      size: smallSize,
+      leader: false,
+      backed: false,
     });
     mainLabels.place('EYE', O, [
-      { x: O.x + (compact ? 9 : 13), y: O.y - (compact ? 8 : 11), align: 'left' },
+      { x: O.x + (compact ? 12 : 14), y: O.y + (compact ? 10 : 12), align: 'left' },
+      { x: O.x + (compact ? 12 : 14), y: O.y - layerGap / 2, align: 'left' },
     ], {
-      size: compact ? 8 : 9,
+      size: labelSize,
+      padding: 1,
       head: compact ? 2.5 : 3.1,
     });
-    const sourceLabelAbove = ha < 5;
-    mainLabels.place('TRUE STAR', trueEnd, [
-      {
-        x: trueEnd.x + (compact ? 7 : 10),
-        y: trueEnd.y + (sourceLabelAbove ? -(compact ? 8 : 11) : (compact ? 8 : 11)),
-        align: 'left',
-      },
-      {
-        x: trueEnd.x - (compact ? 7 : 10),
-        y: trueEnd.y + (sourceLabelAbove ? -(compact ? 8 : 11) : (compact ? 8 : 11)),
-        align: 'right',
-      },
-    ], {
-      size: compact ? 8 : 9,
+
+    // The true star's label tries the corners and sides first, then the clear
+    // band between air layers to its left (low stars sit among the layers).
+    const starOffset = compact ? 9 : 11;
+    const starCandidates = [
+      { x: trueEnd.x + starOffset, y: trueEnd.y + starOffset, align: 'left' },
+      { x: trueEnd.x - starOffset, y: trueEnd.y + starOffset, align: 'right' },
+      { x: trueEnd.x + starOffset, y: trueEnd.y - starOffset, align: 'left' },
+      { x: trueEnd.x - starOffset, y: trueEnd.y - starOffset, align: 'right' },
+    ];
+    for (const shift of [6, 16, 28]) {
+      starCandidates.push(
+        { x: trueEnd.x + starR + shift, y: trueEnd.y, align: 'left' },
+        { x: trueEnd.x - starR - shift, y: trueEnd.y, align: 'right' }
+      );
+    }
+    for (let band = 0; band < 4; band++) {
+      const bandY = O.y - (band + 0.5) * layerGap;
+      if (bandY > trueEnd.y + layerGap || bandY < trueEnd.y - layerGap * 1.5) continue;
+      for (const shift of [4, 34, 74]) {
+        starCandidates.push({ x: trueEnd.x - starOffset - shift, y: bandY, align: 'right' });
+      }
+    }
+    mainLabels.place('TRUE STAR', trueEnd, starCandidates, {
+      size: labelSize,
+      padding: 1,
       head: compact ? 2.5 : 3.1,
-      fallback: 'hide',
-    });
-    mainLabels.place('LIGHT BENDS TO THE EYE', null, [
-      {
-        x: path[Math.round(steps * 0.55)].x,
-        y: path[Math.round(steps * 0.55)].y - (compact ? 7 : 10),
-        align: 'center',
-      },
-    ], {
-      size: compact ? 7.5 : 8,
-      leader: false,
-      backed: true,
       fallback: 'hide',
     });
 
-    // The right card enlarges only the small angular separation. Apparent is
+    const airText = compact ? 'DENSER AIR BELOW' : 'AIR GETS DENSER TOWARD THE SEA';
+    const aboveLayers = layerYs[2] - layerGap / 2;
+    mainLabels.place(airText, null, [
+      { x: mainRight, y: aboveLayers, align: 'right' },
+      { x: mainRight, y: O.y - 2.5 * layerGap, align: 'right' },
+      { x: mainRight, y: O.y - 1.5 * layerGap, align: 'right' },
+      { x: O.x, y: physical.top + (compact ? 10 : 12), align: 'left' },
+      { x: mainRight, y: physical.top + (compact ? 10 : 12), align: 'right' },
+      { x: O.x, y: aboveLayers, align: 'left' },
+    ], {
+      size: labelSize,
+      padding: 1,
+      leader: false,
+    });
+    const bendIndex = Math.round(steps * 0.55);
+    mainLabels.place('LIGHT BENDS TO THE EYE', null, [
+      {
+        x: path[bendIndex].x - (compact ? 7 : 10),
+        y: path[bendIndex].y - (compact ? 7 : 10),
+        align: 'right',
+      },
+      {
+        x: path[bendIndex].x + (compact ? 7 : 10),
+        y: path[bendIndex].y + (compact ? 7 : 10),
+        align: 'left',
+      },
+    ], {
+      size: smallSize,
+      leader: false,
+      fallback: 'hide',
+    });
+
+    // The card enlarges only the small angular separation. Apparent is
     // above true, matching Ht = Ha − R at every slider setting.
-    const card = compact
-      ? {
-        x: 10,
-        y: physical.bottom + 9,
-        w: w - 20,
-        h: Math.min(88, ruleY - physical.bottom - 19),
-      }
-      : {
-        x: splitX + 8,
-        y: titleBottom + 10,
-        w: w - splitX - 22,
-        h: ruleY - titleBottom - 20,
-      };
     ctx.save();
     ctx.fillStyle = PLATE.paper;
     ctx.strokeStyle = PLATE.ink;
@@ -551,28 +681,44 @@
     ctx.fillRect(card.x, card.y, card.w, card.h);
     ctx.strokeRect(card.x, card.y, card.w, card.h);
     ctx.restore();
-    plateText(ctx, compact ? 'Why it looks high' : 'Why the star looks high',
-      card.x + card.w / 2, card.y + (compact ? 9 : 13), {
-        size: compact ? 8 : 9,
-        weight: 600,
-        align: 'center',
-      });
-    plateDataText(ctx, compact
-      ? `R ${R.toFixed(1)}′ · apparent above true`
-      : `R = ${R.toFixed(1)}′ · apparent direction above true`,
-    compact ? card.x + 118 : card.x + card.w / 2,
-    card.y + (compact ? 24 : 31), {
-      size: compact ? 8 : 9,
-      align: compact ? 'left' : 'center',
-    });
 
-    const detail = compact
-      ? { x: card.x + 16, y: card.y + card.h - 14 }
-      : { x: card.x + 19, y: card.y + card.h * 0.61 };
-    const detailLen = compact ? 67 : card.w - 55;
+    const textX = compact ? card.x + card.w - cardPad - textW : card.x + cardPad;
+    const titleY = card.y + cardPad + rowH * 0.4;
+    plateText(ctx, cardTitle,
+      compact ? card.x + card.w / 2 : textX, titleY, {
+        size: textSize,
+        weight: 600,
+        align: compact ? 'center' : 'left',
+      });
+    const rowY = index => titleY + rowH * (index + 1.1);
+    plateDataText(ctx, rText(R.toFixed(1)), textX, rowY(0), dataOpts);
+
+    // Inset: the eye at `detail`, the apparent and true directions, and an
+    // arc from one to the other. Labels sit past the clear ends of the lines.
+    const causeRuleY = compact ? null : card.y + card.h - cardPad - rowH * 4.2;
+    const inset = compact
+      ? {
+        left: card.x + cardPad,
+        right: textX - 14,
+        top: rowY(0) - 2,
+        bottom: card.y + card.h - cardPad - 4,
+      }
+      : {
+        left: card.x + cardPad,
+        right: card.x + card.w - cardPad,
+        top: rowY(0) + rowH * 0.9,
+        bottom: causeRuleY - rowH * 1.4,
+      };
+    const detail = { x: inset.left + 4, y: inset.bottom };
     const detailAppA = -34 * D2R;
     const detailSeparation = clamp(R * 0.44, 4, 14) * D2R;
     const detailTrueA = detailAppA + detailSeparation;
+    const labelRoom = 6;
+    const detailLen = Math.max(30, Math.min(
+      (inset.right - detail.x - labelRoom - appLabelW) / Math.cos(detailAppA),
+      (inset.right - detail.x - labelRoom - trueLabelW) / Math.cos(-20 * D2R),
+      (detail.y - inset.top - 6) / Math.sin(-detailAppA)
+    ));
     const apparentPoint = {
       x: detail.x + Math.cos(detailAppA) * detailLen,
       y: detail.y + Math.sin(detailAppA) * detailLen,
@@ -582,7 +728,7 @@
       y: detail.y + Math.sin(detailTrueA) * detailLen,
     };
     plateLine(ctx, detail, {
-      x: Math.min(card.x + card.w - 7, detail.x + detailLen),
+      x: detail.x + detailLen,
       y: detail.y,
     }, {
       kind: 'construction',
@@ -607,13 +753,13 @@
     ctx.strokeStyle = PLATE.ink;
     ctx.lineWidth = compact ? 0.65 : 0.8;
     ctx.beginPath();
-    ctx.arc(detail.x, detail.y, detailLen * 0.54,
+    ctx.arc(detail.x, detail.y, detailLen * 0.62,
       detailAppA, detailTrueA, false);
     ctx.stroke();
     ctx.restore();
     const arcEnd = {
-      x: detail.x + Math.cos(detailTrueA) * detailLen * 0.54,
-      y: detail.y + Math.sin(detailTrueA) * detailLen * 0.54,
+      x: detail.x + Math.cos(detailTrueA) * detailLen * 0.62,
+      y: detail.y + Math.sin(detailTrueA) * detailLen * 0.62,
     };
     plateArrowhead(ctx, arcEnd, detailTrueA + Math.PI / 2,
       compact ? 2.7 : 3.3);
@@ -622,75 +768,54 @@
     ctx.arc(detail.x, detail.y, compact ? 1.7 : 2.3, 0, TAU);
     ctx.fill();
 
-    let apparentLabelY = apparentPoint.y - (compact ? 6 : 8);
-    let trueLabelY = truePoint.y + (compact ? 7 : 9);
-    const minimumLabelGap = compact ? 16 : 14;
+    // Each label sits just past its own line's end; when the ends are close
+    // the pair spreads apart symmetrically to one full text line.
+    let apparentLabelY = apparentPoint.y;
+    let trueLabelY = truePoint.y;
+    const minimumLabelGap = plateSize(insetLabelSize) * 1.25;
     if (trueLabelY - apparentLabelY < minimumLabelGap) {
       const middle = (trueLabelY + apparentLabelY) / 2;
       apparentLabelY = middle - minimumLabelGap / 2;
       trueLabelY = middle + minimumLabelGap / 2;
     }
-    plateText(ctx, compact ? 'apparent' : 'apparent altitude',
-      compact ? card.x + 96 : card.x + card.w - 8,
-      apparentLabelY, {
-        size: compact ? 7.5 : 8,
-        align: 'right',
-      });
-    plateText(ctx, compact ? 'true' : 'true altitude',
-      compact ? card.x + 96 : card.x + card.w - 8,
-      trueLabelY, {
-        size: compact ? 7.5 : 8,
-        align: 'right',
-      });
+    plateText(ctx, appLabel, apparentPoint.x + labelRoom, apparentLabelY, {
+      size: insetLabelSize,
+    });
+    plateText(ctx, trueLabel, truePoint.x + labelRoom, trueLabelY, {
+      size: insetLabelSize,
+    });
 
     if (compact) {
       plateLine(ctx, {
-        x: card.x + 107,
-        y: card.y + 30,
+        x: textX - 8,
+        y: rowY(0) - rowH * 0.5,
       }, {
-        x: card.x + 107,
-        y: card.y + card.h - 7,
+        x: textX - 8,
+        y: card.y + card.h - cardPad + 2,
       }, { weight: 0.55 });
-      const causeX = card.x + 118;
-      plateText(ctx, 'Denser air bends the ray', causeX, card.y + 39, {
-        size: 8,
+      causes.forEach((line, index) => {
+        plateText(ctx, line, textX, rowY(index + 1), { size: textSize });
       });
-      plateText(ctx, 'Eye extends last direction straight', causeX, card.y + 52, {
-        size: 8,
-      });
-      plateText(ctx, 'Star appears high', causeX, card.y + 65, {
-        size: 8,
-      });
-      plateDataText(ctx, 'Ht = Ha − R', causeX, card.y + 79, {
-        size: 8,
-      });
+      plateDataText(ctx, htText(), textX, rowY(4), dataOpts);
     } else {
-      plateText(ctx, 'angle drawn large', card.x + 10,
-        card.y + card.h * 0.67 - 8, {
-        size: 8,
-      });
-      const causeRuleY = card.y + card.h * 0.67;
+      plateText(ctx, 'angle drawn large', inset.left,
+        detail.y + rowH * 0.75, {
+          size: insetLabelSize,
+        });
       plateLine(ctx, {
-        x: card.x + 9,
+        x: card.x + cardPad - 1,
         y: causeRuleY,
       }, {
-        x: card.x + card.w - 9,
+        x: card.x + card.w - cardPad + 1,
         y: causeRuleY,
       }, { weight: 0.55 });
-      plateText(ctx, 'Denser air bends the ray', card.x + 10, causeRuleY + 18, {
-        size: 9,
-      });
-      plateText(ctx, 'Eye extends the last direction straight',
-        card.x + 10, causeRuleY + 35, {
-          size: 9,
+      causes.forEach((line, index) => {
+        plateText(ctx, line, textX, causeRuleY + rowH * (index + 0.75), {
+          size: textSize,
         });
-      plateText(ctx, 'Star appears high', card.x + 10, causeRuleY + 52, {
-        size: 9,
       });
-      plateDataText(ctx, `Ht = Ha − R = ${fmtDM(ht, 1)}`,
-        card.x + 10, card.y + card.h - 12, {
-          size: 9,
-        });
+      plateDataText(ctx, htText(fmtDM(ht, 1)),
+        textX, causeRuleY + rowH * 3.75, dataOpts);
     }
 
     plateRule(ctx, ruleY, 14, w - 14);

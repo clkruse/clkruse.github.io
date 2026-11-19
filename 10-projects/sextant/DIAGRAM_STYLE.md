@@ -3,8 +3,9 @@
 A dense working guide for technical figures in the celestial-navigation explainer.
 
 This document governs the visual and explanatory treatment of every figure on the page.
-`FIGURES.md` still documents figure architecture, shared state, registration, and verification.
-When the two documents disagree about how a figure looks, this guide governs.
+`FIGURES.md` documents the machinery around the drawing: file structure, the controls and
+caption below the canvas, placement in the article, steady numbers and labels, presets, and
+verification. When the two documents disagree about how a figure looks, this guide governs.
 
 The source is the supplied NASA/Boeing-era illustration commonly titled *Geometrical
 Perspective of First Earth–Moon Photo*. The point is not to imitate an old document
@@ -69,7 +70,9 @@ Antialiasing naturally creates edge pixels between ink and ground; that is not a
 color. Deliberate gray fills, faded labels, translucent regions, gradients, glows, and shadows
 are not part of the system.
 
-Outside the canvas, the article's controls may retain their normal semantic color treatment.
+The figure frame below the canvas (sliders, buttons, readouts, caption) is monochrome too and
+uses the same face, so the figure reads as one object. A readout that needs emphasis is
+set bold, not colored. See `FIGURES.md` §3.
 
 ## 4. Line pattern carries meaning
 
@@ -234,7 +237,10 @@ Use `createPlateLabeler` for interactive or crowded figures:
 - use a paper knockout only when needed for legibility;
 - never let a knockout erase a planet limb, ray junction, angle, or intersection;
 - use `fallback: 'hide'` for genuinely optional labels;
-- do not hide the one label that explains the figure's conclusion.
+- do not hide the one label that explains the figure's conclusion;
+- order candidates by preference and keep the list stable across states. The labeler holds a
+  label on its previous seat while that seat stays clear, so a label moves only when it must,
+  and then in one step (`FIGURES.md` §4).
 
 When a region becomes crowded, the preferred response is:
 
@@ -249,11 +255,16 @@ When a region becomes crowded, the preferred response is:
 
 Inside the diagram:
 
-- Use a narrow engineering-gothic face: the project uses Avenir Next Condensed with Helvetica
-  fallbacks.
-- Use the monospace data face for aligned values and arithmetic.
-- Use uppercase, modest tracking, and restrained weight for short diagram labels.
-- Use sentence case in surrounding UI and captions.
+- Use one geometric face for everything in the figure, labels and numbers alike, as the
+  period plates set everything in Futura. The project bundles Jost (a free Futura revival,
+  `assets/fonts`, SIL OFL), so every device draws the same plate. Avenir Next Condensed and
+  Helvetica are only fallbacks. Real Futura is commercial; do not swap in an unlicensed copy.
+- Jost is wider than a condensed face. Size boxes, table columns, and label lanes from measured
+  text, never from hard-coded widths, so a font change cannot overflow them.
+- Use uppercase, modest tracking, and regular weight for short diagram labels. Weight 600 is
+  for the figure's title line and the one label that carries its conclusion, not for emphasis
+  elsewhere.
+- Control labels below the canvas are plate caps too; captions are sentence case.
 - Prefer underlining, boxing, or size over bold.
 
 Use exactly two canvas text paths:
@@ -261,21 +272,27 @@ Use exactly two canvas text paths:
 - `plateText` for short tracked labels, headings, and box titles. Its default uppercase is part
   of the plate's voice.
 - `plateDataText` for values, coordinates, times, units, equations, and conventional notation.
-  It uses the data face without tracking and preserves case, so `Ho`, `Hc`, `Zn`, and `nm`
+  It sets the same face without tracking and preserves case, so `Ho`, `Hc`, `Zn`, and `nm`
   remain distinct and readable.
 
-Do not use the generic `label()` path inside a figure renderer. Do not simulate
-data text by passing the data face to `plateText`; that still uppercases notation unless
-explicitly overridden.
+Do not use the generic `label()` path inside a figure renderer. Do not simulate data text
+with `plateText`; that still uppercases and tracks notation unless explicitly overridden.
 
-Practical minimums:
+Both helpers draw digits on a fixed advance (the width of `0`), so live numbers keep their
+width. Keep text that contains a changing number in these helpers.
 
-- Essential desktop canvas text: 9 px or larger.
-- Secondary desktop annotation: 8 px or larger.
-- Essential mobile canvas text: 8 px or larger.
-- Secondary mobile annotation: 7.5 px or larger.
-- A very short, direct chart label may reach 6.8 px only when it is secondary and no longer
-  wording can replace it.
+Sizes are nominal. Every plate text helper (and the labeler's collision boxes) multiplies the
+size it is given by `PLATE_TEXT_SCALE` (1.22), so a demo passing `size: 9` renders at about
+11 px. Write sizes in nominal units; adjust the one constant if all figure text needs to grow
+or shrink. Code that lays out lines by hand must multiply by `PLATE_TEXT_SCALE` too (see
+`demos/almanac.js`). Practical minimums, nominal (rendered in parentheses):
+
+- Essential desktop canvas text: 9 (11 px) or larger.
+- Secondary desktop annotation: 8 (9.8 px) or larger.
+- Essential mobile canvas text: 8 (9.8 px) or larger.
+- Secondary mobile annotation: 7.5 (9.2 px) or larger.
+- A very short, direct chart label may reach 6.8 (8.3 px) only when it is secondary and no
+  longer wording can replace it.
 
 Never shrink a paragraph, formula, instruction, or critical value to make a dense layout fit.
 Shorten, reflow, stack, or remove material instead.
@@ -484,7 +501,9 @@ Do not:
 - write status DOM inside the draw loop;
 - resize the panel while drawing;
 - advance an animation by frame count;
-- emit shared-state changes while rendering.
+- emit shared-state changes while rendering;
+- ease or glide labels between positions. A label is drawn where it belongs in the current
+  state; the labeler's seat memory is the only frame-to-frame continuity.
 
 Those patterns can create feedback between rendering, control height, `ResizeObserver`, and
 canvas size, producing flashing or blank frames.
@@ -561,6 +580,14 @@ The shared implementation lives in `app.js`.
 - `plateHatch`: clipped structural shading.
 - `plateWireSphere`: limb, near/far graticule, axis, and center.
 - `plateDimension`: measured span with ticks, heads, and value.
+- `angleDim`: an angle arc that shrinks its heads with the arc and never draws outside it.
+- `rightAngleMark`, `pointMark`, `starGlyph`: the square corner, a point, a star.
+- `fmtDM`: degrees and minutes at a fixed number of decimals.
+- `globeView`, `drawGlobeBase`: the orthographic globe with coastlines.
+- `deckGaugeLayout`: the graduated 0–90° deck gauge.
+
+`label`, `leaderNote`, `centerline`, and `dimHead` remain in `app.js` from the color era. Do
+not use them in new figures.
 
 Prefer these primitives to local approximations. Add a shared primitive only when at least two
 figures need the same visual meaning.
@@ -618,6 +645,8 @@ Before calling a figure complete, verify:
 - Canvas always paints a nontransparent ground.
 - No colored canvas pixels beyond antialiasing noise.
 - Stable dimensions and pixel hash after state settles.
+- Slider sweeps step by step without labels hopping between seats or numbers changing their
+  decimal count.
 - No draw-time DOM mutation.
 - No page or console errors.
 - Reduced-motion mode remains usable.

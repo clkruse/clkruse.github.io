@@ -179,17 +179,27 @@
     const ruleY = compact ? h - 24 : h - 76;
     const fieldBottom = ruleY - (compact ? 4 : 9);
     const ledgerY = compact ? 31 : 42;
-    const headerH = compact ? 24 : 40;
+    const ledgerW = w - (compact ? 16 : 28);
+    const ledgerTitle = 'SIGHT LEDGER';
+    const ledgerFormula = 'a = 60(Ho − Hc) · + TOWARD / − AWAY';
+    const DATA8 = { size: 8, font: PLATE.dataFont, uppercase: false, tracking: 0 };
+    const compactHeaderOneLine = compact
+      && plateTextWidth(ctx, ledgerTitle, { size: 8, weight: 600 })
+        + plateTextWidth(ctx, ledgerFormula, DATA8) + 24 <= ledgerW;
+    const headerH = compact ? (compactHeaderOneLine ? 18 : 28) : 40;
     const gap = compact ? 5 : 10;
-    const minLedgerH = headerH + STARS.length * (compact ? 21 : 27);
-    const desiredLedgerH = Math.min(compact ? 87 : 188,
+    // a compact row holds two stacked lines of 8-pt text
+    const compactLineH = plateSize(8) * 1.2;
+    const compactRowH = Math.ceil(compactLineH * 2 + 5);
+    const minLedgerH = headerH + STARS.length * (compact ? compactRowH : 27);
+    const desiredLedgerH = Math.min(compact ? minLedgerH : 188,
       Math.max(minLedgerH, (fieldBottom - ledgerY) * (compact ? 0.47 : 0.52)));
     const maxLedgerH = Math.max(minLedgerH,
       fieldBottom - ledgerY - gap - (compact ? 78 : 90));
     const ledger = {
       x: compact ? 8 : 14,
       y: ledgerY,
-      w: w - (compact ? 16 : 28),
+      w: ledgerW,
       h: Math.min(desiredLedgerH, maxLedgerH),
     };
     const rowH = (ledger.h - headerH) / STARS.length;
@@ -215,13 +225,13 @@
     ctx.strokeRect(ledger.x, ledger.y, ledger.w, ledger.h);
     ctx.restore();
     if (compact) {
-      plateText(ctx, 'SIGHT LEDGER',
-        ledger.x + 6, ledger.y + 7, {
+      plateText(ctx, ledgerTitle,
+        ledger.x + 6, ledger.y + (compactHeaderOneLine ? headerH / 2 : 8), {
           size: 8,
           weight: 600,
         });
-      plateDataText(ctx, 'a = 60(Ho − Hc) · + TOWARD / − AWAY',
-        ledger.x + ledger.w - 6, ledger.y + 17, {
+      plateDataText(ctx, ledgerFormula,
+        ledger.x + ledger.w - 6, ledger.y + (compactHeaderOneLine ? headerH / 2 : 20), {
           size: 8,
           align: 'right',
         });
@@ -243,6 +253,40 @@
       });
 
     const lineWeight = compact ? 1.15 : 1.55;
+    // Desktop columns are sized from their widest heading or value, with the
+    // spare width shared equally between them, so a wider face cannot make
+    // neighbours touch. The value samples are fixed so columns never shift.
+    const columns = compact ? null : (() => {
+      const nameRight = ledger.x + 44 + Math.max(...STARS.map((star, i) =>
+        plateTextWidth(ctx, `${i + 1}. ${star.name}`, { size: 9, weight: 600 })));
+      const right = ledger.x + ledger.w - 9;
+      const spec = [
+        { heads: ['OBSERVED'], values: ['00° 00.0′', '–'] },
+        { heads: ['PREDICTED'], values: ['00° 00.0′'] },
+        { heads: ['DIFFERENCE'], values: ['+00.0′', 'PENDING'] },
+        { heads: ['PLOT DIRECTION', 'DIRECTION'], values: ['TOWARD', 'AWAY', 'TAKE SIGHT'] },
+        { heads: ['BEARING'], values: ['Zn 000.0°'], align: 'right' },
+      ];
+      const layout = useShort => {
+        const cols = spec.map(col => {
+          const head = useShort ? col.heads[col.heads.length - 1] : col.heads[0];
+          const width = Math.max(plateTextWidth(ctx, head, { size: 8 }),
+            ...col.values.map(value => plateTextWidth(ctx, value, DATA8)));
+          return { head, width, align: col.align || 'center' };
+        });
+        const slack = right - nameRight - cols.reduce((sum, col) => sum + col.width, 0);
+        const between = slack / cols.length;
+        let cursor = nameRight;
+        for (const col of cols) {
+          cursor += between;
+          col.x = col.align === 'right' ? cursor + col.width : cursor + col.width / 2;
+          cursor += col.width;
+        }
+        return { cols, between };
+      };
+      const full = layout(false);
+      return (full.between >= 14 ? full : layout(true)).cols;
+    })();
 
     state.sights.forEach((s, i) => {
       const star = STARS[i];
@@ -270,15 +314,16 @@
 
       if (compact) {
         const shortDM = value => fmtDM(value, 0).replace(' ', '');
+        const lineTop = top + (rowH - compactLineH * 2) / 2;
         plateText(ctx, `${i + 1} · ${star.name}`, ledger.x + 6,
-          top + rowH * 0.30, {
+          lineTop + compactLineH * 0.5, {
             size: 8,
             weight: s.taken ? 600 : 500,
           });
         const rowText = s.taken
           ? `Ho ${shortDM(ho)} · Hc ${shortDM(star.hc)} · a ${signed} · Zn ${String(Math.round(star.zn)).padStart(3, '0')}°`
           : `Hc ${shortDM(star.hc)} · Zn ${String(Math.round(star.zn)).padStart(3, '0')}° · PENDING`;
-        plateDataText(ctx, rowText, ledger.x + 6, top + rowH * 0.73, {
+        plateDataText(ctx, rowText, ledger.x + 6, lineTop + compactLineH * 1.5, {
           size: 8,
           weight: s.taken ? 600 : 500,
         });
@@ -288,27 +333,27 @@
           weight: 600,
         });
         plateDataText(ctx, s.taken ? fmtDM(ho, 1) : '–',
-          ledger.x + ledger.w * 0.32, mid, {
+          columns[0].x, mid, {
             size: 8,
             align: 'center',
           });
         plateDataText(ctx, fmtDM(star.hc, 1),
-          ledger.x + ledger.w * 0.46, mid, {
+          columns[1].x, mid, {
             size: 8,
             align: 'center',
           });
         plateDataText(ctx, signed,
-          ledger.x + ledger.w * 0.61, mid, {
+          columns[2].x, mid, {
             size: 8,
             align: 'center',
           });
         plateDataText(ctx, direction,
-          ledger.x + ledger.w * 0.75, mid, {
+          columns[3].x, mid, {
             size: 8,
             align: 'center',
           });
         plateDataText(ctx, `Zn ${znText(star.zn)}`,
-          ledger.x + ledger.w - 9, mid, {
+          columns[4].x, mid, {
             size: 8,
             align: 'right',
           });
@@ -316,18 +361,11 @@
     });
 
     if (!compact) {
-      const headings = [
-        ['OBSERVED', 0.32],
-        ['PREDICTED', 0.46],
-        ['DIFFERENCE', 0.61],
-        ['PLOT DIRECTION', 0.75],
-        ['BEARING', 0.93],
-      ];
-      for (const [text, fraction] of headings) {
-        plateText(ctx, text, ledger.x + ledger.w * fraction,
+      for (const col of columns) {
+        plateText(ctx, col.head, col.x,
           ledger.y + headerH - 9, {
             size: 8,
-            align: fraction > 0.9 ? 'right' : 'center',
+            align: col.align,
             underline: true,
           });
       }
@@ -353,10 +391,24 @@
     ));
     const toPx = point => ({ x: cx + point.x * scale, y: cy - point.y * scale });
     const ap = toPx({ x: 0, y: 0 });
-    const detailRect = points.length === 3 ? (() => {
-      const width = compact
+    // The inset's title runs on one line when it fits the inset's width,
+    // else on two; either way the inset is never narrower than its title.
+    const hatTitle = (() => {
+      const single = { size: 8.5, weight: 600, tracking: 8.5 * 0.035 };
+      const stacked = { size: 8, weight: 600, tracking: 0 };
+      const singleW = plateTextWidth(ctx, 'COCKED HAT · MAGNIFIED ×88', single);
+      const stackW = Math.max(plateTextWidth(ctx, 'COCKED HAT', stacked),
+        plateTextWidth(ctx, 'MAGNIFIED ×88', stacked));
+      const base = compact
         ? Math.min(94, Math.max(78, chart.w * 0.30))
         : Math.min(190, Math.max(150, chart.w * 0.32));
+      const lineH = plateSize(stacked.size) * 1.2;
+      return singleW + 16 <= base
+        ? { stacked: false, opts: single, width: base, titleH: Math.round(plateSize(single.size) + 10) }
+        : { stacked: true, opts: stacked, width: Math.max(base, stackW + 12), lineH, titleH: Math.round(lineH * 2 + 6) };
+    })();
+    const detailRect = points.length === 3 ? (() => {
+      const width = hatTitle.width;
       return {
         x: chart.x + chart.w - width - 4,
         y: chart.y + 4,
@@ -456,110 +508,216 @@
       top: chart.y + 3,
       right: chart.x + chart.w - 3,
       bottom: chart.y + chart.h - 3,
-      gap: compact ? 1.5 : 3,
+      gap: compact ? 1.5 : 2.5,
     });
+    // Keep text off every stroke: reserve each drawn line as a chain of
+    // small points, then the fixed furniture (inset, north arrow, scale).
+    const reserveSegment = (a, b, step = 3) => {
+      const n = Math.max(1, Math.ceil(Math.hypot(b.x - a.x, b.y - a.y) / step));
+      for (let i = 0; i <= n; i++) {
+        const p = { x: a.x + (b.x - a.x) * i / n, y: a.y + (b.y - a.y) * i / n };
+        if (p.x < chart.x - 2 || p.x > chart.x + chart.w + 2
+          || p.y < chart.y - 2 || p.y > chart.y + chart.h + 2) continue;
+        chartLabels.reserve({ x: p.x - 0.75, y: p.y - 0.75, w: 1.5, h: 1.5 }, 1);
+      }
+    };
     if (detailRect) chartLabels.reserve(detailRect, compact ? 3 : 5);
-    const placeAPLabel = () => chartLabels.place('AP', ap, [
-      { x: ap.x + 7, y: ap.y + (compact ? 12 : 9), align: 'left' },
-      { x: ap.x - 7, y: ap.y + (compact ? 12 : 9), align: 'right' },
-    ], {
-      size: compact ? 8 : 9,
-    });
-    const placeHatLabel = () => {
-      if (points.length !== 3) return;
+    for (const line of lines) {
+      const half = 42;
+      reserveSegment(
+        toPx({ x: line.I.x + line.dir.x * half, y: line.I.y + line.dir.y * half }),
+        toPx({ x: line.I.x - line.dir.x * half, y: line.I.y - line.dir.y * half }), 4);
+      reserveSegment(ap, toPx(line.I));
+    }
+    if (points.length === 3) {
+      const corners = points.map(toPx);
+      corners.forEach((corner, index) => reserveSegment(corner, corners[(index + 1) % 3]));
+      if (detailRect) {
+        const source = toPx(centroid(points));
+        const elbow = { x: detailRect.x - 8, y: detailRect.y + detailRect.h * 0.24 };
+        reserveSegment(source, elbow);
+      }
+    }
+    if (state.revealed && lines.length === 3) {
+      const truth = toPx(state.truth);
+      const r = compact ? 5 : 7;
+      chartLabels.reserve({ x: truth.x - r, y: truth.y - r, w: r * 2, h: r * 2 }, 1);
+    }
+    chartLabels.reserve({ x: ap.x - 6, y: ap.y - 6, w: 12, h: 12 }, 1);
+    const northX = detailRect
+      ? chart.x + (compact ? 9 : 13)
+      : chart.x + chart.w - (compact ? 9 : 13);
+    // N sits inside the chart frame, its arrow below it
+    const northSize = compact ? 7.5 : 8;
+    const northY = chart.y + plateSize(northSize) * 0.5 + 3;
+    const northTip = northY + plateSize(northSize) * 0.5 + 2;
+    const northTail = northTip + (compact ? 10 : 15);
+    chartLabels.reserve({
+      x: northX - 5, y: chart.y, w: 10, h: northTail - chart.y,
+    }, 1);
+    const scaleLengthNm = compact ? 20 : 10;
+    const scaleX = chart.x + 8;
+    const scaleY = chart.y + chart.h - 7;
+    const scaleText = `${scaleLengthNm} nm`;
+    const scaleTextSize = compact ? 7.5 : 8;
+    chartLabels.reserve({
+      x: scaleX,
+      y: scaleY - (compact ? 7 : 8) - plateSize(scaleTextSize) * 0.6,
+      w: Math.max(scaleLengthNm * scale,
+        plateTextWidth(ctx, scaleText, { size: scaleTextSize, font: PLATE.dataFont, uppercase: false, tracking: 0 })),
+      h: (compact ? 7 : 8) + plateSize(scaleTextSize) * 0.6 + 1,
+    }, 1);
+
+    const labelSize = compact ? 8 : 9;
+    // Candidate seats around a point: the label's nearest corner sits
+    // `dist` from the point in each listed direction, in preference order.
+    const around = (text, p, dist, dirs) => {
+      const width = plateTextWidth(ctx, text, { size: labelSize }) + 4;
+      const height = plateSize(labelSize) * 1.25 + 4;
+      return dirs.map(([dx, dy]) => {
+        const len = Math.hypot(dx, dy) || 1;
+        const ux = dx / len, uy = dy / len;
+        return {
+          x: p.x + ux * dist + clamp(ux * 3, -1, 1) * width / 2,
+          y: p.y + uy * dist + clamp(uy * 3, -1, 1) * height / 2,
+          align: 'center',
+        };
+      });
+    };
+    const DIRS = [[1, 1], [-1, 1], [1, -1], [-1, -1], [0, 1], [0, -1], [1, 0], [-1, 0]];
+    // The labeler checks text against text, not leaders against text, so
+    // drop any seat whose leader would run through a label already placed.
+    const placedRects = [];
+    const keep = (result, target = null) => {
+      if (!result) return result;
+      placedRects.push(result.rect);
+      if (target) {
+        // later text must also stay off this label's leader
+        const r = result.rect;
+        const anchor = {
+          x: clamp(target.x, r.x, r.x + r.w),
+          y: clamp(target.y, r.y, r.y + r.h),
+        };
+        const elbow = { x: anchor.x + (target.x >= anchor.x ? 13 : -13), y: anchor.y };
+        reserveSegment(anchor, elbow);
+        reserveSegment(elbow, target);
+      }
+      return result;
+    };
+    const crosses = (a, b, r) => {
+      for (let i = 0; i <= 24; i++) {
+        const x = a.x + (b.x - a.x) * i / 24, y = a.y + (b.y - a.y) * i / 24;
+        if (x > r.x && x < r.x + r.w && y > r.y && y < r.y + r.h) return true;
+      }
+      return false;
+    };
+    const leaderClear = (text, target) => candidate => {
+      const width = plateTextWidth(ctx, text, { size: labelSize }) + 4;
+      const height = plateSize(labelSize) * 1.25 + 4;
+      const r = { x: candidate.x - width / 2, y: candidate.y - height / 2, w: width, h: height };
+      const anchor = {
+        x: clamp(target.x, r.x, r.x + r.w),
+        y: clamp(target.y, r.y, r.y + r.h),
+      };
+      const elbow = { x: anchor.x + (target.x >= anchor.x ? 13 : -13), y: anchor.y };
+      return !placedRects.some(other =>
+        crosses(anchor, elbow, other) || crosses(elbow, target, other));
+    };
+    keep(chartLabels.place('AP', ap, around('AP', ap, compact ? 5 : 6, DIRS), {
+      size: labelSize,
+      leader: false,
+    }));
+    if (points.length === 3) {
       const center = toPx(centroid(points));
-      chartLabels.place(compact ? 'COCKED HAT' : 'COCKED HAT CENTER', center, [
+      const text = compact ? 'COCKED HAT' : 'COCKED HAT CENTER';
+      keep(chartLabels.place(text, center, [
         ...(compact ? [
           { x: chart.x + chart.w * 0.5, y: chart.y + 9, align: 'center' },
           { x: chart.x + chart.w - 7, y: chart.y + 9, align: 'right' },
         ] : []),
-        { x: center.x + 8, y: center.y - (compact ? 14 : 9), align: 'left' },
-        { x: center.x - 8, y: center.y - (compact ? 14 : 9), align: 'right' },
-        { x: center.x, y: center.y - (compact ? 18 : 13), align: 'center' },
-      ], {
-        size: compact ? 8 : 9,
-      });
-    };
-    const placeShipLabel = () => {
-      if (!state.revealed || lines.length !== 3) return;
+        ...around(text, center, compact ? 10 : 12, [[1, -1], [-1, -1], [0, -1], [1, 1], [-1, 1], [0, 1]]),
+        ...around(text, center, compact ? 24 : 30, [[1, -1], [-1, -1], [0, -1], [1, 1], [-1, 1], [0, 1]]),
+        ...around(text, center, compact ? 44 : 56, DIRS),
+        ...around(text, center, compact ? 64 : 84, DIRS),
+      ].filter(leaderClear(text, center)), {
+        size: labelSize,
+      }), center);
+    }
+    if (state.revealed && lines.length === 3) {
       const truth = toPx(state.truth);
-      chartLabels.place(compact ? 'SHIP' : 'REVEALED SHIP', truth, [
+      const text = compact ? 'SHIP' : 'REVEALED SHIP';
+      keep(chartLabels.place(text, truth, [
         ...(compact ? [
           { x: chart.x + chart.w - 7, y: chart.y + chart.h - 10, align: 'right' },
           { x: chart.x + chart.w - 7, y: chart.y + 22, align: 'right' },
         ] : []),
-        { x: truth.x + 8, y: truth.y + (compact ? 14 : 9), align: 'left' },
-        { x: truth.x - 8, y: truth.y + (compact ? 14 : 9), align: 'right' },
-        { x: truth.x, y: truth.y + (compact ? 18 : 13), align: 'center' },
-      ], {
-        size: compact ? 8 : 9,
-      });
-    };
-
-    placeAPLabel();
-    placeHatLabel();
-    placeShipLabel();
+        ...around(text, truth, compact ? 10 : 12, [[1, 1], [-1, 1], [0, 1], [1, -1], [-1, -1], [0, -1]]),
+        ...around(text, truth, compact ? 24 : 30, [[1, 1], [-1, 1], [0, 1], [1, -1], [-1, -1], [0, -1]]),
+        ...around(text, truth, compact ? 44 : 56, DIRS),
+        ...around(text, truth, compact ? 64 : 84, DIRS),
+      ].filter(leaderClear(text, truth)), {
+        size: labelSize,
+      }), truth);
+    }
+    // Each LOP is named beside its own line; seats run outward along the
+    // line from the plotted intercept, on either side.
     for (const line of lines) {
       const index = STARS.indexOf(line.sight);
       const interceptPoint = toPx(line.I);
       const pixelDirection = { x: line.dir.x, y: -line.dir.y };
-      const reach = compact
-        ? Math.max(42, chart.w * 0.30)
-        : Math.max(18, Math.min(chart.w, chart.h) * 0.36);
-      const endpoint = {
-        x: clamp(interceptPoint.x + pixelDirection.x * reach,
-          chart.x + 8, chart.x + chart.w - 8),
-        y: clamp(interceptPoint.y + pixelDirection.y * reach,
-          chart.y + 8, chart.y + chart.h - 8),
-      };
       const normal = { x: -pixelDirection.y, y: pixelDirection.x };
-      chartLabels.place(compact
+      const text = compact
         ? `${index + 1} · ${line.sight.name}`
-        : `${index + 1}. ${line.sight.name} LOP`,
-        endpoint, [
-          {
-            x: endpoint.x + normal.x * (compact ? 6 : 9),
-            y: endpoint.y + normal.y * (compact ? 6 : 9),
-            align: pixelDirection.x < 0 ? 'right' : 'left',
-          },
-          {
-            x: endpoint.x - normal.x * (compact ? 6 : 9),
-            y: endpoint.y - normal.y * (compact ? 6 : 9),
-            align: pixelDirection.x < 0 ? 'right' : 'left',
-          },
-        ], {
-          size: compact ? 8 : 9,
-          leader: false,
-        });
+        : `${index + 1}. ${line.sight.name} LOP`;
+      const span = Math.min(chart.w, chart.h);
+      const reach = Math.hypot(chart.w, chart.h);
+      const preferred = (compact ? [0.30, 0.45, 0.6, 0.2] : [0.36, 0.5, 0.65, 0.24])
+        .map(fraction => compact ? Math.max(42, fraction * span) : fraction * span);
+      // then every seat along the line, nearest first
+      const stations = [...preferred];
+      for (let along = 16; along < reach; along += 10) stations.push(along);
+      const candidates = [];
+      for (const along of stations) {
+        for (const sign of [1, -1]) {
+          const p = {
+            x: interceptPoint.x + pixelDirection.x * along * sign,
+            y: interceptPoint.y + pixelDirection.y * along * sign,
+          };
+          if (p.x < chart.x + 4 || p.x > chart.x + chart.w - 4
+            || p.y < chart.y + 4 || p.y > chart.y + chart.h - 4) continue;
+          candidates.push(...around(text, p, compact ? 4 : 6,
+            [[normal.x, normal.y], [-normal.x, -normal.y]]));
+        }
+      }
+      if (!candidates.length) continue;
+      chartLabels.place(text, null, candidates, {
+        size: labelSize,
+        leader: false,
+      });
     }
 
     // A short chart scale and north reference carry actual plotted units.
-    const scaleLengthNm = compact ? 20 : 10;
-    const scaleX = chart.x + 8;
-    const scaleY = chart.y + chart.h - 7;
     plateLine(ctx, { x: scaleX, y: scaleY },
       { x: scaleX + scaleLengthNm * scale, y: scaleY }, {
         weight: compact ? 0.55 : 0.75,
       });
-    plateDataText(ctx, `${scaleLengthNm} nm`, scaleX, scaleY - (compact ? 7 : 8), {
-      size: compact ? 7.5 : 8,
+    plateDataText(ctx, scaleText, scaleX, scaleY - (compact ? 7 : 8), {
+      size: scaleTextSize,
     });
-    const northX = detailRect
-      ? chart.x + (compact ? 9 : 13)
-      : chart.x + chart.w - (compact ? 9 : 13);
-    plateVector(ctx, { x: northX, y: chart.y + (compact ? 18 : 25) },
-      { x: northX, y: chart.y + (compact ? 7 : 9) }, {
+    plateVector(ctx, { x: northX, y: northTail },
+      { x: northX, y: northTip }, {
         weight: compact ? 0.55 : 0.75,
         head: compact ? 2.5 : 3.2,
       });
-    plateText(ctx, 'N', northX, chart.y + (compact ? 3 : 4), {
-      size: compact ? 7.5 : 8,
+    plateText(ctx, 'N', northX, northY, {
+      size: northSize,
       align: 'center',
     });
 
     if (detailRect) {
       drawCockedHatDetail(ctx, lines, points, { scale, toPx }, detailRect, {
         leaderFraction: 0.24,
+        title: hatTitle,
       });
     }
 
@@ -632,9 +790,9 @@
     const background = PLATE.paper;
     const frame = PLATE.ink;
     const connector = PLATE.ink;
-    const stackedTitle = box.w < 176;
-    const titleSize = stackedTitle ? 8 : 8.5;
-    const titleH = stackedTitle ? 29 : 22;
+    const title = options.title;
+    const stackedTitle = title.stacked;
+    const titleH = title.titleH;
     const plot = {
       x: box.x + 6,
       y: box.y + titleH + 4,
@@ -758,11 +916,11 @@
       ? ['COCKED HAT', `MAGNIFIED ×${magnification}`]
       : [`COCKED HAT · MAGNIFIED ×${magnification}`];
     titleLines.forEach((text, index) => {
-      const y = stackedTitle ? box.y + 9 + index * 11 : box.y + titleH / 2;
+      const y = stackedTitle
+        ? box.y + 3 + title.lineH * (index + 0.5)
+        : box.y + titleH / 2;
       plateText(ctx, text, box.x + box.w / 2, y, {
-        size: titleSize,
-        weight: 600,
-        tracking: stackedTitle ? 0 : titleSize * 0.035,
+        ...title.opts,
         align: 'center',
       });
     });

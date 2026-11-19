@@ -33,7 +33,6 @@
     fmt: clockErrorText,
     onchange: v => { clockError = v; },
   });
-  const errStat = addStat(d, 'position error', true);
 
   d.addPreset('worked', () => {
     playing = false;
@@ -81,12 +80,40 @@
     };
   }
 
-  function updateErrorStat(s) {
-    errStat.set(
-      s.errorSeconds === 0
-        ? 'a perfect clock: true and computed GPs coincide'
-        : `${clockErrorText(s.errorSeconds)}: GHA shifts ${s.arcmin.toFixed(1)}′ ${s.errorSeconds > 0 ? 'west' : 'east'}; position error is up to about ${s.arcmin.toFixed(1)} nm`);
+  // GHA runs 0–360° west of Greenwich; as a longitude it is west up to
+  // 180° and east beyond
+  const lonText = gha => gha <= 180
+    ? `${fmtDM(gha, 1)} W`
+    : `${fmtDM(360 - gha, 1)} E`;
+
+  // largest nominal size at which a line fits its column, never below the
+  // 8-point floor for canvas text (DIAGRAM_STYLE §11)
+  function fitSize(ctx, text, width, size, opts = {}) {
+    const floor = Math.min(size, 8);
+    let fitted = size;
+    while (fitted > floor
+      && plateTextWidth(ctx, text, { ...opts, size: fitted }) > width) fitted -= 0.25;
+    return Math.max(floor, fitted);
   }
+
+  // width a plateBox needs for its title and lines, measured the way
+  // plateBox draws them, so the box follows the font instead of a guess
+  function boxContentWidth(ctx, title, lines, size) {
+    let width = plateTextWidth(ctx, title, { size, weight: 600, tracking: size * 0.09 });
+    for (const line of lines) {
+      const entry = typeof line === 'string' ? { text: line } : line;
+      const font = entry.font || PLATE.font;
+      width = Math.max(width, (entry.indent || 0) + plateTextWidth(ctx, entry.text, {
+        size: entry.size || size,
+        weight: entry.weight || 500,
+        tracking: entry.tracking ?? size * 0.055,
+        font,
+        uppercase: entry.uppercase ?? (font === PLATE.dataFont ? false : undefined),
+      }));
+    }
+    return Math.ceil(width);
+  }
+  const DATA = { font: PLATE.dataFont, tracking: 0, uppercase: false };
 
   function draw(ctx, w, h, elapsedTime = d.t) {
     if (playing) {
@@ -103,7 +130,6 @@
     }
     const s = clockState();
     drawGhaBelt(ctx, w, h, s);
-    updateErrorStat(s);
   }
 
   function drawGhaBelt(ctx, w, h, s) {
@@ -114,8 +140,8 @@
     const titleSize = compact ? 8.5 : 11;
     const bodySize = compact ? 8 : 9.2;
     const dataSize = compact ? 8 : 9;
-    const fieldTop = compact ? 29 : 44;
-    const ruleY = h - (compact ? 28 : 55);
+    const line = size => size * PLATE_TEXT_SCALE * 1.45;
+    const ruleY = h - (compact ? 34 : 50);
     const x0 = compact ? 28 : 48;
     const x1 = w - x0;
     const clockRead = gmt + s.errorSeconds / 3600;
@@ -127,56 +153,68 @@
       compact ? 11 : 15, {
         size: titleSize, weight: 600, tracking: titleSize * 0.12, align: 'center',
       });
-    plateRule(ctx, compact ? 25 : 32, 14, w - 14);
+    const titleRule = compact ? 25 : 32;
+    plateRule(ctx, titleRule, 14, w - 14);
 
-    const boxX = compact ? 8 : w * 0.50;
-    const boxY = fieldTop + (compact ? 1 : 5);
-    const boxW = compact ? w - 16 : w - boxX - 14;
-    const boxH = compact ? 53 : 88;
-    plateBox(ctx, boxX, boxY, boxW, [
-      {
-        text: 'EARTH TURNS 1′ IN ABOUT 4 S.',
-        font: PLATE.dataFont,
-        tracking: 0,
-      },
-      'WRONG TIME ASSIGNS THE GP',
-      'TO THE WRONG LONGITUDE.',
-    ], {
-      title: 'WHY TIME SETS LONGITUDE',
+    // top band: the clock readings beside the why-box (stacked on phones,
+    // where the readings already sit in the footer)
+    const bandY = titleRule + (compact ? 8 : 12);
+    const boxTitle = 'WHY TIME SETS LONGITUDE';
+    const boxLines = [
+      { text: 'EARTH TURNS 1′ IN ABOUT 4 S.', font: PLATE.dataFont, tracking: 0 },
+      'A WRONG TIME PUTS THE GP',
+      'AT THE WRONG LONGITUDE.',
+    ];
+    const boxPadding = compact ? 6 : 8;
+    // sized from its text: full width on phones, hugging the right edge
+    // on desktop so the readings keep the rest of the band
+    const boxW = compact ? w - 28 : Math.min(w * 0.5 - 14,
+      boxContentWidth(ctx, boxTitle, boxLines, bodySize) + boxPadding * 2 + 4);
+    const boxX = compact ? 14 : w - 14 - boxW;
+    const boxH = plateBox(ctx, boxX, bandY, boxW, boxLines, {
+      title: boxTitle,
       size: bodySize,
-      lineHeight: compact ? 8.8 : 14,
-      padding: compact ? 6 : 7,
-      height: boxH,
+      lineHeight: compact ? 9.5 : 13,
+      padding: boxPadding,
     });
-
+    let y = bandY + boxH;
     if (!compact) {
-      plateDataText(ctx, `True UTC  ${clockText(gmt)}`, 16, fieldTop + 16, {
-        size: dataSize,
-      });
-      plateDataText(ctx, `Clock reads  ${clockText(clockRead)}`, 16, fieldTop + 38, {
-        size: dataSize,
-      });
-      plateDataText(ctx,
+      const readings = [
+        `True UTC     ${clockText(gmt)}`,
+        `Clock reads  ${clockText(clockRead)}`,
         `Clock − UTC  ${clockErrorText(s.errorSeconds)}`,
-        16, fieldTop + 60, {
-          size: dataSize,
+      ];
+      readings.forEach((text, i) => {
+        plateDataText(ctx, text, 16, bandY + 12 + i * line(dataSize) * 1.15, {
+          size: fitSize(ctx, text, boxX - 30, dataSize, DATA),
         });
+      });
     }
 
+    // the error scale fills the space between the band and the result lines
+    const resultSize = compact ? 8 : 10;
+    const resultsH = line(resultSize) * 2;
+    const scaleTop = y + (compact ? 10 : 18);
+    const scaleBottom = ruleY - resultsH - (compact ? 8 : 14);
+    const scaleY = (scaleTop + scaleBottom) / 2 + (compact ? 6 : 0);
+    // tick labels sit clear of the marker's crossbar (±8 / ±11 px)
+    const tickLift = line(dataSize) * (compact ? 1.1 : 1.2);
+
+    // heading above the scale; the two direction notes below it, under
+    // the longitude row they explain
+    plateText(ctx, 'CLOCK ERROR → LONGITUDE ERROR',
+      w / 2, scaleY - tickLift - line(bodySize) * 1.05, {
+        size: bodySize, weight: 600, align: 'center',
+      });
     if (!compact) {
-      plateText(ctx, 'SLOW CLOCK: GP EAST', x0, 171, {
+      const noteY = scaleY + tickLift + line(bodySize) * 1.0;
+      plateText(ctx, 'SLOW CLOCK: GP EAST', x0, noteY, {
         size: bodySize, align: 'left',
       });
-      plateText(ctx, 'FAST CLOCK: GP WEST', x1, 171, {
+      plateText(ctx, 'FAST CLOCK: GP WEST', x1, noteY, {
         size: bodySize, align: 'right',
       });
     }
-
-    const scaleY = compact ? 111 : 218;
-    plateText(ctx, 'CLOCK ERROR → LONGITUDE ERROR',
-      w / 2, scaleY - (compact ? 18 : 31), {
-        size: bodySize, weight: 600, align: 'center',
-      });
     plateLine(ctx, { x: x0, y: scaleY }, { x: x1, y: scaleY }, {
       weight: compact ? 1.05 : 1.35,
     });
@@ -190,12 +228,12 @@
       const align = seconds < 0 ? 'left' : seconds > 0 ? 'right' : 'center';
       plateDataText(ctx, seconds === 0 ? '0 s' :
         `${Math.abs(seconds)} s ${seconds < 0 ? 'slow' : 'fast'}`,
-      x, scaleY - (compact ? 10 : 14), {
+      x, scaleY - tickLift, {
         size: dataSize, align,
       });
       plateDataText(ctx, seconds === 0 ? 'true' :
         `${Math.abs(seconds) / 4}′ ${seconds < 0 ? 'E' : 'W'}`,
-      x, scaleY + (compact ? 12 : 16), {
+      x, scaleY + tickLift, {
         size: dataSize, align,
       });
     }
@@ -216,27 +254,25 @@
     const mappingLine = s.errorSeconds === 0
       ? '0 S CLOCK ERROR = 0′ LONGITUDE ERROR'
       : `${Math.abs(s.errorSeconds)} S ${s.errorSeconds > 0 ? 'FAST' : 'SLOW'} ÷ 4 = ${s.arcmin.toFixed(1)}′ ${direction} LONGITUDE`;
-    const mappingY = compact ? 136 : 278;
-    plateDataText(ctx, mappingLine, w / 2, mappingY, {
-      size: compact ? 8 : 10, weight: 600, align: 'center',
-    });
-    plateDataText(ctx, s.errorSeconds === 0
+    const resultLine = s.errorSeconds === 0
       ? 'TRUE AND CLOCK-IMPLIED POSITIONS MATCH'
-      : `POSITION ERROR IS UP TO ABOUT ${s.arcmin.toFixed(1)} NM`,
-    w / 2, mappingY + (compact ? 11 : 29), {
-      size: compact ? 8 : 10, weight: 600, align: 'center',
+      : `POSITION ERROR IS UP TO ABOUT ${s.arcmin.toFixed(1)} NM`;
+    const resultY = ruleY - resultsH - (compact ? 2 : 6) + line(resultSize) * 0.5;
+    plateDataText(ctx, mappingLine, w / 2, resultY, {
+      size: fitSize(ctx, mappingLine, w - 28, resultSize, DATA), weight: 600, align: 'center',
+    });
+    plateDataText(ctx, resultLine, w / 2, resultY + line(resultSize), {
+      size: fitSize(ctx, resultLine, w - 28, resultSize, DATA), weight: 600, align: 'center',
     });
 
     plateRule(ctx, ruleY, 14, w - 14);
-    plateDataText(ctx, `True UTC ${clockText(gmt)} · clock ${clockText(clockRead)}`,
-      w / 2, ruleY + (compact ? 11 : 18), {
-        size: dataSize, align: 'center',
-      });
-    plateDataText(ctx, compact
-      ? `Mean-Sun GHA: ${fmtDM(s.gha, 1)} → ${fmtDM(s.falseGha, 1)}`
-      : `Mean-Sun GHA (angle west from Greenwich): ${fmtDM(s.gha, 1)} → ${fmtDM(s.falseGha, 1)}`,
-    w / 2, ruleY + (compact ? 23 : 40), {
-      size: dataSize, align: 'center',
+    const timeLine = `True UTC ${clockText(gmt)} · clock ${clockText(clockRead)}`;
+    const lonLine = `Sample GP longitude ${lonText(s.gha)} → ${lonText(s.falseGha)}`;
+    plateDataText(ctx, timeLine, w / 2, ruleY + (compact ? 11 : 16), {
+      size: fitSize(ctx, timeLine, w - 28, dataSize, DATA), align: 'center',
+    });
+    plateDataText(ctx, lonLine, w / 2, ruleY + (compact ? 25 : 35), {
+      size: fitSize(ctx, lonLine, w - 28, dataSize, DATA), align: 'center',
     });
   }
 })();

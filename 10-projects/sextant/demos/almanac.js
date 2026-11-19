@@ -6,9 +6,10 @@
 
 (function demoAlmanac() {
   const d = createDemo('demo-almanac', {
-    aspect: 1.31,
-    maxH: 500,
-    compactAspect: 1.22,
+    aspect: 1.6,
+    maxH: 400,
+    compactAspect: 0.86,
+    compactMaxH: 420,
     draw,
   });
   const STORY_SOURCE = 'demo-almanac';
@@ -36,9 +37,6 @@
       }
     },
   });
-  const ariesStat = addStat(d, 'GHA Aries');
-  const sumStat = addStat(d, 'GHA Vega = Aries + SHA', true);
-  const decStat = addStat(d, 'Vega declination');
 
   const STARS = [
     { name: 'Vega', sha: VEGA_SHA, dec: `${fmtDM(VEGA_DEC, 1)} N`, main: true },
@@ -79,152 +77,167 @@
     };
   }
 
-  function setReadouts(s) {
-    ariesStat.set(fmtDM(s.ghaAries, 1));
-    sumStat.set(s.wrapped
-      ? `${fmtDM(s.ghaAries, 1)} + ${fmtDM(VEGA_SHA, 1)} − 360° = ${fmtDM(s.ghaVega, 1)}`
-      : `${fmtDM(s.ghaAries, 1)} + ${fmtDM(VEGA_SHA, 1)} = ${fmtDM(s.ghaVega, 1)}`);
-    decStat.set(`${fmtDM(VEGA_DEC, 1)} N`);
+  // GHA runs 0–360° west of Greenwich; as a longitude it is west up to
+  // 180° and east beyond
+  const lonText = gha => gha <= 180
+    ? `${fmtDM(gha, 1)} W`
+    : `${fmtDM(360 - gha, 1)} E`;
+  const DATA = { font: PLATE.dataFont, tracking: 0, uppercase: false };
+  function fitSize(ctx, text, width, size, opts = DATA) {
+    let fitted = size;
+    while (fitted > size * 0.72
+      && plateTextWidth(ctx, text, { ...opts, size: fitted }) > width) fitted -= 0.25;
+    return fitted;
   }
 
   function draw(ctx, w, h) {
     const s = almanacState();
-    drawCatalogCompressor(ctx, w, h, s);
-    setReadouts(s);
+    drawAlmanacPage(ctx, w, h, s);
   }
 
-  function drawCatalogCompressor(ctx, w, h, s) {
+  // A boxed table: caps title, rule, header row, data rows, caps footnote.
+  // Columns are [{x, align}] relative to the box; returns the box height.
+  function drawTable(ctx, x, y, width, { title, columns, header, rows, note, size, row }) {
+    const pad = 8;
+    const titleH = row + 4;
+    const height = pad * 2 + titleH + row * (rows.length + 1) + (note ? row : 0);
+    ctx.save();
+    ctx.fillStyle = PLATE.paper;
+    ctx.fillRect(x, y, width, height);
+    ctx.strokeStyle = PLATE.ink;
+    ctx.lineWidth = 0.8;
+    ctx.strokeRect(x, y, width, height);
+    ctx.restore();
+    plateText(ctx, title, x + pad, y + pad + row * 0.45, { size, weight: 600 });
+    plateLine(ctx, { x: x + pad, y: y + pad + titleH - 3 },
+      { x: x + width - pad, y: y + pad + titleH - 3 }, { weight: 0.55 });
+    const cellY = i => y + pad + titleH + row * (i + 0.5);
+    header.forEach((text, c) => {
+      plateText(ctx, text, x + columns[c].x, cellY(0), {
+        size: size * 0.92, align: columns[c].align,
+      });
+    });
+    rows.forEach((cells, r) => {
+      const strong = cells.strong;
+      if (cells.marker) {
+        plateText(ctx, '▸', x + pad * 0.45, cellY(r + 1), { size, uppercase: false });
+      }
+      cells.forEach((text, c) => {
+        plateDataText(ctx, text, x + columns[c].x, cellY(r + 1), {
+          size, align: columns[c].align, weight: strong ? 700 : 500,
+        });
+      });
+    });
+    if (note) {
+      plateText(ctx, note, x + pad, cellY(rows.length + 1), { size: size * 0.9 });
+    }
+    return height;
+  }
+
+  function drawAlmanacPage(ctx, w, h, s) {
     ctx.fillStyle = PLATE.paper;
     ctx.fillRect(0, 0, w, h);
 
-    const compact = w < 500 || h < 350;
+    const compact = w < 500;
     const titleSize = compact ? 8.5 : 11;
-    const bodySize = compact ? 8 : 9.2;
-    const dataSize = compact ? 8 : 9.5;
-    const pad = compact ? 8 : 14;
-    const definitionsY = compact ? 30 : 50;
-    const definitionsH = compact ? 62 : 84;
-    const lookupY = definitionsY + definitionsH + (compact ? 7 : 25);
-    const workY = lookupY + (compact ? 11 : 30);
-    const workH = compact ? 65 : 140;
-    const declinationY = workY + workH + (compact ? 6 : 24);
-    const summaryRuleY = compact ? declinationY + 18 : declinationY + 30;
+    const size = compact ? 7.6 : 9.2;
+    const row = size * PLATE_TEXT_SCALE * 1.55;
+    const pad = 14;
 
-    plateText(ctx, 'One Aries lookup, then add Vega’s SHA', w / 2,
-      compact ? 11 : 15, {
-        size: titleSize, weight: 600, tracking: titleSize * 0.12, align: 'center',
+    plateText(ctx, compact ? 'One Aries column, one offset per star'
+      : 'One Aries column, plus one offset per star', w / 2,
+    compact ? 11 : 15, {
+      size: titleSize, weight: 600, tracking: titleSize * 0.12, align: 'center',
+    });
+    const titleRule = compact ? 25 : 32;
+    plateRule(ctx, titleRule, pad, w - pad);
+
+    // the two tables an almanac page actually prints: Aries hour by hour,
+    // and a short star list whose offsets barely change all year
+    const hour = Math.floor(gmt);
+    const ariesRows = [-1, 0, 1].map(k => {
+      const hh = ((hour + k) % 24 + 24) % 24;
+      const cells = [`${String(hh).padStart(2, '0')}h`, fmtDM(ghaAt(hour + k), 1)];
+      if (k === 0) { cells.strong = true; cells.marker = true; }
+      return cells;
+    });
+    const starRows = STARS.map(st => {
+      const cells = [st.name, fmtDM(st.sha, 1), st.dec];
+      if (st.main) { cells.strong = true; cells.marker = true; }
+      return cells;
+    });
+
+    const tablesY = titleRule + (compact ? 9 : 14);
+    let y;
+    if (compact) {
+      const tw = w - pad * 2;
+      const hA = drawTable(ctx, pad, tablesY, tw, {
+        title: `Aries · ${DATE_LABEL}`,
+        columns: [{ x: 18, align: 'left' }, { x: tw - 10, align: 'right' }],
+        header: ['UT', 'GHA ARIES'],
+        rows: ariesRows, note: 'Changes every hour', size, row,
       });
-    plateRule(ctx, compact ? 25 : 32, 14, w - 14);
+      const starsY = tablesY + hA + 8;
+      const hS = drawTable(ctx, pad, starsY, tw, {
+        title: 'Stars · offset from Aries',
+        columns: [{ x: 18, align: 'left' }, { x: tw * 0.6, align: 'right' }, { x: tw - 10, align: 'right' }],
+        header: ['STAR', 'SHA', 'DEC'],
+        rows: starRows, note: 'Nearly fixed all year', size, row,
+      });
+      y = starsY + hS;
+    } else {
+      const gap = 12;
+      const aw = (w - pad * 2 - gap) * 0.4;
+      const sw = w - pad * 2 - gap - aw;
+      const hA = drawTable(ctx, pad, tablesY, aw, {
+        title: `Aries · ${DATE_LABEL}`,
+        columns: [{ x: 20, align: 'left' }, { x: aw - 10, align: 'right' }],
+        header: ['UT', 'GHA ARIES'],
+        rows: ariesRows, note: 'Changes every hour', size, row,
+      });
+      const hS = drawTable(ctx, pad + aw + gap, tablesY, sw, {
+        title: 'Stars · offset from Aries',
+        columns: [{ x: 20, align: 'left' }, { x: sw * 0.58, align: 'right' }, { x: sw - 10, align: 'right' }],
+        header: ['STAR', 'SHA', 'DEC'],
+        rows: starRows, note: 'Nearly fixed all year', size, row,
+      });
+      y = tablesY + Math.max(hA, hS);
+    }
 
-    plateBox(ctx, pad, definitionsY, w - pad * 2, [
-      {
-        text: 'GHA: ANGLE WEST FROM GREENWICH.',
-        font: PLATE.dataFont,
-        tracking: 0,
-      },
-      {
-        text: 'GHA ARIES: ONE CHANGING VALUE FOR EVERY STAR.',
-        font: PLATE.dataFont,
-        tracking: 0,
-      },
-      {
-        text: 'SHA: EACH STAR’S OWN OFFSET FROM ARIES.',
-        font: PLATE.dataFont,
-        tracking: 0,
-      },
-      {
-        text: 'DECLINATION: THE GP’S LATITUDE.',
-        font: PLATE.dataFont,
-        tracking: 0,
-      },
-    ], {
-      title: 'WHY ONE LOOKUP WORKS',
-      size: bodySize,
-      lineHeight: compact ? 9 : 12.5,
-      padding: compact ? 6 : 7,
-      height: definitionsH,
-    });
-
-    plateDataText(ctx, compact
-      ? `${utcText(gmt)} UTC · look up GHA Aries ${fmtDM(s.ghaAries, 1)}`
-      : `${DATE_LABEL} · ${utcText(gmt)} UTC · look up GHA Aries ${fmtDM(s.ghaAries, 1)}`,
-    w / 2, lookupY, {
-      size: compact ? 8 : 10, weight: 600, align: 'center',
-    });
-
-    const workLines = [
-      {
-        text: `GHA ARIES     ${fmtDM(s.ghaAries, 1)}`,
-        font: PLATE.dataFont, tracking: 0,
-      },
-      {
-        text: `+ VEGA SHA    ${fmtDM(VEGA_SHA, 1)}`,
-        font: PLATE.dataFont, tracking: 0,
-      },
-      ...(s.wrapped ? [{
-        text: '− FULL TURN   360°',
-        font: PLATE.dataFont, tracking: 0,
-      }] : []),
-      {
-        text: `= GHA VEGA    ${fmtDM(s.ghaVega, 1)}`,
-        weight: 600, font: PLATE.dataFont, tracking: 0,
-      },
+    // the worked addition at the slider's instant
+    const workRule = y + (compact ? 9 : 16);
+    plateRule(ctx, workRule, pad, w - pad);
+    const increment = s.ghaAries - ghaAt(hour);
+    const lines = [
+      { name: `GHA Aries ${String(hour).padStart(2, '0')}h`, value: fmtDM(ghaAt(hour), 1) },
+      { name: `+ ${utcText(gmt).slice(3, 5)}m ${utcText(gmt).slice(6)}s of turning`, value: fmtDM(((increment % 360) + 360) % 360, 1) },
+      { name: '+ Vega SHA', value: fmtDM(VEGA_SHA, 1) },
+      ...(s.wrapped ? [{ name: '− one full turn', value: '360°' }] : []),
+      { name: '= GHA Vega', value: fmtDM(s.ghaVega, 1), strong: true },
     ];
-    const workW = compact ? w - pad * 2 : w * 0.66;
-    const workX = (w - workW) / 2;
-    plateBox(ctx, workX, workY, workW, workLines, {
-      title: 'WORKED VEGA ADDITION',
-      size: compact ? 8 : 10.5,
-      lineHeight: compact ? 9 : 24,
-      padding: compact ? 6 : 7,
-      height: workH,
-      font: PLATE.dataFont,
+    const work = {
+      x0: compact ? pad + 6 : w * 0.18,
+      x1: compact ? w - pad - 6 : w * 0.82,
+    };
+    let ly = workRule + (compact ? 6 : 10) + row * 0.5;
+    plateText(ctx, `At ${utcText(gmt)} UTC`, work.x0, ly, { size, weight: 600 });
+    ly += row * 1.1;
+    for (const item of lines) {
+      plateText(ctx, item.name, work.x0, ly, {
+        size, weight: item.strong ? 700 : 500,
+        uppercase: true,
+      });
+      plateDataText(ctx, item.value, work.x1, ly, {
+        size, align: 'right', weight: item.strong ? 700 : 500,
+      });
+      ly += row;
+    }
+
+    const gpY = ly + (compact ? 6 : 10);
+    plateLine(ctx, { x: work.x0, y: gpY - row * 0.55 }, { x: work.x1, y: gpY - row * 0.55 }, { weight: 0.55 });
+    const gpLine = `Vega GP  ${fmtDM(VEGA_DEC, 1)} N · ${lonText(s.ghaVega)}`;
+    plateDataText(ctx, gpLine, (work.x0 + work.x1) / 2, gpY + row * 0.3, {
+      size: fitSize(ctx, gpLine, work.x1 - work.x0, size + 0.6), weight: 700, align: 'center',
     });
-
-    if (compact) {
-      plateDataText(ctx, `Vega declination ${fmtDM(VEGA_DEC, 1)} N`,
-        w / 2, declinationY, {
-          size: dataSize, align: 'center',
-        });
-      plateDataText(ctx, `gives GP latitude ${fmtDM(VEGA_DEC, 1)} N`,
-        w / 2, declinationY + 10, {
-          size: dataSize, align: 'center',
-        });
-    } else {
-      plateDataText(ctx,
-        `Vega declination ${fmtDM(VEGA_DEC, 1)} N → GP latitude ${fmtDM(VEGA_DEC, 1)} N`,
-        w / 2, declinationY, {
-          size: 10, align: 'center',
-        });
-    }
-
-    plateRule(ctx, summaryRuleY, 14, w - 14);
-    if (compact) {
-      plateDataText(ctx,
-        `Sirius SHA ${fmtDM(s.stars[1].sha, 1)} → GHA ${fmtDM(s.stars[1].gha, 1)}`,
-        w / 2, summaryRuleY + 10, {
-          size: dataSize, align: 'center',
-        });
-      plateDataText(ctx,
-        `Capella SHA ${fmtDM(s.stars[2].sha, 1)} → GHA ${fmtDM(s.stars[2].gha, 1)}`,
-        w / 2, summaryRuleY + 22, {
-          size: dataSize, align: 'center',
-        });
-    } else {
-      plateText(ctx, 'TWO MORE STARS AT THIS UTC',
-        w / 2, summaryRuleY + 18, {
-          size: bodySize, weight: 600, align: 'center',
-        });
-      plateDataText(ctx,
-        `Sirius: SHA ${fmtDM(s.stars[1].sha, 1)} → GHA ${fmtDM(s.stars[1].gha, 1)}`,
-        w / 2, summaryRuleY + 42, {
-          size: dataSize, align: 'center',
-        });
-      plateDataText(ctx,
-        `Capella: SHA ${fmtDM(s.stars[2].sha, 1)} → GHA ${fmtDM(s.stars[2].gha, 1)}`,
-        w / 2, summaryRuleY + 66, {
-          size: dataSize, align: 'center',
-        });
-    }
   }
 })();

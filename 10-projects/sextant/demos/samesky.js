@@ -89,6 +89,24 @@
     setReadouts(s);
   }
 
+  // width a plateBox needs for its title and lines, measured the way
+  // plateBox draws them, so the box follows the font instead of a guess
+  function boxContentWidth(ctx, title, lines, size) {
+    let width = plateTextWidth(ctx, title, { size, weight: 600, tracking: size * 0.09 });
+    for (const line of lines) {
+      const entry = typeof line === 'string' ? { text: line } : line;
+      const font = entry.font || PLATE.font;
+      width = Math.max(width, (entry.indent || 0) + plateTextWidth(ctx, entry.text, {
+        size: entry.size || size,
+        weight: entry.weight || 500,
+        tracking: entry.tracking ?? size * 0.055,
+        font,
+        uppercase: entry.uppercase ?? (font === PLATE.dataFont ? false : undefined),
+      }));
+    }
+    return Math.ceil(width);
+  }
+
   function drawHourAngleStrips(ctx, w, h, s) {
     ctx.fillStyle = PLATE.paper;
     ctx.fillRect(0, 0, w, h);
@@ -98,15 +116,9 @@
     const bodySize = compact ? 8 : 9.2;
     const dataSize = compact ? 8 : 9;
     const fieldTop = compact ? 29 : 44;
-    const ruleY = h - (compact ? 36 : 62);
+    const ruleY = h - (compact ? 38 : 62);
     const frac = clamp((gmt - referenceUtc) / MATCH_WINDOW_HOURS, 0, 1);
-    const x0 = compact ? 45 : 80;
-    const x1 = w - (compact ? 12 : 35);
-    const xm = x0 + (x1 - x0) * frac;
-    const railTop = compact ? 104 : 190;
-    const railGap = compact ? 23 : 86;
-    const yGha = railTop;
-    const yLon = railTop + railGap;
+    const margin = compact ? 8 : 16;
 
     plateText(ctx, 'Same distance west, same local sky', w / 2,
       compact ? 11 : 15, {
@@ -114,48 +126,79 @@
       });
     plateRule(ctx, compact ? 25 : 32, 14, w - 14);
 
-    const boxX = compact ? 8 : 14;
-    const boxY = fieldTop + (compact ? 1 : 5);
-    const boxW = compact ? w - 16 : w * 0.47;
-    const boxH = compact ? 54 : 80;
-    plateBox(ctx, boxX, boxY, boxW, [
+    const boxTitle = 'WHY THE VIEW REPEATS';
+    const boxLines = [
       'GP AND OBSERVER MOVE EQUALLY WEST.',
-      'THEIR LONGITUDE DIFFERENCE IS UNCHANGED.',
+      'THE LONGITUDE GAP STAYS THE SAME,',
       {
-        text: 'SO LHA – AND THE LOCAL SKY – STAYS UNCHANGED.',
+        text: 'SO LHA AND THE LOCAL SKY DO TOO.',
         font: PLATE.dataFont,
         tracking: 0,
       },
-    ], {
-      title: 'WHY THE VIEW REPEATS',
+    ];
+    const boxPadding = compact ? 6 : 7;
+    const boxW = Math.min(w - 16,
+      boxContentWidth(ctx, boxTitle, boxLines, bodySize) + boxPadding * 2 + 4);
+    const boxX = compact ? Math.round((w - boxW) / 2) : 14;
+    const boxY = fieldTop + (compact ? 1 : 5);
+    const boxH = plateBox(ctx, boxX, boxY, boxW, boxLines, {
+      title: boxTitle,
       size: bodySize,
       lineHeight: compact ? 9 : 14,
-      padding: compact ? 6 : 7,
-      height: boxH,
+      padding: boxPadding,
     });
 
     if (!compact) {
-      const infoX = w * 0.52;
+      // the readings sit beside the box, three lines spread over its height
+      const infoX = boxX + boxW + 18;
+      const infoY = i => boxY + 14 + (boxH - 28) * i / 2;
       plateDataText(ctx, `First  ${utcText(referenceUtc)} UTC · ${longitudeText(referenceLonW)}`,
-        infoX, boxY + 14, {
+        infoX, infoY(0), {
           size: dataSize,
         });
       plateDataText(ctx, `Later  ${utcText(gmt)} UTC · ${longitudeText(s.lonW)}`,
-        infoX, boxY + 39, {
+        infoX, infoY(1), {
           size: dataSize,
         });
       plateDataText(ctx, `Both at ${latitudeText()} latitude`,
-        infoX, boxY + 64, {
+        infoX, infoY(2), {
           size: dataSize,
         });
     }
 
+    // rails: each name sits at the left end of its own rail, so the rails
+    // start after the longer name
+    const railNames = ['VEGA’S GP', compact ? 'YOU' : 'OBSERVER'];
+    const nameW = Math.max(...railNames.map(t => plateTextWidth(ctx, t, { size: bodySize })));
+    const x0 = Math.ceil(margin + nameW + (compact ? 8 : 12));
+    // each rail's shift reads at the clear end of the rail, past the arrow,
+    // so the moving marker never crosses it; reserve its widest value
+    const shiftDecimals = compact ? 1 : 3;
+    const shiftText = `+${s.dGha.toFixed(shiftDecimals)}° WEST`;
+    const shiftGap = compact ? 6 : 8;
+    const shiftW = plateTextWidth(ctx,
+      `+${(MATCH_WINDOW_HOURS * STELLAR_RATE).toFixed(shiftDecimals)}° WEST`,
+      { size: dataSize, tracking: 0, uppercase: false });
+    const x1 = Math.floor(w - margin - shiftW - shiftGap);
+    const xm = x0 + (x1 - x0) * frac;
+    const yGha = boxY + boxH + (compact ? 22 : 30);
+    // desktop keeps two definition lines above the rule when there is room
+    const definitionY = ruleY - 32;
+    let showDefinitions = !compact;
+    let yLon = compact
+      ? yGha + Math.min(64, ruleY - 18 - yGha)
+      : Math.min(definitionY - 20, yGha + 110);
+    if (showDefinitions && yLon - yGha < 50) {
+      showDefinitions = false;
+      yLon = Math.min(ruleY - 22, yGha + 110);
+    }
+
     function shiftRail(y, title) {
-      plateText(ctx, title, compact ? 8 : 16, y - (compact ? 10 : 16), {
-        size: bodySize,
+      plateText(ctx, title, x0 - (compact ? 8 : 12), y, {
+        size: bodySize, align: 'right',
       });
-      plateDataText(ctx, shiftText, x1, y - (compact ? 10 : 16), {
-        size: dataSize, align: 'right',
+      plateDataText(ctx, shiftText, x1 + shiftGap, y, {
+        size: dataSize, align: 'left',
       });
       plateLine(ctx, { x: x0, y }, { x: x1 - (compact ? 4 : 6), y }, {
         weight: compact ? 0.9 : 1.2,
@@ -177,25 +220,23 @@
         });
     }
 
-    const shiftText = `+${s.dGha.toFixed(compact ? 1 : 3)}° WEST`;
-    shiftRail(yGha, 'VEGA’S GP');
-    shiftRail(yLon, compact ? 'YOU' : 'OBSERVER');
+    shiftRail(yGha, railNames[0]);
+    shiftRail(yLon, railNames[1]);
 
     plateLine(ctx, { x: xm, y: yGha + (compact ? 7 : 9) },
       { x: xm, y: yLon - (compact ? 7 : 9) }, {
         kind: 'construction', weight: compact ? 0.55 : 0.7,
       });
-    if (!compact) {
-      plateText(ctx, 'SAME DISTANCE WEST',
-        clamp(xm + (frac > 0.77 ? -7 : 7), x0 + 8, x1 - 8),
-        (yGha + yLon) / 2, {
-          size: bodySize,
-          align: frac > 0.77 ? 'right' : 'left',
-        });
-    }
+    // flips to the left of the marker once, where it would pass the arrow
+    const sameText = 'SAME DISTANCE WEST';
+    const sameW = plateTextWidth(ctx, sameText, { size: bodySize });
+    const flip = xm + 7 + sameW > x1 - 4;
+    plateText(ctx, sameText, xm + (flip ? -7 : 7), (yGha + yLon) / 2, {
+      size: bodySize,
+      align: flip ? 'right' : 'left',
+    });
 
-    if (!compact) {
-      const definitionY = ruleY - 34;
+    if (showDefinitions) {
       plateDataText(ctx, 'GHA: Vega GP’s angle west from Greenwich',
         w / 2, definitionY, {
           size: bodySize, align: 'center',
@@ -214,7 +255,7 @@
     const wrapTerm = s.gha < s.lonW ? ' + 360°' : '';
     plateDataText(ctx,
       `${fmtDM(s.gha, 1)} − ${fmtDM(s.lonW, 1)}${wrapTerm} = ${fmtDM(s.lha, 1)}`,
-      w / 2, ruleY + (compact ? 27 : 40), {
+      w / 2, ruleY + (compact ? 26 : 40), {
         size: dataSize, align: 'center',
       });
   }

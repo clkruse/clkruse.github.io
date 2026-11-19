@@ -18,11 +18,10 @@
     label: 'measured altitude',
     min: 5,
     max: 85,
-    step: 0.5,
+    step: 1,
     value: EXAMPLE_HO,
-    fmt: v => v.toFixed(1) + '°',
+    fmt: v => v.toFixed(0) + '°',
   });
-  const zStat = addStat(d, 'distance from the GP');
   d.addPreset('sixty', () => ho.set(EXAMPLE_HO, { emit: false }));
 
   let geo = null;
@@ -31,7 +30,7 @@
     move(p) {
       if (!geo) return;
       const fromUp = Math.abs(Math.atan2(p.x - geo.cx, geo.cy - p.y)) * R2D;
-      ho.set(clamp(Math.round((90 - fromUp) * 2) / 2, 5, 85), { emit: false });
+      ho.set(clamp(Math.round(90 - fromUp), 5, 85), { emit: false });
     },
   });
 
@@ -41,7 +40,6 @@
     const compact = w < 500;
     const alt = ho.v;
     const z = 90 - alt;
-    zStat.set(`90° − ${alt.toFixed(1)}° = ${z.toFixed(1)}°`);
 
     const pad = compact ? 10 : 16;
     const titleY = compact ? 15 : 19;
@@ -52,10 +50,11 @@
 
     const ruleY = h - (compact ? 30 : 36);
     plateRule(ctx, ruleY, pad, w - pad);
-    plateDataText(ctx,
-      `Ho ${alt.toFixed(1)}° → z = 90° − ${alt.toFixed(1)}° = ${z.toFixed(1)}° · A and B are both ${z.toFixed(1)}° from the GP`,
+    plateDataText(ctx, compact
+      ? `90° − ${alt.toFixed(0)}° = ${z.toFixed(0)}° from the GP`
+      : `distance = 90° − ${alt.toFixed(0)}° = ${z.toFixed(0)}° · A and B are both ${z.toFixed(0)}° from the GP`,
       w / 2, ruleY + (compact ? 15 : 18), {
-        size: compact ? 7 : 10,
+        size: compact ? 8 : 9,
         align: 'center',
       });
 
@@ -92,7 +91,7 @@
       ctx.restore();
       if (z >= 9) {
         const mid = up + side.sign * z * D2R / 2;
-        plateDataText(ctx, `${z.toFixed(z % 1 ? 1 : 0)}°`,
+        plateDataText(ctx, `${z.toFixed(0)}°`,
           cx + Math.cos(mid) * (centerArcR + (compact ? 10 : 13)),
           cy + Math.sin(mid) * (centerArcR + (compact ? 10 : 13)), {
             size: compact ? 7.5 : 9,
@@ -132,7 +131,7 @@
       while (span > Math.PI) span -= TAU;
       while (span < -Math.PI) span += TAU;
       const mid = towardGp + span / 2;
-      if (z >= 12) plateDataText(ctx, `${alt.toFixed(alt % 1 ? 1 : 0)}°`,
+      if (z >= 12) plateDataText(ctx, `${alt.toFixed(0)}°`,
         side.x + Math.cos(mid) * (altArcR + (compact ? 11 : 14)),
         side.y + Math.sin(mid) * (altArcR + (compact ? 11 : 14)), {
           size: compact ? 7.5 : 9,

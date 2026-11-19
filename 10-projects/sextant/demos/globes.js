@@ -194,10 +194,9 @@ function plateRingAnchor(points, cx, cy, direction, front = true, minDistance = 
   const GP = { lat: 38.81, lon: -127.2129 };
   let workedSight = SIGHT_STORY.state;
   const alt = addSlider(d, {
-    label: 'corrected altitude Ho', min: 5, max: 85, step: 0.001, value: workedSight.ho,
+    label: 'measured altitude', min: 5, max: 85, step: 0.001, value: workedSight.ho,
     fmt: v => v.toFixed(1) + '°',
   });
-  const radStat = addStat(d, 'circle radius');
   const applyWorked = (state = workedSight) => {
     workedSight = state;
     GP.lat = state.gp.lat;
@@ -213,7 +212,6 @@ function plateRingAnchor(points, cx, cy, direction, front = true, minDistance = 
   function draw(ctx, w, h) {
     const zr = 90 - alt.v;
     drawShrinkingProof(ctx, w, h, zr);
-    radStat.set(fmtNM(zr * 60));
   }
 
   function drawPlateRadius(ctx, scene, zr, cx, cy, R, compact) {
@@ -432,7 +430,7 @@ function plateRingAnchor(points, cx, cy, direction, front = true, minDistance = 
     ctx.strokeRect(cardX, cardY, cardW, cardH);
     ctx.restore();
     const cardCenter = cardX + cardW / 2;
-    plateDataText(ctx, 'Ho → z → radius',
+    plateDataText(ctx, 'altitude → radius',
       cardCenter, cardY + cardH * 0.11, {
         size: compact ? 8.5 : 10.5,
         weight: 600,
@@ -444,22 +442,22 @@ function plateRingAnchor(points, cx, cy, direction, front = true, minDistance = 
         weight: 0.55,
       });
     const rowSize = compact ? 8 : 10;
-    plateDataText(ctx, `Ho = ${fmtDM(alt.v, 1)}`,
+    plateDataText(ctx, `altitude ${fmtDM(alt.v, 1)}`,
       cardCenter, cardY + cardH * 0.32, {
         size: rowSize,
         align: 'center',
       });
-    plateDataText(ctx, 'z = 90° − Ho',
+    plateDataText(ctx, 'distance = 90° − alt',
       cardCenter, cardY + cardH * 0.46, {
         size: rowSize,
         align: 'center',
       });
-    plateDataText(ctx, `z = ${fmtDM(zr, 1)}`,
+    plateDataText(ctx, `= ${fmtDM(zr, 1)}`,
       cardCenter, cardY + cardH * 0.6, {
         size: rowSize,
         align: 'center',
       });
-    plateDataText(ctx, 'radius ≈ z × 60 nm',
+    plateDataText(ctx, '1° ≈ 60 nm',
       cardCenter, cardY + cardH * 0.74, {
         size: rowSize,
         align: 'center',
@@ -489,16 +487,15 @@ function plateRingAnchor(points, cx, cy, direction, front = true, minDistance = 
   const THIRD_BASE = { lat: 19.2, lon: 70 };
   let workedSight = SIGHT_STORY.state;
   const altA = addSlider(d, {
-    label: 'Vega Ho', min: 15, max: 70, step: 0.001, value: workedSight.ho,
+    label: 'Vega altitude', min: 15, max: 70, step: 0.001, value: workedSight.ho,
     fmt: v => v.toFixed(1) + '°',
     onchange: () => updateThirdAvailability(),
   });
   const altB = addSlider(d, {
-    label: 'Sirius Ho', min: 15, max: 70, step: 0.001, value: 44.65,
+    label: 'Sirius altitude', min: 15, max: 70, step: 0.001, value: 44.65,
     fmt: v => v.toFixed(1) + '°',
     onchange: () => updateThirdAvailability(),
   });
-  const sepStat = addStat(d, 'candidates apart', true);
   const thirdStat = addStat(d, 'third-circle miss', true);
   let thirdRevealed = false;
   const thirdButton = addButton(d, 'reveal third sight', () => {
@@ -674,7 +671,6 @@ function plateRingAnchor(points, cx, cy, direction, front = true, minDistance = 
     labelRing(compact ? 'SIRIUS' : 'SIRIUS CIRCLE', ringB, { x: 0.85, y: -0.25 });
 
     if (!ints) {
-      sepStat.set('no common crossings', P.red);
       thirdStat.set('unavailable until the first two circles cross', P.red);
     } else {
       const pick = pickNearDR(ints);
@@ -753,10 +749,8 @@ function plateRingAnchor(points, cx, cy, direction, front = true, minDistance = 
       });
 
       if (thirdRevealed) {
-        sepStat.set(fmtNM(candidateSeparation(ints)));
         thirdStat.set(fmtNM(sight.miss));
       } else {
-        sepStat.set(fmtNM(candidateSeparation(ints)));
         thirdStat.set('hidden');
       }
     }
@@ -798,9 +792,9 @@ function plateRingAnchor(points, cx, cy, direction, front = true, minDistance = 
     if (compact) {
       mixedLine([
         { text: 'VEGA · ' },
-        { text: `Ho ${altA.v.toFixed(1)}°`, data: true },
+        { text: `${altA.v.toFixed(1)}°`, data: true },
         { text: '   SIRIUS · ' },
-        { text: `Ho ${altB.v.toFixed(1)}°`, data: true },
+        { text: `${altB.v.toFixed(1)}°`, data: true },
       ], w / 2, ruleY + 10, 8);
       if (!ints) {
         plateText(ctx, 'NO COMMON CROSSING · ADJUST ALTITUDES',
@@ -823,11 +817,11 @@ function plateRingAnchor(points, cx, cy, direction, front = true, minDistance = 
     } else {
       mixedLine([
         { text: 'VEGA · ' },
-        { text: `Ho ${fmtDM(altA.v, 1)}`, data: true },
+        { text: `altitude ${fmtDM(altA.v, 1)}`, data: true },
       ], 16, ruleY + 20, 9.5, 'left');
       mixedLine([
         { text: 'SIRIUS · ' },
-        { text: `Ho ${fmtDM(altB.v, 1)}`, data: true },
+        { text: `altitude ${fmtDM(altB.v, 1)}`, data: true },
       ], w - 16, ruleY + 20, 9.5, 'right');
       if (!ints) {
         plateText(ctx, 'THE CIRCLES DO NOT CROSS · ADJUST EITHER ALTITUDE',
