@@ -217,12 +217,21 @@
     mark(gp, 5);
     mark(you, 7);
     labels.reserve({ x: star.x - starR - 3, y: star.y - starR - 3, w: starR * 2 + 6, h: starR * 2 + 6 });
-    for (let t = 0; t < TAU; t += 0.06) {
-      labels.reserve({ x: cx + Math.cos(t) * R - 2, y: cy + Math.sin(t) * R - 2, w: 4, h: 4 }, 1);
-    }
+    for (let t = 0; t < TAU; t += 0.06) mark({ x: cx + Math.cos(t) * R, y: cy + Math.sin(t) * R });
+    // a small globe takes the short names
+    const small = R < 115;
 
-    // "30°" over "FROM THE GP", set beside the middle of your distance line
-    // on whichever side is clear, or past you when the ring is too small
+    const hit = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
+    const rects = [];
+    const clear = r => {
+      if (r.x < box.x || r.y < box.y || r.x + r.w > box.x + box.w || r.y + r.h > box.y + box.h) return false;
+      if (rects.some(q => hit(r, q))) return false;
+      return !obstacles.some(o => o.x + o.r > r.x && o.x - o.r < r.x + r.w && o.y + o.r > r.y && o.y - o.r < r.y + r.h);
+    };
+
+    // "30°" over "FROM THE GP": beside the middle of your distance line when
+    // the ring is big enough to hold it, otherwise just past you, carrying
+    // the line on
     if (z >= 4) {
       const text = fmtDeg(z);
       const word = 'FROM THE GP';
@@ -236,38 +245,32 @@
       const t = norm({ x: arc[arc.length - 1].x - arc[0].x, y: arc[arc.length - 1].y - arc[0].y });
       const nrm = { x: -t.y, y: t.x };
       const off = (compact ? 6 : 8) + Math.abs(nrm.x) * bhw + Math.abs(nrm.y) * bhh;
-      const past = (compact ? 8 : 10) + Math.abs(t.x) * bhw + Math.abs(t.y) * bhh;
       const seats = [
         { x: mid.x + nrm.x * off, y: mid.y + nrm.y * off },
         { x: mid.x - nrm.x * off, y: mid.y - nrm.y * off },
-        { x: you.x + t.x * past, y: you.y + t.y * past },
       ];
-      const fits = c => {
-        const r = { x: c.x - bhw - 2, y: c.y - bhh - 2, w: bhw * 2 + 4, h: bhh * 2 + 4 };
-        if (r.x < box.x || r.y < box.y || r.x + r.w > box.x + box.w || r.y + r.h > box.y + box.h) return false;
-        return !obstacles.some(o => o.x + o.r > r.x && o.x - o.r < r.x + r.w && o.y + o.r > r.y && o.y - o.r < r.y + r.h);
-      };
-      const at = seats.find(fits);
+      for (const turn of [0, 0.6, -0.6, 1.2, -1.2]) {
+        const a = Math.atan2(t.y, t.x) + turn;
+        const ex = Math.cos(a), ey = Math.sin(a);
+        const reach = (compact ? 9 : 11) + Math.abs(ex) * bhw + Math.abs(ey) * bhh;
+        seats.push({ x: you.x + ex * reach, y: you.y + ey * reach });
+      }
+      const rectAt = c => ({ x: c.x - bhw - 2, y: c.y - bhh - 2, w: bhw * 2 + 4, h: bhh * 2 + 4 });
+      const at = seats.find(c => clear(rectAt(c)));
       if (at) {
         plateDataText(ctx, text, at.x, at.y - bhh + numH / 2, { size: nSize, align: 'center' });
         plateText(ctx, word, at.x, at.y + bhh - wordH / 2, { size: wSize, align: 'center' });
         labels.reserve({ x: at.x - bhw, y: at.y - bhh, w: bhw * 2, h: bhh * 2 });
+        rects.push(rectAt(at));
       }
     }
 
-    // the GP is named on the side away from you
-    const side = you.x >= gp.x ? -1 : 1;
-    labels.place('STAR’S GP', gp, [
-      { x: gp.x + side * 9, y: gp.y - 9, align: side < 0 ? 'right' : 'left' },
-      { x: gp.x + side * 9, y: gp.y + 10, align: side < 0 ? 'right' : 'left' },
-      { x: gp.x - side * 9, y: gp.y - 9, align: side < 0 ? 'left' : 'right' },
-    ], { size, leader: false, backed: false });
-
-    // you, labelled outward from the GP
+    // you, labelled outward from the GP where there is room, otherwise
+    // anywhere around you, inside the ring included
     const out = norm({ x: you.x - gp.x, y: you.y - gp.y });
     const youCandidates = [];
     for (const r of [13, 20, 30]) {
-      for (const turn of [0, 0.7, -0.7, 1.4, -1.4]) {
+      for (const turn of [0, 0.7, -0.7, 1.4, -1.4, 2.1, -2.1, Math.PI]) {
         const a = Math.atan2(out.y, out.x) + turn;
         const ex = Math.cos(a), ey = Math.sin(a);
         youCandidates.push({
@@ -276,19 +279,45 @@
         });
       }
     }
-    labels.place(you.front ? 'YOU · DRAG' : 'YOU · FAR SIDE', you, youCandidates,
+    const youLabel = labels.place(small ? 'YOU' : you.front ? 'YOU · DRAG' : 'YOU · FAR SIDE', you, youCandidates,
       { size, weight: 700, backed: false, leader: false, key: 'you' });
+    if (youLabel) rects.push(youLabel.rect);
 
-    // the ring is named outside it, at its lowest near-side point
-    const front = ring.filter(q => q.front);
-    if (front.length) {
-      const low = front.reduce((b, q) => (q.y > b.y ? q : b));
-      const high = front.reduce((b, q) => (q.y < b.y ? q : b));
-      labels.place('RING OF POSITION', low, [
-        { x: low.x, y: low.y + 12, align: 'center' },
-        { x: high.x, y: high.y - 12, align: 'center' },
-        { x: low.x + 10, y: low.y + 6, align: 'left' },
-      ], { size: compact ? 7.5 : 8, leader: false, backed: false, fallback: 'hide' });
+    // the GP is named on the side away from you
+    const side = you.x >= gp.x ? -1 : 1;
+    const gpLabel = labels.place(small ? 'GP' : 'STAR’S GP', gp, [
+      { x: gp.x + side * 9, y: gp.y - 9, align: side < 0 ? 'right' : 'left' },
+      { x: gp.x + side * 9, y: gp.y + 10, align: side < 0 ? 'right' : 'left' },
+      { x: gp.x - side * 9, y: gp.y - 9, align: side < 0 ? 'left' : 'right' },
+    ], { size, leader: false, backed: false });
+    if (gpLabel) rects.push(gpLabel.rect);
+
+    // the ring is named on the ring itself, opposite you, breaking the line
+    // the way a section drawing labels a curve
+    const ringSize = compact ? 7 : 7.5;
+    const ringText = 'RING OF POSITION';
+    const rw = plateTextWidth(ctx, ringText, { size: ringSize, weight: 600 }) + 8;
+    const rh = plateSize(ringSize) * 1.5;
+    const ringSpan = Math.max(...ring.map(q => Math.hypot(q.x - gp.x, q.y - gp.y)));
+    if (ringSpan > rw * 0.6) {
+      const near = a => ring[Math.round((((a % 360) + 360) % 360) / 2)];
+      for (const da of [180, 150, 210, 120, 240, 90, 270, 60, 300]) {
+        const q = near(az + da);
+        if (!q || !q.front) continue;
+        const r = { x: q.x - rw / 2, y: q.y - rh / 2, w: rw, h: rh };
+        if (r.x < box.x || r.x + r.w > box.x + box.w || r.y < box.y || r.y + r.h > box.y + box.h) continue;
+        if (rects.some(o => hit(r, o))) continue;
+        // keep clear of the starlight, which crosses the ring's top
+        if (r.x < gp.x + 4 && r.x + r.w > gp.x - 4 && r.y + r.h < gp.y) continue;
+        if (arc.some(p => p.x > r.x && p.x < r.x + r.w && p.y > r.y && p.y < r.y + r.h)) continue;
+        ctx.save();
+        ctx.fillStyle = PLATE.paper;
+        ctx.fillRect(r.x, r.y, r.w, r.h);
+        ctx.restore();
+        plateText(ctx, ringText, q.x, q.y, { size: ringSize, weight: 600, align: 'center' });
+        labels.reserve(r);
+        break;
+      }
     }
   }
 
