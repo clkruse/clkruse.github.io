@@ -111,86 +111,68 @@
         <canvas class="grab"></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption><span class="fig-title">Your horizon tilts as you walk</span> Walk away from the star’s ground position. Your horizon tilts with the Earth beneath you, so
-        the same star sits lower in your sky.</figcaption>
+      <figcaption><span class="fig-title">A star’s altitude changes as you move</span> Move away from a star’s ground position. Because the angle of the horizon shifts as you move
+        around the globe, the angle between the star and the horizon changes.</figcaption>
     </figure>
 
     <p>
-      How does the height of the star change depending on how far you’ve moved? You’ll notice that the star is
-      directly overhead (90°) at the ground position, and it falls lower in the sky until it sits on the
-      horizon when you’ve traveled 90° away from your starting position.
+      It’s important to note that the altitude of the star is directly related to how far you’ve moved away
+      from its ground position. You’ll notice that the star is directly overhead (90°) at the ground
+      position, and then it falls lower in the sky as you move away. Travel 30° from the ground position, and
+      the star’s altitude will be 60°. Travel 70°, and the altitude will now be 20°. This continues until
+      you’ve traveled 90° away from your starting position, where the star will be found right on the
+      horizon (0°).
     </p>
 
-    <div class="note">
-      <span class="note-label">Note</span>
-      <p>
-      This observation is the heart of celestial navigation! If you measure the altitude of a star, it tells
+    <p>
+      This observation is the heart of celestial navigation. If you measure the altitude of a star, it tells
       you how many degrees from the star’s GP you have traveled. Your distance from the GP is given by a simple
-      rule: <span class="num">90° − altitude</span>.
-      </p>
-    </div>
+      rule:
+    </p>
 
-    <figure class="demo" id="demo-setting">
+    <div class="equation"><span class="eq-body"><span>distance from the GP =</span> <span>90° − altitude</span></span></div>
+
+    <h3 class="sub" id="polaris-example"><span class="sec-no">2.1</span><span class="sec-title">An example: Polaris</span></h3>
+
+    <p>
+      Let’s see how this works using the North Star (Polaris). The ground position of Polaris sits almost
+      exactly at the location of the North Pole. If you stand at the North Pole, you’ll find Polaris directly
+      overhead. As you travel away, you’ll notice that the star moves lower in the sky. This continues until
+      you reach the equator, where the star will be on the horizon. By measuring the altitude of Polaris, you
+      are able to know how far you are from the equator. This is called your “latitude.”
+    </p>
+
+    <figure class="demo" id="demo-northstar">
       <div class="demo-panel">
         <canvas class="grab"></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption><span class="fig-title">A degree of travel is a degree of altitude</span> The star sinks one degree for every degree you travel from its ground position. Drag along the
-        line.</figcaption>
+      <figcaption><span class="fig-title">An example with Polaris</span> The ground position of Polaris is
+        the North Pole. As you move around the globe, the star’s altitude always matches your
+        latitude.</figcaption>
     </figure>
 
     <h2 id="position-ring"><span class="sec-no">3.0</span><span class="sec-title">Rings of position</span></h2>
 
     <p>
-      We now understand that measuring the altitude of a star tells us how far away we are from the star’s
-      ground position. If the star is 90° overhead, you’re right at the ground position. If the star is at
-      30°, it means you’re 60° from the ground position (<span class="num">90° − 30°</span>). And if the star
-      is right on the horizon (0°), we know that we’re located 90° from the ground position.
-    </p>
-
-    <p>
-      Let’s go through an example to see how this works in practice. You measure the altitude of a star and
-      find that it is 60° above the horizon.
-    </p>
-
-    <ul class="steps">
-      <li>Start by locating the star’s ground position. For now, let’s just assume that the ground positions
-        of a star can be found in a book. Mark that position on the globe.</li>
-      <li>Next, you’ll measure the distance from the GP for your measured altitude. In this case, that works
-        out to be <span class="num">90° − 60° = 30°</span>.</li>
-      <li>Now mark that distance from the GP on the map. But wait! You’ll notice that in this 2D illustration,
-        two points are located 30° from the GP. Both of these are valid positions.</li>
-    </ul>
-
-    <figure class="demo" id="demo-twopoints">
-      <div class="demo-panel">
-        <canvas class="grab"></canvas>
-        <div class="demo-controls"></div>
-      </div>
-      <figcaption><span class="fig-title">Two places, one altitude</span> In a 2D slice, two places sit 30° from the ground position, one either side. From both, the
-        star is 60° above the horizon. Drag A or B to change the altitude.</figcaption>
-    </figure>
-
-    <p>
-      I oversimplified a bit when saying that the stellar altitude alone would give position. In two
-      dimensions, you’ll always have two positions that are valid for a given angle. In 2D, you could travel
-      30° “up” or “down” from the GP in order to reach a position where the star would appear to be 60° in
-      altitude.
+      You now know that measuring the altitude of a star tells you how far away you are from the star’s ground
+      position. But it doesn’t tell you which direction. Suppose you measure the altitude of a star at 60°.
+      That puts you 30° from its ground position (<span class="num">90° − 60°</span>). In two dimensions,
+      there are two such places: 30° to the left of the GP or 30° to the right.
     </p>
 
     <aside class="gloss"><span class="gloss-term">Ring of position</span>Every place that sees a star at one altitude. Its center is the GP; its radius is 90° − altitude.</aside>
     <p>
-      It gets even more interesting in three dimensions. You can not only move 30° “up” or “down”, you can also
-      move 30° “left”, 30° “right”, 30° “diagonal” and on and on. It turns out that there’s a full ring of
-      positions where the star will appear to be 60° above the horizon.
+      In three dimensions, there are even more positions where you can see the star at the same altitude. You
+      can move 30° east or west of the star’s ground position, but you can also move 30° north, 30° south,
+      30° southeast and so on. It turns out that there’s a full ring of positions where the star will appear
+      to be at the same altitude above the horizon.
     </p>
 
-    <div class="note">
-      <span class="note-label">Note</span>
-      <p>
-      To mark this ring, measure 30° from the star’s ground position and trace a circle around the point.
-      </p>
-    </div>
+    <p>
+      To mark this ring, measure 30° from the star’s ground position, your distance from the GP, and trace a
+      circle of that radius around the point.
+    </p>
 
     <figure class="demo" id="demo-circle" data-initial-preset="sixty">
       <div class="demo-panel">
@@ -198,7 +180,8 @@
         <div class="demo-controls"></div>
       </div>
       <figcaption><span class="fig-title">The circle of equal altitude</span> Every point on the ring sees the star at the same altitude. Raise the altitude and the ring
-        shrinks toward the ground position. Drag to turn the globe.</figcaption>
+        shrinks toward the ground position. Drag yourself around the ring: the star stays at the same height,
+        only the direction you look changes.</figcaption>
     </figure>
 
     <h2 id="crossing-rings"><span class="sec-no">4.0</span><span class="sec-title">Two sights, two rings, two locations</span></h2>
@@ -557,10 +540,10 @@
   <script src="demos/center.js" defer></script>
   <script src="demos/sightline.js" defer></script>
   <script src="demos/walk.js" defer></script>
-  <script src="demos/setting.js" defer></script>
+  <script src="demos/northstar.js" defer></script>
   <script src="demos/arcminute.js" defer></script>
-  <script src="demos/twopoints.js" defer></script>
   <script src="demos/globes.js" defer></script>
+  <script src="demos/ring.js" defer></script>
   <script src="demos/sextant.js" defer></script>
   <script src="demos/scope.js" defer></script>
   <script src="demos/motion.js" defer></script>

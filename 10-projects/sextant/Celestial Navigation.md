@@ -22,24 +22,23 @@ Imagine once again that you’re standing on a star’s ground position and poin
 As you move on the round globe, it will seem as if the positions of the stars are moving. Let’s return to our original example. You start on the ground position of a star and then move away. As you do so, the star’s altitude will fall a little closer to the horizon. The star will continue to move lower in the sky until it disappears beyond the horizon. 
 <Figure showing a circle of the earth with the ground position of a star marked. Then, a position for the observer that slides around the globe. As you slide, the angle between the horizon and the star is shown. A paired figure along the side should somehow capture what this looks like from a first-person perspective. How you go from looking straight up at a star to seeing the star just above the horizon. Figure caption: The >
 
-How does the height of the star change depending on how far you’ve moved? You’ll notice that the star is directly overhead (90°) at the ground position, and it falls lower in the sky until it sits on the horizon when you’ve traveled 90° away from your starting position. 
+It's important to note that the altitude of the star is directly related to how far you've moved away from its ground position. You’ll notice that the star is directly overhead (90°) at the ground position, and then it falls lower in the sky as you move away. Travel 30° from the ground position, and the star's altitude will be 60°. Travel 70°, and the altitude will now be 20°. This continues until you've traveled 90° away from your starting position, where the star will be found right on the horizon (0°).
 
 This observation is the heart of celestial navigation\.
-! If you measure the altitude of a star, it tells you how many degrees from the star’s GP you have traveled. Your distance from the GP is given by a simple rule of 90° \- altitude.  
-\<Insert diagram showing how the height of the star falls as you move away from the ground position\>
+If you measure the altitude of a star, it tells you how many degrees from the star’s GP you have traveled. Your distance from the GP is given by a simple rule of 90° - altitude.  
+
+**2.1 An example: Polaris**  
+
+Let's see how this works using the North Star (Polaris). The ground position of Polaris sits almost exactly at the location of the North Pole. If you stand at the North Pole, you'll find Polaris directly overhead. As you travel away, you'll notice that the star moves lower in the sky. This continues until you reach the equator, where the star will be on the horizon. By measuring the altitude of Polaris, you are able to know how far you are from the equator. This is called your "latitude."
+<Figure showing your view of Polaris beside a globe with Polaris above the North Pole, the equator, and you. Set your latitude with a slider or buttons for Quito, San Francisco, Oslo and the North Pole. Figure title: An example with Polaris. Figure caption: The ground position of Polaris is the North Pole. As you move around the globe, the star’s altitude always matches your latitude.>
 
 **3\. Rings of position**  
-We now understand that measuring the altitude of a star tells us how far away we are from the star’s ground position. If the star is 90° overhead, you’re right at the ground position. If the star is at 30°, it means you’re 60° from the ground position (90° \- 30°). And if the star is right on the horizon (0°), we know that we’re located 90° from the ground position.  
-Let’s go through an example to see how this works in practice. You measure the altitude of a star and find that it is 60° above the horizon. 
-- Start by locating the star’s ground position. For now, let’s just assume that the ground positions of a star can be found in a book. Mark that position on the globe.   
-- Next, you’ll measure the distance from the GP for your measured altitude. In this case, that works out to be 90° \- 60° \= 30°.  
-- Now mark that distance from the GP on the map. But wait\! You’ll notice that in this 2D illustration, two points are located 30° from the GP. Both of these are valid positions.
 
-I oversimplified a bit when saying that the stellar altitude alone would give position. In two dimensions, you’ll always have two positions that are valid for a given angle. In 2D, you could travel 30° “up” or “down” from the GP in order to reach a position where the star would appear to be 60° in altitude. 
+You now know that measuring the altitude of a star tells you how far away you are from the star’s ground position. But it doesn’t tell you which direction. Suppose you measure the altitude of a star at 60°. That puts you 30° from its ground position (90° \- 60°). In two dimensions, there are two such places: 30° to the left of the GP or 30° to the right.
 
-It gets even more interesting in three dimensions. You can not only move 30° “up” or “down”, you can also move 30° “left”, 30° “right”, 30° “diagonal” and on and on. It turns out that there’s a full ring of positions where the star will appear to be 60° above the horizon.
+In three dimensions, there are even more positions where you can see the star at the same altitude. You can move 30° east or west of the star's ground position, but you can also move 30° north, 30° south, 30° southeast and so on. It turns out that there’s a full ring of positions where the star will appear to be at the same altitude above the horizon.
 
-To mark this ring, measure 30° from the star’s ground position and trace a circle around the point. 
+To mark this ring, measure 30° from the star’s ground position, your distance from the GP, and trace a circle of that radius around the point. 
 
 **4\. Two sights, two rings, two locations**  
 If measuring the altitude of a star gives a full ring of valid positions, how are we going to use the stars to find our position on the globe? There’s a trick\! We can measure the altitude of more than one star, each of which gives an independent ring of positions.   

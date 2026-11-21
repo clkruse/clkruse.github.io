@@ -378,15 +378,37 @@ html .article .aside {
   text-align: left;
 }
 
-/* worked numbers in the prose use the figures' face, so a value reads
-   the same in the text and on the plate */
+/* worked numbers in the prose are typeset, not boxed: the body face with
+   lining figures, the way a NASA technical report sets a value or a short
+   sum in running text */
 html .num {
-  font-family: var(--font-display);
-  font-size: 0.94em;
+  font-family: var(--font-body);
+  font-size: 1em;
   font-weight: 400;
-  background: var(--codebg);
-  padding: 0.05em 0.28em;
-  font-variant-numeric: tabular-nums;
+  background: none;
+  padding: 0;
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* a displayed equation, NASA report style: set on its own line, centered
+   in the text column, numbered in parentheses at the right margin */
+html .article { counter-reset: equation; }
+html .equation {
+  counter-increment: equation;
+  display: grid;
+  grid-template-columns: minmax(2rem, 1fr) minmax(0, auto) minmax(2rem, 1fr);
+  align-items: baseline;
+  margin: 0.3rem 0 1.5rem;
+  font-family: var(--font-body);
+  font-variant-numeric: lining-nums tabular-nums;
+}
+/* on a narrow screen the equation breaks after "=", never inside a side */
+html .equation .eq-body { grid-column: 2; text-align: center; }
+html .equation .eq-body > span { white-space: nowrap; }
+html .equation::after {
+  content: "(" counter(equation) ")";
+  grid-column: 3;
+  justify-self: end;
 }
 
 html .article code {
@@ -539,6 +561,9 @@ html .article h2.part-title .sec-no {
 html .article h3.sub {
   margin: 2.2rem 0 0.9rem;
   font-size: 1rem;
+  /* only sections take the long-dash rule; a sub-section sits under its own */
+  background: none;
+  padding-top: 0;
 }
 
 /* term definitions sit beside the paragraph that introduces them */
