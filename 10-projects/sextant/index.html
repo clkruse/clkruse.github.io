@@ -7,6 +7,7 @@
   <title>Celestial Navigation – Caleb Kruse</title>
   <meta name="description"
     content="An interactive explainer on how a sextant, a clock, and the stars can pin down your position on the open ocean to within a mile or two.">
+  <link rel="icon" href="data:,">
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105607174-2"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -14,374 +15,234 @@
     gtag('js', new Date());
     gtag('config', 'UA-105607174-2');
   </script>
+  <link rel="preload" href="assets/fonts/jost-variable-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="assets/fonts/charter-regular.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style-original.css">
 </head>
 
 <body>
 
-  <a class="home-link" href="/">home</a>
-
-  <header class="pixel-header">
-    <h1 class="pixel-title">Celestial navigation</h1>
-    <div class="pixel-tagline">How a mirror, a clock, and the stars can find a ship on an empty ocean</div>
-    <div class="pixel-rule"></div>
-  </header>
-
-  <figure class="hero-fig" id="hero-fig">
-    <div class="demo-panel">
-      <canvas id="hero-canvas"></canvas>
-    </div>
-  </figure>
-
   <div class="main-grid">
     <div class="left-scroll">
+      <header class="pixel-header">
+        <h1 class="pixel-title">Celestial Navigation</h1>
+        <p class="pixel-tagline">How to use a sextant and the stars to figure out where you are on the Earth</p>
+        <div class="journal-byline"><span>Caleb Kruse</span><a class="home-link" href="/">Home</a></div>
+      </header>
       <main class="article">
 
+    <h2 class="part-title"><span class="sec-no">Part one</span><span class="sec-title">The fundamentals</span></h2>
+
+    <h2 id="ground-positions"><span class="sec-no">1.0</span><span class="sec-title">Stellar ground positions and altitudes</span></h2>
+
+    <aside class="gloss"><span class="gloss-term">Ground position (GP)</span>The point on Earth directly beneath a star.</aside>
     <p>
-      Imagine standing on the deck of a small boat, a thousand miles from the nearest land. Every direction
-      offers the same view: water to the horizon. There are no road signs, no landmarks, and – suppose it's
-      1950, or your electronics have failed – no GPS. And yet with three tools, a navigator can mark an
-      <em>X</em> on the chart that lands within a mile or two of the truth: a <strong>sextant</strong>, an
-      accurate <strong>clock</strong>, and a thin book of tables called an <strong>almanac</strong>.
-    </p>
-    <p>
-      That's a remarkable claim. A mile or two, from the middle of the Pacific, using a hand-held instrument
-      with no electronics of any kind – just two small mirrors on a brass frame. In this article we'll build
-      up, piece by piece, an intuition for how this works. We'll start with a single star, discover why
-      measuring one angle tells you something surprisingly precise about where you are, and end by plotting a
-      full position fix the way navigators still practice it today. Along the way, every diagram is
-      interactive – <em>drag things, move sliders, and break the instrument to see what happens</em>.
+      Imagine that you are standing at the center of a transparent Earth looking outward at the stars. If you
+      pointed a laser at a star, your ray would draw a straight line that passes through the surface of the
+      Earth at a single point. That point is called the star’s <strong>ground position</strong>, or
+      <strong>GP</strong> for short.
     </p>
 
-
-    <div class="divider pixel-rule"></div>
-
-    <h2 id="signpost"><span class="sec-no">01</span>A star as a signpost</h2>
-
-    <p>
-      Every celestial body – the sun, the moon, a planet, a star – is at any instant directly above
-      <em>exactly one point</em> on Earth's surface. Stand at that spot and the body would sit at your zenith,
-      the point straight overhead. Navigators call this spot the body's <strong>geographical position</strong>,
-      or GP. As the Earth turns, the GP races westward along the surface, but at any frozen moment it is a
-      single, knowable point. Slide the clock below and the planet turns: new ground slides beneath each
-      star, and each GP races west along its own parallel. Drag the globe to look from any other angle –
-      the stars ride along, each one staying glued above its point:
-    </p>
-
-    <figure class="demo" id="demo-gp">
+    <figure class="demo" id="demo-center">
       <div class="demo-panel">
         <canvas class="grab"></canvas>
       </div>
-      <div class="demo-controls"></div>
-      <figcaption>Four stars, four points. Each star's ray through the Earth's center pierces the
-        surface exactly once, and standing on that point puts that star straight overhead. The clock turns
-        the planet beneath the stars; dragging turns the whole scene at once. Notice where the North
-        Star's point sits – and that the clock never moves it. Star distances are not to
-        scale.</figcaption>
+      <figcaption><span class="fig-title">A star’s ground position on the Earth</span> If you draw a line between the center of the Earth and a star, it will intersect the surface of
+        the Earth at one point. That point is called the star’s ground position. Drag the star to move it.</figcaption>
     </figure>
 
     <p>
-      Start with the trivial case, because it anchors everything that follows. Suppose you look straight up
-      and find a star sitting exactly at your zenith – an altitude of <span class="num">90°</span> above
-      every horizon. Then you are standing at its GP at that moment, and if you can find out where that GP
-      is, you have your position with no further geometry at all. Nobody is ever this lucky. But every sight
-      you will ever take is just this case, tilted.
-    </p>
-    <p>
-      Here is the central idea of celestial navigation, and it's worth sitting with: <strong>the angle between
-      the horizon and a star tells you how far you are from that star's GP.</strong> Stars are so far away that
-      their light arrives in effectively parallel rays everywhere on Earth. Because the Earth is a sphere, an
-      observer standing at the GP sees the star straight up, at <span class="num">90°</span> above the horizon,
-      while an observer a quarter of the world away sees it right on the horizon, at
-      <span class="num">0°</span>. In between, the angle falls off in perfect proportion to the distance
-      traveled. Try it below. The left side is what you experience on deck: a star hanging some angle
-      above your horizon – its <strong>altitude</strong>. The right side is the same moment seen from
-      outside the Earth. Drag the star up and down on the left, or sail the observer around the planet on
-      the right – they are two views of one fact:
+      Now let’s imagine that you traveled up that laser beam’s path to the star’s ground position on the
+      Earth’s surface. Where would you expect the star to be found? You would find it directly overhead. This
+      means that if you planted a flagpole at that spot, it would point right at the star.
     </p>
 
-    <figure class="demo" id="demo-altitude">
-      <div class="demo-panel">
-        <canvas></canvas>
-        <div class="demo-controls"></div>
-      </div>
-      <figcaption>Two views, one moment. Vega's rays in both panes stay parallel; the altitude
-        you measure on deck falls in lockstep with the zenith distance – and so with the arc
-        you have sailed from the GP.</figcaption>
-    </figure>
-
+    <aside class="gloss"><span class="gloss-term">Altitude</span>The angle from the horizon up to a star: 0° on the horizon, 90° straight overhead.</aside>
     <p>
-      Notice the two marked angles. The star's altitude <span class="num">h</span>, in blue, is what you
-      measure at your horizon. Its complement <span class="num">z = 90° − h</span>, in red at the Earth's
-      center, is called the <em>zenith distance</em> – and it is exactly the angle swept along the Earth's
-      surface from your position back to the GP. Angles on the sky translate directly into distances on the
-      globe.
-    </p>
-    <p>
-      This translation is so useful that our unit of distance at sea is built on it. One
-      <strong>nautical mile</strong> was defined as one arcminute – one sixtieth of a degree – of arc along a
-      meridian of the Earth. So the conversion couldn't be simpler:
-    </p>
-    <p class="aside">
-      Measure a star at <span class="num">64°</span> instead of <span class="num">65°</span> and you are
-      exactly <span class="num">60</span> nautical miles farther from its GP. Measure to the nearest
-      arcminute – which a sextant can do – and you know your distance from a known point on Earth to the
-      nearest <em>mile</em>. This single fact is the engine behind everything that follows.
+      You can describe this star’s position in the sky with an angle. If looking level out at the horizon is
+      0°, then the flagpole is at a right angle to the horizon and points at 90°. This angle from the horizon
+      to the direction of the star is called a star’s <strong>altitude</strong>.
     </p>
 
-    <h2 id="circle"><span class="sec-no">02</span>A circle on the globe</h2>
-
-    <p>
-      So one measured angle gives you one distance: say, <span class="num">1,860</span> nautical miles from the
-      GP of the star Vega. Where does that put you? Not at a point – at a <em>circle</em>. Every point on
-      Earth lying that same distance from the GP sees Vega at the same altitude, so your single sight places
-      you somewhere on a ring drawn around the GP, called a <strong>circle of position</strong>.
-    </p>
-    <p>
-      Drag the globe below to spin it, and change the measured altitude to see how the circle responds. The
-      higher the star appears, the closer you must be to the point beneath it, and the tighter the circle
-      shrinks:
-    </p>
-
-    <figure class="demo demo--night" id="demo-circle">
+    <figure class="demo" id="demo-sightline">
       <div class="demo-panel">
         <canvas class="grab"></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption>One measured altitude puts you somewhere on a circle centered on the star's geographical
-        position. Drag to rotate the globe.</figcaption>
+      <figcaption><span class="fig-title">The altitude of a star</span> The angle between the horizon and the star is called the star’s altitude. When you are at the
+        ground position of a star, it will be directly above you at 90°. Drag your line of sight up from the
+        horizon until it finds the star.</figcaption>
     </figure>
 
-    <p>
-      These circles are enormous. A star at <span class="num">45°</span> altitude draws a circle
-      <span class="num">2,700</span> nautical miles in radius – a ring that might touch three continents. That
-      sounds hopelessly vague, but remember the precision: you know you're on that particular ring to within a
-      mile or so of its edge. The circle is huge, but it is razor thin. We will need a way to decide <em>where on the circle</em> we
-      sit – but before tackling the general problem, there is one special star that hands out an answer
-      with no further work at all.
-    </p>
-
-    <h2 id="latitude"><span class="sec-no">03</span>The easy half: latitude</h2>
+    <h2 id="altitude-distance"><span class="sec-no">2.0</span><span class="sec-title">Finding your position by measuring a star’s altitude</span></h2>
 
     <p>
-      Every one of those circles comes stamped with a time, because the Earth spins and every GP sweeps
-      westward with the sky – every GP but one. A star hanging exactly over the North Pole would have its
-      GP nailed to the pole itself, the one point the spin cannot move. Its circles of position would be
-      pinned in place too – and circles drawn around the pole already have a name. They are the
-      <strong>parallels of latitude</strong>.
+      How does this fact help us use the stars to find out where on Earth we’re located? One way to find your
+      location would be to find a star that’s directly above you (90°), reference that star’s ground
+      position in a book, and say that you are at the same location as the star’s known ground position.
     </p>
-    <p>
-      The real sky comes remarkably close to providing that star. <strong>Polaris</strong> sits within a
-      degree of the celestial pole, and the geometry collapses into something almost too clean:
-      <em>the altitude of Polaris is your latitude</em>. Measure it at <span class="num">41°</span> and you
-      are on the 41st parallel. No clock, no tables, no arithmetic:
-    </p>
-
-    <figure class="demo" id="demo-polaris">
-      <div class="demo-panel">
-        <canvas></canvas>
-        <div class="demo-controls"></div>
-      </div>
-      <figcaption>Two views of one latitude. On deck the horizon feels fixed and Polaris rides up the sky;
-        from outside, the sight line to Polaris never moves – it stays parallel to the axis – and it is
-        your <em>horizon</em> that tilts underneath it. Either way, altitude equals latitude. The star is
-        drawn over <em>you</em>, not over the pole: at infinity those two lines are the same line, because
-        they are parallel.</figcaption>
-    </figure>
 
     <p>
-      This is why latitude was the solved half of navigation for centuries before the other half: a sailor
-      could hold a parallel across an entire ocean with instruments a blacksmith could make, and Columbus
-      did. (Fine print: Polaris actually circles the pole at a radius of about <span class="num">40′</span>,
-      so navigators apply a small tabulated correction – and the southern hemisphere has no bright pole
-      star, so southern navigators lean on other bodies. Neither detail disturbs the idea.)
+      But what if you don’t happen to be standing right on the ground position of a star? You’re still in
+      luck, so long as you can precisely measure the star’s altitude. Let’s explore how a star’s altitude
+      relates to how close you are to its ground position.
     </p>
 
-    <h2 id="crossing"><span class="sec-no">04</span>Crossing circles</h2>
+    <aside class="gloss"><span class="gloss-term">Your horizon</span>Always level under your feet, so it tilts with you as you travel over the curved Earth.</aside>
+    <p>
+      Imagine once again that you’re standing on a star’s ground position and pointing straight up. This
+      means that the star is 90° overhead. But what happens as you move away from the ground position? From
+      your perspective, the horizon will always remain as a reference at 0° as you move, and you’ll keep
+      pointing directly overhead at 90°. But because the Earth is round, the direction that you’re pointing in
+      the sky will shift as your position changes. From an outside view, the direction you’re pointing
+      overhead when at the North Pole will be completely different to the direction at the equator.
+    </p>
 
     <p>
-      So a Polaris sight puts you on a parallel. For every other star the circle is not so convenient,
-      and we still need a way to decide <em>where on the circle</em> we sit. The fix – in both senses –
-      is to measure a second star. Two circles of position generally cross at two points, mirror images
-      of each other across the line joining the two GPs, and you must be standing on both circles at
-      once – so you are at one of the two crossings. Try adjusting both altitudes below and watch the
-      two candidate positions move:
+      As you move on the round globe, it will seem as if the positions of the stars are moving. Let’s return to
+      our original example. You start on the ground position of a star and then move away. As you do so, the
+      star’s altitude will fall a little closer to the horizon. The star will continue to move lower in the sky
+      until it disappears beyond the horizon.
     </p>
 
-    <figure class="demo demo--night" id="demo-twostar">
+    <figure class="demo" id="demo-walk">
       <div class="demo-panel">
         <canvas class="grab"></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption>Two circles, two crossings. Dead reckoning – a running guess from heading and speed –
-        lands you near one of them; the other is usually an ocean away.</figcaption>
+      <figcaption><span class="fig-title">A star’s altitude changes as you move</span> Move away from a star’s ground position. Because the angle of the horizon shifts as you move
+        around the globe, the angle between the star and the horizon changes.</figcaption>
     </figure>
 
     <p>
-      Which of the two crossings is yours? In practice this is never a real dilemma. The two intersections
-      are typically separated by thousands of miles, and a navigator always carries a rough running estimate
-      of the ship's position – the <em>dead reckoning</em> position, kept up by logging speed and heading
-      since the last known fix. If your dead reckoning says you're somewhere off the coast of Chile, you can
-      safely discard the crossing near Japan. A third star, when available, settles it outright – and does something more
-      valuable besides, as we'll see when we plot a real fix: it tells you how good your own measurements
-      were.
+      It’s important to note that the altitude of the star is directly related to how far you’ve moved away
+      from its ground position. You’ll notice that the star is directly overhead (90°) at the ground
+      position, and then it falls lower in the sky as you move away. Travel 30° from the ground position, and
+      the star’s altitude will be 60°. Travel 70°, and the altitude will now be 20°. This continues until
+      you’ve traveled 90° away from your starting position, where the star will be found right on the
+      horizon (0°).
     </p>
-    <p>
-      And that, conceptually, is the entire system. <strong>Measure the altitude of two or three celestial
-      bodies, look up where each body's GP was at the moment of measurement, draw the circles, and find where
-      they cross.</strong> Everything that follows – the clock, the almanac, the mirrors, the corrections –
-      exists to carry out these steps precisely from the deck of a moving ship.
-    </p>
-
-    <h2 id="clock"><span class="sec-no">05</span>The clockwork Earth</h2>
 
     <p>
-      To draw those circles you must know where each GP is, and it is tempting to think a compass should
-      finish the job without any of that: you are on a circle, a compass tells you directions – can't the
-      direction you face pick out your spot?
-    </p>
-    <p>
-      Look closely at what the compass would have to detect. From <em>every</em> point on your parallel –
-      from every point in the hemisphere – Polaris bears exactly north. Slide along the circle and nothing
-      about the view changes: not the star's height, not its direction, nothing. And this is no accident of
-      Polaris. The Earth's spin makes the poles and the equator physically special, which is exactly why
-      latitude is measurable at all. But no fact of local physics distinguishes one meridian from another.
-      Longitude's zero is not a place nature marked; it is a committee's decision about a courtyard in
-      Greenwich.
-    </p>
-    <p>
-      Here is the same trap sprung precisely: stand at latitude <span class="num">40°</span>, longitude
-      <span class="num">40°&nbsp;W</span>, and the sky above you is <em>exactly</em> the sky above
-      <span class="num">60°&nbsp;W</span> – eighty minutes later. Those two situations are the same
-      orientation of Earth under the sky. Without a clock set to Greenwich, no local measurement can tell
-      them apart. Longitude is not a geometry problem waiting for a cleverer instrument. It is a
-      <strong>clock problem</strong>, and it always was:
+      This observation is the heart of celestial navigation. If you measure the altitude of a star, it tells
+      you how many degrees from the star’s GP you have traveled. Your distance from the GP is given by a simple
+      rule:
     </p>
 
-    <figure class="demo" id="demo-samesky">
-      <div class="demo-panel">
-        <canvas></canvas>
-        <div class="demo-controls"></div>
-      </div>
-      <figcaption>Two places, eighty minutes apart, one sky. The view from the deck never changes; only a
-        Greenwich clock can tell you which meridian you are standing on.</figcaption>
-    </figure>
+    <div class="equation"><span class="eq-body"><span>distance from the GP =</span> <span>90° − altitude</span></span></div>
 
-    <p class="aside">
-      A sharper reader might object: a star away from the pole <em>does</em> change its compass bearing as
-      you move along its circle, so altitude plus bearing should fix you. In principle, yes. In practice a
-      compass at sea is good to a degree or two, and a degree of bearing error is tens of miles of position –
-      while the sextant's arcminutes against the horizon are hundreds of times sharper. Navigators run the
-      logic the other way around: they use the stars' computed bearings to check the compass.
-    </p>
-    <p>
-      A star's GP has a latitude and a longitude, and the two could hardly be more different in character.
-      The latitude of the GP – called the body's <strong>declination</strong> – is set by the tilt of the
-      Earth and the geometry of the sky, and it drifts only slowly: the sun's declination moves between
-      <span class="num">23.4°&nbsp;N</span> in June and <span class="num">23.4°&nbsp;S</span> in December,
-      and a star's is nearly constant for years. The longitude of the GP, though, is a different beast
-      entirely, because the Earth spins underneath the sky at <span class="num">15°</span> per hour. The GP
-      of every body in the heavens sweeps westward around the planet once a day.
-    </p>
-    <p>
-      This means the almanac can only tell you where a star's GP is <em>at a given instant of a shared,
-      universal time</em>. To use it, you must know that time – Greenwich time – at the moment of your sight.
-      And the required precision is brutal. Slide the clock error below and watch what it does to a position:
-    </p>
-
-    <figure class="demo demo--night" id="demo-clock">
-      <div class="demo-panel">
-        <canvas></canvas>
-        <div class="demo-controls"></div>
-      </div>
-      <figcaption>The Earth seen from above the North Pole. The sun's geographical position circles the
-        planet once per day – so every second of clock error smears your longitude westward or eastward.</figcaption>
-    </figure>
+    <h3 class="sub" id="polaris-example"><span class="sec-no">2.1</span><span class="sec-title">An example: Polaris</span></h3>
 
     <p>
-      Four seconds of clock error shifts every GP by one arcminute of longitude – up to a mile of position
-      error, in exchange for less time than it takes to read this sentence. This is why longitude, unlike
-      latitude, stumped humanity for centuries: finding it <em>is</em> the problem of carrying true time to
-      sea, and pendulum clocks were helpless on a rolling ship. It took John Harrison decades of obsessive
-      work to build a sea-going watch – his famous H4 – that lost mere seconds over an Atlantic crossing,
-      claiming the British Parliament's Longitude Prize in the 1760s. Every quartz wristwatch on Earth now
-      outperforms it, which is worth pausing on: the cheapest watch you own is the solution to what was once
-      the most celebrated technical problem in the world.
+      Let’s see how this works using the North Star (Polaris). The ground position of Polaris sits almost
+      exactly at the location of the North Pole. If you stand at the North Pole, you’ll find Polaris directly
+      overhead. As you travel away, you’ll notice that the star moves lower in the sky. This continues until
+      you reach the equator, where the star will be on the horizon. By measuring the altitude of Polaris, you
+      are able to know how far you are from the equator. This is called your “latitude.”
     </p>
 
-    <h2 id="almanac"><span class="sec-no">06</span>The almanac</h2>
-
-    <p>
-      The clock, then, is half of knowing where a GP is. The other half is the almanac – and its internal
-      design is a small masterpiece of information economy. A GP is two numbers. Its latitude is called the
-      body's <strong>declination</strong>, and for a star it is essentially a constant of nature, printed
-      once and good for months. Its longitude – tabulated as the <strong>Greenwich hour angle</strong>, or
-      GHA, measured westward from Greenwich – is the number that races. But the stars race
-      <em>together</em>, as a rigid wheel turning once a day. So the almanac tabulates the position of the
-      whole wheel with a single fast-moving number – the GHA of a reference point on the sky called
-      <strong>Aries</strong> – and lists each star as a fixed offset from it, called its SHA:
-    </p>
-
-    <figure class="demo" id="demo-almanac">
-      <div class="demo-panel">
-        <canvas></canvas>
-        <div class="demo-controls"></div>
-      </div>
-      <figcaption>The sky as a rigid wheel, seen from above the pole. One number moves with the clock – the
-        GHA of Aries – and every star rides at a fixed, catalogued offset from it. Slide the time and watch
-        one addition locate every star in the sky.</figcaption>
-    </figure>
-
-    <p>
-      One time-stamped lookup, one addition, one constant read off a catalog line: that is the entire act
-      of knowing where a star's GP is, good to a tenth of an arcminute. The sun, moon, and planets wander
-      against the star wheel, so each gets its own hourly columns – the moon, fastest and fussiest, once
-      served as a crude clock in its own right for navigators who could not afford a chronometer.
-    </p>
-
-    <h2 id="mirror"><span class="sec-no">07</span>The mirror trick</h2>
-
-    <p>
-      So much for knowing where a GP is – the almanac and the chronometer carry that half of the problem.
-      The other half of every sight is the angle itself. We need to measure the angle between a star and
-      the horizon to a sixtieth of a degree – from a deck
-      that is rolling, pitching, and heaving beneath our feet. A protractor and a plumb line are useless
-      here; any reference that depends on holding the instrument steady gets scrambled by the waves.
-    </p>
-    <p>
-      The sextant's insight is to <em>never measure against the instrument itself</em>. Instead, it uses a
-      pair of mirrors to bring the star's image down and lay it directly on top of the horizon, so you are
-      only ever comparing two things you can see – and when the ship lurches, both images lurch together,
-      and their alignment survives. The measurement lives in the light, not in the steadiness of your hand.
-    </p>
-    <p>
-      The scheme rests on one lovely geometric fact about mirrors. When light reflects, the angle of
-      incidence equals the angle of reflection – so if you rotate a mirror by some angle, the incoming ray's
-      incidence angle grows by that much <em>and so does the outgoing ray's reflection angle</em>. The
-      reflected beam therefore swings by <strong>twice</strong> the mirror's rotation. Drag the mirror below
-      and watch the two angles:
-    </p>
-
-    <figure class="demo" id="demo-mirror">
+    <figure class="demo" id="demo-northstar">
       <div class="demo-panel">
         <canvas class="grab"></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption>Rotate the mirror and the reflected beam turns exactly twice as fast – the doubling that
-        gives the sextant both its precision and its name.</figcaption>
+      <figcaption><span class="fig-title">An example with Polaris</span> The ground position of Polaris is
+        the North Pole. As you move around the globe, the star’s altitude always matches your
+        latitude.</figcaption>
+    </figure>
+
+    <h2 id="position-ring"><span class="sec-no">3.0</span><span class="sec-title">Rings of position</span></h2>
+
+    <p>
+      You now know that measuring the altitude of a star tells you how far away you are from the star’s ground
+      position. But it doesn’t tell you which direction. Suppose you measure the altitude of a star at 60°.
+      That puts you 30° from its ground position (<span class="num">90° − 60°</span>). In two dimensions,
+      there are two such places: 30° to the left of the GP or 30° to the right.
+    </p>
+
+    <aside class="gloss"><span class="gloss-term">Ring of position</span>Every place that sees a star at one altitude. Its center is the GP; its radius is 90° − altitude.</aside>
+    <p>
+      In three dimensions, there are even more positions where you can see the star at the same altitude. You
+      can move 30° east or west of the star’s ground position, but you can also move 30° north, 30° south,
+      30° southeast and so on. It turns out that there’s a full ring of positions where the star will appear
+      to be at the same altitude above the horizon.
+    </p>
+
+    <p>
+      To mark this ring, measure 30° from the star’s ground position, your distance from the GP, and trace a
+      circle of that radius around the point.
+    </p>
+
+    <figure class="demo" id="demo-circle" data-initial-preset="sixty">
+      <div class="demo-panel">
+        <canvas class="grab"></canvas>
+        <div class="demo-controls"></div>
+      </div>
+      <figcaption><span class="fig-title">The circle of equal altitude</span> Every point on the ring sees the star at the same altitude. Raise the altitude and the ring
+        shrinks toward the ground position. Drag yourself around the ring: the star stays at the same height,
+        only the direction you look changes.</figcaption>
+    </figure>
+
+    <h2 id="crossing-rings"><span class="sec-no">4.0</span><span class="sec-title">Two sights, two rings, two locations</span></h2>
+
+    <p>
+      If measuring the altitude of a star gives a full ring of valid positions, how are we going to use the
+      stars to find our position on the globe? There’s a trick! We can measure the altitude of more than one
+      star, each of which gives an independent ring of positions.
+    </p>
+
+    <p>Let’s give this a try with two stars:</p>
+
+    <ul class="steps">
+      <li>Measure the altitude of star one. It is 60° above the horizon.</li>
+      <li>Mark the ring of positions given by star one by measuring 30° from the star’s GP and trace a
+        circle.</li>
+      <li>Measure the altitude of star two. It is 40° above the horizon.</li>
+      <li>Trace a circle with a radius of 50° around star two’s ground position.</li>
+    </ul>
+
+    <figure class="demo" id="demo-twostar" data-initial-preset="sixty-forty">
+      <div class="demo-panel">
+        <canvas class="grab"></canvas>
+        <div class="demo-controls"></div>
+      </div>
+      <figcaption><span class="fig-title">A fix from crossing circles</span> Two rings cross at two points. Reveal a third sight and only one of them survives.</figcaption>
     </figure>
 
     <p>
-      Now let's assemble the instrument. A sextant has two mirrors. The <strong>index mirror</strong> sits on
-      a pivoting arm and catches light from the sky. It bounces that light down to the
-      <strong>horizon mirror</strong>, which is only half-silvered: through its clear half you see the real
-      horizon straight ahead, and in its mirrored half you see whatever the index mirror is aimed at. Swing
-      the arm until the star's reflected image sits exactly on the horizon, and the arm's position tells you
-      the star's altitude.
+      You’ll notice that these circles intersect at exactly two points. These points represent the only
+      locations on the globe where you could see these two stars at these altitudes. This means that measuring
+      the position of two stars allows you to find the two possible positions on the globe where you are
+      located.
     </p>
+
     <p>
-      Drag the index arm below (or use the slider) and follow the beam of sunlight through both mirrors and
-      into the telescope:
+      These two locations are often quite far from one another. In most cases, you can simply rule out one of
+      the two possibilities because you have a rough idea of your position. Or, you can measure the altitude of
+      a third star and draw a ring of position. These three rings will intersect at only one point, and that
+      represents your location.
+    </p>
+
+    <h2 id="measuring-altitude"><span class="sec-no">5.0</span><span class="sec-title">The sextant</span></h2>
+
+    <p>
+      We now understand the importance of measuring a star’s altitude above the horizon as it will determine
+      our location. We need to do this very precisely and accurately, oftentimes from the deck of a rocking
+      boat. If your measurement of a star’s altitude is off by only a half degree, your position can be off by
+      about 30 miles!
+    </p>
+
+    <p>
+      This is where the sextant comes in handy. Here’s how it works and how to use it.
+    </p>
+
+    <aside class="gloss"><span class="gloss-term">Sextant</span>A handheld instrument that measures the angle between a star and the horizon with two mirrors and a small telescope.</aside>
+    <p>
+      A sextant lets you see the star and the horizon at the same time. Look through its small telescope and
+      you see the horizon straight ahead. Beside it, a pair of mirrors shows you the star. Swing the sextant’s
+      arm until the star appears to sit right on the horizon, then read the angle off the scale. That angle is
+      the star’s altitude.
     </p>
 
     <figure class="demo" id="demo-sextant">
@@ -389,264 +250,277 @@
         <canvas class="grab"></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption>Swing the index arm until the doubly-reflected ray runs straight into the telescope,
-        alongside the direct view of the horizon. Try changing the sun's altitude, too.</figcaption>
+      <figcaption><span class="fig-title">The light path through a sextant</span> Follow the star’s light through both mirrors, then swing the arm until the star sits on the
+        horizon.</figcaption>
     </figure>
 
+    <aside class="gloss"><span class="gloss-term">Arcminute</span>One sixtieth of a degree. On Earth’s surface it spans about one nautical mile.</aside>
     <p>
-      Look closely at the numbers engraved along the arc. Thanks to the doubling rule, rotating the arm by
-      <span class="num">30°</span> swings the measured line of sight by <span class="num">60°</span> – so the
-      arc's physical <span class="num">60°</span> of travel is engraved with labels running from
-      <span class="num">0°</span> to <span class="num">120°</span>. An arc of one sixth of a circle – a
-      <em>sextans</em>, in Latin – measures a third of the sky, and the instrument is named for that arc. The
-      doubling helps precision, too: a tiny error in reading the arm's position produces only half that error
-      in the measured angle.
+      Because the star and the horizon are in the same view, they rock together with the boat, and the angle
+      between them stays steady. With practice, a sight is good to about one arcminute, or about one nautical
+      mile. At the moment the star touches the horizon, note the exact time. We’ll see why that matters soon.
     </p>
 
-    <h2 id="scope"><span class="sec-no">08</span>Through the telescope</h2>
-
-    <p>
-      Here is what the navigator actually sees: a small telescope aimed at the horizon mirror, showing the
-      true horizon and the reflected sky fused in one view. The coarse position of the arm brings the sun into
-      the field; then a fine <strong>micrometer drum</strong> – one slow turn per single degree – eases the
-      image down until it just grazes the horizon line. Try taking a sight yourself:
-    </p>
-
-    <figure class="demo demo--night" id="demo-scope">
+    <figure class="demo" id="demo-scope">
       <div class="demo-panel">
         <canvas></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption>Bring the sun's lower edge down until it just kisses the horizon, then read the angle off
-        the drum. Dark shade glasses (simulated here) make staring at the sun safe.</figcaption>
+      <figcaption><span class="fig-title">The view through the telescope</span> The view through the telescope. Bring the star down to the horizon, then record the reading and
+        the time.</figcaption>
     </figure>
 
-    <p>
-      Two subtleties are visible in the demo. First, navigators don't center the sun on the horizon – they
-      rest its <strong>lower limb</strong> (its bottom edge) on the line, because an edge can be judged far
-      more precisely than a middle. The sun's radius, about <span class="num">16′</span>, is added back later
-      as a standard correction. Second, try the <em>rock the sextant</em> option: tilting the instrument
-      slightly makes the sun swing like a pendulum through the view. The measurement is only honest when the
-      sextant is exactly vertical – which is when the sun hangs at the very bottom of that swing. Rocking and
-      catching the low point is how a navigator finds true vertical without any level or plumb line, on a
-      deck that won't hold still.
-    </p>
-
-    <h2 id="corrections"><span class="sec-no">09</span>Honest angles</h2>
+    <h2 id="fundamentals"><span class="sec-no">6.0</span><span class="sec-title">Now you know the fundamentals</span></h2>
 
     <p>
-      The angle on the drum – the <em>sextant altitude</em> – is not yet the true angle our circles-on-a-globe
-      picture needs. Between the star and your eye, several small distortions creep in, each one well
-      understood and each one corrected with a few seconds of arithmetic. Skipping them would throw the fix
-      off by dozens of miles, so let's look at the two most interesting ones.
-    </p>
-    <p>
-      First: you don't stand at sea level, and the Earth is round. From the height of a deck, the visible
-      horizon is not the ideal horizontal plane through your eye – it lies slightly <em>below</em> it, because
-      the ocean curves away from you. Every altitude you measure against that too-low horizon comes out a
-      little too large. The effect is called <strong>dip</strong>, and it grows with the square root of your
-      height of eye:
+      This is all that you need to conceptually understand the entire system. Measure the altitude of two or
+      three stars with a sextant, look up where each star’s GP was at the moment of measurement, draw the
+      circles, and find where the circles cross.
     </p>
 
-    <figure class="demo" id="demo-dip">
+    <p>
+      The next sections will go into some of the additional pieces of celestial navigation that are needed in
+      practice.
+    </p>
+
+    <h2 class="part-title"><span class="sec-no">Part two</span><span class="sec-title">The full picture</span></h2>
+
+    <h2 id="moving-ground-positions"><span class="sec-no">7.0</span><span class="sec-title">The stars move!</span></h2>
+
+    <p>
+      All of our previous explanations made the simplifying assumption that a star’s ground position is one
+      fixed location on Earth. However, this is not the case. The locations of the stars are fixed in the sky,
+      but the Earth rotates. This means that the ground position of a star will move to the west. For the
+      longitude of a star at the equator, the ground position moves by about one mile every four seconds.
+      Because the Earth rotates on an axis, a star’s latitude remains constant.
+    </p>
+
+    <figure class="demo" id="demo-motion">
       <div class="demo-panel">
         <canvas></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption>The curvature here is wildly exaggerated so the geometry is visible – but the numbers in
-        the readout are the true values a navigator would use.</figcaption>
+      <figcaption><span class="fig-title">The ground position moves west</span> As the Earth turns, the star’s ground position slides west along a line of constant
+        latitude.</figcaption>
     </figure>
 
     <p>
-      Second: starlight doesn't travel to your eye in a straight line. Air gets denser toward the surface,
-      and the increasing density bends light gently downward, like a wave slowing as it reaches a beach. Your
-      eye traces the ray back along its <em>final</em> direction, so every celestial body appears slightly
-      higher than it truly is. Overhead the effect vanishes; near the horizon, where light grazes through
-      hundreds of miles of thick air, it swells to more than half a degree:
+      In practice, this means that taking a sextant sight and drawing a circle of position requires that you
+      know the exact time that you took that sight, and that you have the ability to look up the ground
+      position of that star at that specific time.
     </p>
 
-    <figure class="demo demo--night" id="demo-refraction">
+    <figure class="demo" id="demo-clock">
       <div class="demo-panel">
         <canvas></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption>Atmospheric refraction, exaggerated for visibility. The dashed line is where your eye
-        insists the star is; the curved path is where its light actually came from.</figcaption>
+      <figcaption><span class="fig-title">Time sets longitude</span> A clock error moves every ground position you look up. Four seconds of error is about one
+        mile.</figcaption>
     </figure>
 
-    <p class="aside">
-      At the horizon the bending reaches about <span class="num">34′</span> – slightly more than the sun's
-      entire <span class="num">32′</span> diameter. When you watch the sun touch the ocean at sunset, the
-      geometric sun has already set completely. You are watching a mirage of it, lifted whole above the
-      horizon by the atmosphere.
-    </p>
     <p>
-      The full ritual, drilled into every student navigator, runs: start with the sextant reading, correct
-      for any small misalignment of the mirrors (the <em>index error</em>, checked before each session by
-      sighting the horizon against itself), subtract dip, subtract refraction, add the sun's semidiameter if
-      you sighted its lower limb. A minute of arithmetic against printed tables, and the result – the
-      <em>observed altitude</em> – is an honest geometric angle, usually trusted to a couple tenths of an
-      arcminute. The instrument's work is done. Combined with the chronometer and the almanac, every
-      ingredient of the two-circle fix is now an honest number. All that remains is a special case so
-      convenient that ships lived on it, and the craft of putting the answer on paper.
+      As an aside, this is why the development of celestial navigation relied upon accurate timekeeping. I’d
+      highly recommend reading the book
+      “<a href="https://en.wikipedia.org/wiki/Longitude_(book)">Longitude</a>.” It tells the story of the
+      Longitude Prize and John Harrison’s development of a clock that could keep accurate time while at sea.
     </p>
 
-
-    <h2 id="noon"><span class="sec-no">10</span>The noon sight</h2>
+    <h2 id="almanac"><span class="sec-no">8.0</span><span class="sec-title">How do you look up stellar ground positions?</span></h2>
 
     <p>
-      Now for the oldest and most beloved observation in the navigator's repertoire – the
-      <strong>noon sight</strong>, a special case so convenient that for centuries many ships used little
-      else. It delivers both latitude and
-      longitude from a single elegant ritual, and it needs almost no mathematics at all.
-    </p>
-    <p>
-      Through a morning at sea, the sun climbs; at the exact moment it crosses your meridian – local apparent
-      noon – it peaks and begins to fall. That peak encodes both coordinates at once. <em>How high</em> the
-      sun got tells you your latitude: at culmination the sun, your position, and the poles all lie on one
-      great circle, so the geometry collapses into a single subtraction. <em>When</em> (in Greenwich time) the
-      peak happened tells you your longitude: if your noon comes three hours after noon at Greenwich, you are
-      <span class="num">45°</span> west of Greenwich. Trace the sun's arc through the day and find its peak:
+      I’ve simplified the idea that we can take a sight and then look up that star’s ground position in a
+      magical book. Consider for a moment what this book would need to look like. It would need to list ground
+      positions for hundreds of stars every hour for each day of the year. This would add up to a table with
+      something like a million rows and thousands of printed pages. That would clearly be infeasible. We need a
+      more efficient way to go about representing this information.
     </p>
 
-    <figure class="demo" id="demo-noon">
+    <p>
+      It turns out that all the stars move at the same rate. The stars are fixed in the sky while the Earth
+      rotates. If the ground position of one star moves west by 10°, the ground positions of all the other
+      stars will move by 10° to the west as well. This allows us to simply list the position of a single
+      reference star hour by hour in a book, and then have a table with a row for each star in the sky that
+      lists a constant offset between it and the reference.
+    </p>
+
+    <aside class="gloss"><span class="gloss-term">Aries</span>The reference point in the sky the almanac lists hour by hour. Each star’s offset from it barely changes.</aside>
+    <p>
+      For reasons that we don’t need to detail, astronomers and navigators settled on using a point in the sky called
+      Aries as this constant reference. The Nautical Almanac will list the position of Aries each hour of the day
+      across a year, and have a table of offsets for something like 60 stars of interest. You mark the time of
+      day for your sight, look up the position of Aries at that time, and then add the offset for your star of
+      interest to find the longitude of your star’s ground position. Latitude is simply listed in the book as
+      it varies little over the course of a day.
+    </p>
+
+    <figure class="demo" id="demo-almanac">
       <div class="demo-panel">
         <canvas></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption>Drag along the curve to sample the sun's altitude through the day, find the peak, then
-        reveal the solution to see how the ship's position falls out of it.</figcaption>
+      <figcaption><span class="fig-title">One Aries column, plus one offset per star</span> One changing value for Aries, plus one nearly fixed offset per star. Move the time and only the
+        Aries value changes.</figcaption>
     </figure>
 
+    <h2 id="together"><span class="sec-no">9.0</span><span class="sec-title">Putting it all together</span></h2>
+
+    <p class="draft-note">This section is still being written.</p>
+
+    <h2 id="worked-example"><span class="sec-no">10.0</span><span class="sec-title">A worked example</span></h2>
+
+    <aside class="gloss"><span class="gloss-term">Nautical Almanac</span>A yearly book of positions for the Sun, Moon, planets, Aries and 57 navigation stars.</aside>
     <p>
-      Why does the height of the peak hand you your latitude? Because at local noon the whole problem
-      flattens into a single plane. The sun stands directly over latitude <span class="num">δ</span> – its
-      <em>declination</em>, printed in the almanac for every day of the year. Your measurement says the
-      sun misses your zenith by <span class="num">z = 90° − H</span>. Those two angles stack at the
-      Earth's center, and your latitude simply reads off the top:
-      <span class="num">φ = z + δ</span> – when the sun is south of you, as it is for most of the year
-      in the mid-latitudes. Move yourself and the season below and watch the three angles stack:
+      Let’s work through an example. As a reminder, our goal here is to draw a circle of position based on
+      taking a star sight. To do this, we need to know the ground position of a star of interest (marks the
+      center of the circle of position) and the altitude of the star (the radius of the circle).
     </p>
 
-    <figure class="demo" id="demo-noongeom">
+    <ol class="steps">
+      <li>Use the sextant to measure the angle between the horizon and the star Vega. Mark the time of your
+        measurement. Suppose you measured 35.5° at 5:45:12 am on May 16, 2025.</li>
+      <li>Look up the longitude of Aries in the Nautical Almanac at your date and the hour of measurement. In
+        this case, it is found at <span class="num">309° 10.0′</span> at 5:00 am on May 16th.</li>
+      <li>You need to account for the 45 minutes and 12 seconds of movement since 5:00 am. In the back of the
+        almanac, there is an “Increments and Corrections” table. There, you will find an increment of
+        <span class="num">11° 19.9′</span>.</li>
+      <li>Add this to your original longitude of Aries.
+        <span class="num">309° 10.0′ + 11° 19.9′ = 320° 29.9′</span>. You now know a precise ground position of
+        Aries at the time of your measurement.</li>
+      <li>Aries is our reference point, but we want to know the position of Vega. In the almanac, we see that
+        Vega is <span class="num">80° 32.8′</span> from Aries. We add this offset to the position of Aries to
+        find the longitude of Vega. <span class="num">320° 29.9′ + 80° 32.8′ = 400° 62.7′</span>.</li>
+      <li>The Earth only has 360°, and there are only 60 arcminutes in a degree. If your measurement exceeds 360°,
+        you wrap around to 0°. If your minutes are greater than 60, you add a full degree and start from 0′. In
+        this case, <span class="num">400° 62.7′ − 360° = 40° 62.7′ = 41° 02.7′</span>.</li>
+      <li>You now have the longitude of Vega, the star that you measured with the sextant. You now know that it
+        lies at a longitude of <span class="num">41° 02.7′ W</span> (the almanac measures these angles westward
+        from Greenwich). Its latitude is written in the Nautical Almanac as <span class="num">38° 48.1′</span>. At last, you know the ground position of your star.</li>
+      <li>The last step is to draw a circle of possible locations where Vega would be seen at 35.5° at this
+        time. To do so, set your compass drawing tool to an angle of
+        <span class="num">54.5° (90° − 35.5°)</span>, set its point at the ground position
+        of Vega, and draw a circle. Any point on this line is a valid position.</li>
+    </ol>
+
+    <figure class="demo" id="demo-worked">
       <div class="demo-panel">
         <canvas></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption>The noon sight in cross-section, along your meridian. The blue angle is what you
-        measure; the orange angle comes from the almanac; the stack of the two red-plus-orange angles
-        is your latitude.</figcaption>
+      <figcaption><span class="fig-title">A worked sight, from time to ring</span> Step through the sight. The almanac turns the time into Vega’s ground position, and the
+        altitude sets the radius of the ring around it.</figcaption>
     </figure>
 
-    <p class="aside">
-      One honest wrinkle: the sun is a slightly unpunctual clock. Because Earth's orbit is elliptical and its
-      axis tilted, true solar noon drifts up to about <span class="num">16</span> minutes from clock noon
-      through the year. The almanac tabulates this drift – the <em>equation of time</em> – and the navigator
-      simply adds it in. Ships have crossed oceans for centuries on little more than this one daily
-      observation, a habit so ingrained that "noon position" is still the traditional moment a ship logs its
-      daily run.
-    </p>
-
-    <h2 id="lop"><span class="sec-no">11</span>Lines of position</h2>
+    <h2 id="further"><span class="sec-no">A</span><span class="sec-title">Further reading</span></h2>
 
     <p>
-      Now, the practical finale. Our two-circles picture is geometrically perfect but cartographically
-      absurd: you cannot draw a circle with a <span class="num">2,700</span>-mile radius on a chart of your
-      local waters. The circle is thousands of miles around, but the only part that matters is the few miles
-      of it that pass near your ship – and at that scale, the arc of this vast circle is indistinguishable
-      from a <strong>straight line</strong>.
-    </p>
-    <p>
-      This realization arrived by accident. In 1837, Captain Thomas Sumner, running toward a dangerous Welsh
-      coast in thick weather, worked one sun sight three times using three different guessed latitudes – and
-      noticed his three answers fell on a straight line on the chart. The line, it dawned on him, was a small
-      piece of the circle of position: the ship was <em>somewhere on that line</em>, and helpfully, the line
-      pointed straight at his landfall. The "Sumner line" – today's <strong>line of position</strong> –
-      transformed navigation.
-    </p>
-
-    <figure class="demo" id="demo-lopzoom">
-      <div class="demo-panel">
-        <canvas class="grab"></canvas>
-        <div class="demo-controls"></div>
-      </div>
-      <figcaption>The same circle at two scales. On the globe it is a ring thousands of miles across; in the
-        waters around the ship, that ring is a straight line, perpendicular to the direction of the
-        GP.</figcaption>
-    </figure>
-
-    <p>
-      The modern method, worked out by the French naval officer Marcq de Saint-Hilaire in the 1870s, makes
-      drawing that line almost mechanical. Pick an <strong>assumed position</strong> near your dead-reckoning
-      estimate. Using the almanac, <em>compute</em> the altitude a perfect observer at the assumed position
-      would have measured, and the direction (the <em>azimuth</em>) toward the body's GP. Then compare with
-      what you actually measured. If your sextant read one arcminute <em>higher</em> than the computed value,
-      you are one nautical mile <em>closer</em> to the GP than the assumed position – so slide one mile along
-      the azimuth toward the star, and draw your line of position through that point, perpendicular to the
-      azimuth. Each star pins you down along one direction; stars in different directions pin you completely.
-      Take the three sights below and watch the fix emerge:
-    </p>
-
-    <figure class="demo" id="demo-intercept">
-      <div class="demo-panel">
-        <canvas></canvas>
-        <div class="demo-controls"></div>
-      </div>
-      <figcaption>Each sight yields one line of position. Real measurements carry a little noise, so three
-        lines close into a small triangle – the "cocked hat" – and the ship is inside it.</figcaption>
-    </figure>
-
-    <p>
-      Notice that the three lines never quite meet at a point. Every real sight carries a little error – a
-      few tenths of an arcminute of sextant judgment, a second of timing, a swell lifting the horizon – so
-      three lines of position close into a small triangle that navigators call the <strong>cocked hat</strong>.
-      Its size is an honest, built-in report of the quality of your work: a tight hat means tight sights. A
-      practiced navigator's cocked hat spans a mile or two, and the ship's position goes down at its center. One craft note hides in this geometry: navigators pick
-      stars spread around the horizon – ideally a third of a circle apart – because lines that cross at a
-      glancing angle pin the position sloppily, while near-perpendicular crossings pin it crisply.
-    </p>
-
-
-    <div class="fig-anchor" data-fig="hero-fig"></div>
-    <h2 id="epilogue"><span class="sec-no">12</span>A day's work at sea</h2>
-
-    <p>
-      Put it all together and a navigator's day has an old, steady rhythm. At morning twilight – the brief
-      window when the brightest stars and the horizon are visible together – a round of three or four star
-      sights gives a fix. Through the day, the sun is the only body available, and single sun lines are
-      crossed with the noon sight for latitude. At evening twilight, the stars return, and another full fix
-      closes the day's account. Between fixes, dead reckoning carries the position forward. Every element of
-      it – the parallel rays, the doubling mirrors, the honest corrections, the clock – is exactly what
-      you've now built up an intuition for.
-    </p>
-    <p>
-      It is tempting to file all this under obsolete romance, but the system earns its keep even now.
-      Celestial navigation needs no power, no signal, and no infrastructure that anyone can jam, spoof, or
-      switch off – which is why it remains in the curriculum at naval academies, why merchant officers still
-      certify in it, and why a sextant still rides along as the deep-ocean sailor's backup of last resort.
-      Apollo astronauts carried a space sextant and sighted stars against the Earth's horizon to check their
-      way to the Moon. The stars, it turns out, are a public utility of extraordinary reliability: a
-      constellation of reference beacons, visible from everywhere, running for free, since forever.
-    </p>
-    <p>
-      And there is something quietly wonderful, standing on a small deck in a large ocean, about pointing a
-      160-year-old arrangement of mirrors at a ball of plasma twenty-five light-years away, noting the time,
-      and drawing from it a pencil line on paper that says, with easy confidence: <em>you are here</em>.
-    </p>
-
-
-    <h2 id="further"><span class="sec-no">A</span>Further reading</h2>
-
-    <p>
-      This article's style is an homage to Bartosz Ciechanowski's magnificent interactive essays – his
+      This article’s style is an homage to Bartosz Ciechanowski’s magnificent interactive essays. His
       <a href="https://ciechanow.ski/gps/">GPS</a> piece is the perfect modern companion to this one, solving
-      the same problem with atomic clocks in orbit. For going deeper on the traditional art:
+      the same problem with atomic clocks in orbit. For going deeper on the traditional art,
       <a href="https://thenauticalalmanac.com/">The Nautical Almanac</a> (free online editions) is the book of
-      GPs; <em>The American Practical Navigator</em> ("Bowditch"), maintained by the U.S. government since
-      1802 and <a href="https://msi.nga.mil/Publications/APN">freely available</a>, is the field's bible; and
-      David Barrie's <em>Sextant</em> and Dava Sobel's <em>Longitude</em> tell the human stories – Sumner's
-      desperate landfall and Harrison's forty-year fight for the clock – better than any textbook.
+      GPs, and <em>The American Practical Navigator</em> (“Bowditch”), maintained by the U.S. government since
+      1802 and <a href="https://msi.nga.mil/Publications/APN">freely available</a>, is the field’s bible.
+      David Barrie’s <em>Sextant</em> and Dava Sobel’s <em>Longitude</em> tell the human stories better than
+      any textbook.
     </p>
+
+    <section class="bench" aria-labelledby="bench">
+      <h2 id="bench"><span class="sec-no">B</span><span class="sec-title">Figures not yet in the draft</span></h2>
+
+      <p class="draft-note">
+        Working figures from the first draft, kept here until the text calls for them.
+      </p>
+
+      <h3 class="sub"><span class="sec-no">B.1</span><span class="sec-title">Observed altitude and zenith distance always complete a right angle.</span></h3>
+      <figure class="demo" id="demo-altitude">
+        <div class="demo-panel">
+          <canvas></canvas>
+          <div class="demo-controls"></div>
+        </div>
+        <figcaption><span class="fig-title">Altitude and zenith distance</span> Drag either frame. Ho and z always complete the same right angle.</figcaption>
+      </figure>
+
+      <h3 class="sub"><span class="sec-no">B.2</span><span class="sec-title">One arcminute of arc on the globe is about one nautical mile.</span></h3>
+      <figure class="demo" id="demo-arcminute">
+        <div class="demo-panel">
+          <canvas></canvas>
+          <div class="demo-controls"></div>
+        </div>
+        <figcaption><span class="fig-title">An arcminute is a nautical mile</span> Follow one angle from degrees to arcminutes to nautical miles.</figcaption>
+      </figure>
+
+      <h3 class="sub"><span class="sec-no">B.3</span><span class="sec-title">The same sky can belong to two places at two different times.</span></h3>
+      <figure class="demo" id="demo-samesky">
+        <div class="demo-panel">
+          <canvas></canvas>
+          <div class="demo-controls"></div>
+        </div>
+        <figcaption><span class="fig-title">Same distance west, same local sky</span> Move UTC. The GP and the observer slide west together, so the local sky never changes.</figcaption>
+      </figure>
+
+      <h3 class="sub"><span class="sec-no">B.4</span><span class="sec-title">Dip: the sea horizon sits below level because the eye is above the water.</span></h3>
+      <figure class="demo" id="demo-dip">
+        <div class="demo-panel">
+          <canvas></canvas>
+          <div class="demo-controls"></div>
+        </div>
+        <figcaption><span class="fig-title">Dip of the horizon</span> Raise the eye and watch the visible horizon fall farther below level.</figcaption>
+      </figure>
+
+      <h3 class="sub"><span class="sec-no">B.5</span><span class="sec-title">Refraction: the atmosphere lifts a low star.</span></h3>
+      <figure class="demo" id="demo-refraction">
+        <div class="demo-panel">
+          <canvas></canvas>
+          <div class="demo-controls"></div>
+        </div>
+        <figcaption><span class="fig-title">Refraction near the horizon</span> Lower the apparent altitude to see why near-horizon sights need the largest correction.</figcaption>
+      </figure>
+
+      <h3 class="sub"><span class="sec-no">B.6</span><span class="sec-title">Near your position, the ring is nearly a straight line of position.</span></h3>
+      <figure class="demo" id="demo-lopzoom">
+        <div class="demo-panel">
+          <canvas class="grab"></canvas>
+          <div class="demo-controls"></div>
+        </div>
+        <figcaption><span class="fig-title">From circle to line of position</span> Follow the circle from globe scale to its nearly straight local tangent.</figcaption>
+      </figure>
+
+      <h3 class="sub"><span class="sec-no">B.7</span><span class="sec-title">The intercept method plots that line from an assumed position.</span></h3>
+      <figure class="demo" id="demo-intercept">
+        <div class="demo-panel">
+          <canvas></canvas>
+          <div class="demo-controls"></div>
+        </div>
+        <figcaption><span class="fig-title">From intercept to line of position</span> Sight three bodies to see a practical fix emerge.</figcaption>
+      </figure>
+
+      <h3 class="sub"><span class="sec-no">B.8</span><span class="sec-title">The whole chain of a sight, end to end.</span></h3>
+      <figure class="demo" id="demo-workflow">
+        <div class="demo-panel">
+          <canvas></canvas>
+          <div class="demo-controls"></div>
+        </div>
+        <figcaption><span class="fig-title">The sight, step by step</span> Reveal the worked sight in order.</figcaption>
+      </figure>
+
+      <h3 class="sub"><span class="sec-no">B.9</span><span class="sec-title">Polaris gives latitude almost directly.</span></h3>
+      <figure class="demo" id="demo-polaris">
+        <div class="demo-panel">
+          <canvas></canvas>
+          <div class="demo-controls"></div>
+        </div>
+        <figcaption><span class="fig-title">Latitude from Polaris</span> Change latitude. The pole’s altitude always equals it; Polaris only nearly does.</figcaption>
+      </figure>
+
+      <h3 class="sub"><span class="sec-no">B.10</span><span class="sec-title">The noon Sun gives latitude and longitude in one sight.</span></h3>
+      <figure class="demo" id="demo-noon">
+        <div class="demo-panel">
+          <canvas></canvas>
+          <div class="demo-controls"></div>
+        </div>
+        <figcaption><span class="fig-title">Position from the noon sight</span> Find the peak first. Then reveal how its height and time decode position.</figcaption>
+      </figure>
+    </section>
 
   </main>
 
@@ -658,25 +532,31 @@
   </footer>
 
     </div><!-- /left-scroll -->
-    <aside class="right-panel" id="right-panel"></aside>
   </div><!-- /main-grid -->
 
   <script src="app.js" defer></script>
+  <script src="story.js" defer></script>
   <script src="demos/world.js" defer></script>
-  <script src="demos/gp.js" defer></script>
+  <script src="demos/center.js" defer></script>
+  <script src="demos/sightline.js" defer></script>
+  <script src="demos/walk.js" defer></script>
+  <script src="demos/northstar.js" defer></script>
+  <script src="demos/arcminute.js" defer></script>
   <script src="demos/globes.js" defer></script>
-  <script src="demos/polaris.js" defer></script>
-  <script src="demos/samesky.js" defer></script>
-  <script src="demos/almanac.js" defer></script>
-  <script src="demos/mirror.js" defer></script>
+  <script src="demos/ring.js" defer></script>
   <script src="demos/sextant.js" defer></script>
   <script src="demos/scope.js" defer></script>
-  <script src="demos/corrections.js" defer></script>
+  <script src="demos/motion.js" defer></script>
+  <script src="demos/samesky.js" defer></script>
   <script src="demos/clock.js" defer></script>
-  <script src="demos/noon.js" defer></script>
-  <script src="demos/noon-geometry.js" defer></script>
+  <script src="demos/almanac.js" defer></script>
+  <script src="demos/worked.js" defer></script>
+  <script src="demos/corrections.js" defer></script>
   <script src="demos/lopzoom.js" defer></script>
   <script src="demos/intercept.js" defer></script>
+  <script src="demos/polaris.js" defer></script>
+  <script src="demos/noon.js" defer></script>
+  <script src="demos/workflow.js" defer></script>
 </body>
 
 </html>
