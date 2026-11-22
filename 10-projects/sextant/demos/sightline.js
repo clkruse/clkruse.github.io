@@ -13,10 +13,10 @@
   });
 
   const SNAP = 1.5;
-  // the slider holds the sight's direction, 0° (right horizon) through 90°
+  // the value holds the sight's direction, 0° (right horizon) through 90°
   // (overhead) to 180° (left horizon); it reads out the altitude
   const altOf = v => (v <= 90 ? v : 180 - v);
-  const sight = addSlider(d, {
+  const sight = addValue(d, {
     label: 'line of sight',
     min: 0,
     max: 180,

@@ -268,6 +268,19 @@ function plateLeader(ctx, target, labelPoint, opts = {}) {
    labels and reserved diagram zones are rejected; a displaced label gets a
    paper knockout and a leader, while low-priority labels can disappear in
    compact/crowded states instead of colliding. */
+// px a placed label may be crowded before it gives up its seat; seconds
+// for a label to fade
+const LABEL_HOLD = 2;
+const LABEL_EASE = 0.07;
+// mid-drag, a hidden label comes back once a seat has been free this long
+// (s): any seat once the pointer has gone slowly that long, or while it moves
+// quickly, a seat with this much air (px) all round
+const LABEL_WAIT = 0.3;
+const LABEL_ROOM = 5;
+// px/s under which a drag counts as slow enough for labels to come back
+const LABEL_SLOW = 120;
+const LABEL_REDUCED_MOTION = matchMedia('(prefers-reduced-motion: reduce)');
+
 function createPlateLabeler(ctx, {
   left = 6,
   top = 6,
@@ -276,10 +289,17 @@ function createPlateLabeler(ctx, {
   gap = 3,
 } = {}) {
   const occupied = [];
-  // Labelers are rebuilt every frame; the canvas remembers which candidate
-  // each label used last, so a label only moves when its spot is blocked
-  // rather than hopping back and forth as the geometry changes.
+  // Labelers are rebuilt every frame, so the canvas keeps a memory of every
+  // label: which seat it took, where it was drawn and how visible it was.
+  // That keeps labels calm while a reader drags:
+  //   - a label keeps its seat, moving with the thing it names, until
+  //     something really covers it
+  //   - then it fades out, and comes back mid-drag only once a seat has
+  //     stayed free for a moment; when the reader lets go, every label fades
+  //     back in at the best seat that's free
+  //   - at rest, a label that changes seats crossfades rather than jumping
   const memory = ctx.canvas._plateLabelMemory ??= new Map();
+  const now = performance.now() / 1000;
   const seen = new Map();
   const memoryKey = (text, opts) => {
     const base = opts.key ?? String(text).replace(/[−+-]?\d[\d,]*(\.\d+)?/g, '#');
@@ -318,63 +338,164 @@ function createPlateLabeler(ctx, {
     x: clamp(rect.x, left, Math.max(left, right - rect.w)),
     y: clamp(rect.y, top, Math.max(top, bottom - rect.h)),
   });
+  const penaltyOf = rect => occupied
+    .filter(other => overlaps(expand(rect, gap), other))
+    .reduce((sum, other) => sum + overlapArea(expand(rect, gap), other), 0)
+    + (outside(rect) ? 1e6 : 0);
+  const at = (rect, dx, dy) => ({ ...rect, x: rect.x + dx, y: rect.y + dy });
+
+  /* Picks a seat for one label and works out how to draw it this frame.
+     seats: candidate positions, best first (a seat's `id`, when given, keeps
+     it recognisable if the list is reordered). rectAt(seat) gives the box a
+     seat would occupy; test(rect) scores a box, 0 meaning clear. draw(rect,
+     alpha) paints the label. Returns { rect, seat } with the box the label
+     holds (use it for later collisions), or null while it is hidden. */
+  function settle(key, target, seats, { rectAt, test, draw, fallback = 'hide' }) {
+    const origin = target || { x: 0, y: 0 };
+    const mem = memory.get(key);
+    const dt = mem ? now - mem.t : Infinity;
+    // a label not drawn for a moment (scrolled away, figure reset) starts
+    // fresh: it takes its best seat at once, fully drawn
+    const fresh = !(dt < 0.15);
+    const decay = LABEL_REDUCED_MOTION.matches ? 0 : Math.exp(-Math.min(dt, 0.1) / LABEL_EASE);
+    const dragging = ctx.canvas.classList.contains('grabbing');
+    const tested = seats.map((seat, i) => ({ seat, id: seat.id ?? i, rect: rectAt(seat) }));
+    const current = !fresh && !mem.hidden ? tested.find(item => item.id === mem.id) : null;
+    // the seat a label holds is let off lightly: it may be crowded by up to
+    // LABEL_HOLD px, or, for a label that had to settle somewhere crowded,
+    // no more than it was when it sat down
+    const holds = item => {
+      const p = test(expand(item.rect, -LABEL_HOLD));
+      return p === 0 || p <= (mem.penalty || 0) * 1.25;
+    };
+    // a label fading out (or gone) leaves a ghost where it last stood
+    const ghost = mem && !fresh && mem.ghost && mem.ghost.alpha * decay > 0.02
+      ? { shown: mem.ghost.shown, alpha: mem.ghost.alpha * decay } : null;
+    if (ghost) draw(at(ghost.shown, origin.x, origin.y), ghost.alpha);
+
+    const hide = (extra = {}) => {
+      let fading = ghost;
+      if (!fresh && !mem.hidden && mem.shown) {
+        fading = { shown: mem.shown, alpha: mem.alpha * decay };
+        draw(at(fading.shown, origin.x, origin.y), fading.alpha);
+      }
+      memory.set(key, { t: now, hidden: true, alpha: 0, ghost: fading, ...extra });
+      return null;
+    };
+
+    // the best seat that is free: the one a label holds is let off lightly,
+    // any other must be clear with a pixel to spare, so nothing flips between
+    // two seats on a single pixel
+    const best = () => {
+      let pick = tested.find(item => (item === current ? holds(item)
+        : test(expand(item.rect, fresh ? 0 : 1)) === 0)) || null;
+      if (!pick && fallback !== 'hide' && tested.length) {
+        // nowhere clear: take the least crowded seat, but stay put unless
+        // another is clearly better
+        const scored = tested.map(item => ({ ...item, penalty: test(item.rect) }));
+        pick = scored.reduce((top, item) => item.penalty < top.penalty ? item : top);
+        const stay = current && scored.find(item => item.id === current.id);
+        if (stay && (pick.penalty > stay.penalty * 0.5 || stay.penalty - pick.penalty < 40)) pick = stay;
+        pick = { ...pick, rect: clamped(pick.rect) };
+      }
+      return pick;
+    };
+
+    let choice = null;
+    if (dragging) {
+      // mid-drag a label either stays put or steps out of the way. One that
+      // loses its seat fades out, and one that would newly appear holds off,
+      // until the pointer has gone slowly for LABEL_WAIT s, or a roomy seat
+      // has stayed free that long, or the reader lets go. One that has just come back gets a little
+      // extra slack, so it doesn't blink straight out again.
+      const settling = !fresh && now - (mem.since ?? -Infinity) < LABEL_WAIT;
+      if (!fresh && current && (holds(current)
+        || (settling && test(expand(current.rect, -LABEL_HOLD - 3)) === 0))) {
+        choice = current;
+      } else {
+        // while the pointer moves quickly, only a seat with LABEL_ROOM px of
+        // air all round, among the label's better seats, will do; once it
+        // has slowed (under LABEL_SLOW) or stopped, any seat the label would
+        // take at rest
+        const calm = now - (ctx.canvas._plateDragFast ?? 0) / 1000 >= LABEL_WAIT;
+        const pick = calm ? best()
+          : tested.slice(0, Math.ceil(tested.length / 2))
+            .find(item => test(expand(item.rect, LABEL_ROOM)) === 0);
+        if (!pick) return hide({ wait: null });
+        if (!calm) {
+          const wait = !fresh && mem.wait && mem.wait.id === pick.id ? mem.wait : { id: pick.id, since: now };
+          if (now - wait.since < LABEL_WAIT) return hide({ wait });
+        }
+        choice = pick;
+      }
+    } else {
+      choice = best();
+      if (!choice) return hide();
+    }
+
+    const rect = choice.rect;
+    const moved = current && choice.id !== current.id;
+    // a label fades in where it lands; one that changes seats at rest
+    // crossfades, leaving a ghost at the old seat
+    const alpha = fresh ? 1 : moved || mem.hidden ? 1 - decay : 1 - (1 - mem.alpha) * decay;
+    const nextGhost = moved ? { shown: mem.shown, alpha: mem.alpha * decay } : ghost;
+    if (moved && nextGhost.alpha > 0.02) draw(at(nextGhost.shown, origin.x, origin.y), nextGhost.alpha);
+    draw(rect, alpha);
+    memory.set(key, {
+      id: choice.id, t: now, hidden: false, alpha,
+      since: fresh || mem.hidden || moved ? now : mem.since,
+      penalty: choice.penalty ?? (current && choice === current ? mem.penalty : 0) ?? 0,
+      shown: at(rect, -origin.x, -origin.y),
+      ghost: nextGhost,
+    });
+    return { rect, seat: choice.seat };
+  }
 
   return {
     reserve(rect, padding = gap) {
       occupied.push(expand(rect, padding));
     },
+    // for labels a figure draws itself (two-line readouts, text set on a
+    // curve): the same seat memory, slack, sliding and fading as place()
+    settle(key, target, seats, opts) {
+      return settle(`custom:${key}`, target, seats, opts);
+    },
     place(text, target, candidates, opts = {}) {
       const list = Array.isArray(candidates) ? candidates : [candidates];
-      const tested = list.map(candidate => {
-        const rect = rectFor(text, candidate, opts);
-        const collisions = occupied.filter(other => overlaps(expand(rect, gap), other));
-        const penalty = collisions.reduce((sum, other) => sum + overlapArea(expand(rect, gap), other), 0)
-          + (outside(rect) ? 1e6 : 0);
-        return { candidate, rect, penalty };
+      const first = rectFor(text, list[0], opts);
+      const result = settle(memoryKey(text, opts), target, list, {
+        rectAt: candidate => rectFor(text, candidate, opts),
+        test: penaltyOf,
+        fallback: opts.fallback ?? 'least-crowded',
+        draw(rect, alpha) {
+          const moved = rect.x !== first.x || rect.y !== first.y;
+          ctx.save();
+          ctx.globalAlpha *= alpha;
+          if (target && opts.leader !== false) {
+            const anchor = {
+              x: clamp(target.x, rect.x, rect.x + rect.w),
+              y: clamp(target.y, rect.y, rect.y + rect.h),
+            };
+            plateLeader(ctx, target, anchor, { head: opts.head || 3.2 });
+          }
+          if (opts.backed !== false || moved) {
+            ctx.fillStyle = PLATE.paper;
+            ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
+          }
+          const textX = rect.align === 'center'
+            ? rect.x + rect.w / 2
+            : rect.align === 'right' ? rect.x + rect.w - rect.padding : rect.x + rect.padding;
+          plateText(ctx, text, textX, rect.y + rect.h / 2, {
+            ...opts,
+            align: rect.align,
+          });
+          ctx.restore();
+        },
       });
-      const key = memoryKey(text, opts);
-      const seat = memory.get(key) || {};
-      const last = tested[seat.index];
-      let choice = last && last.penalty === 0 ? last : tested.find(item => item.penalty === 0);
-      if (!choice) {
-        if (opts.fallback === 'hide') {
-          memory.delete(key);
-          return null;
-        }
-        choice = tested.reduce((best, item) => item.penalty < best.penalty ? item : best);
-        choice = { ...choice, rect: clamped(choice.rect) };
-      }
-
-      memory.set(key, { index: tested.findIndex(item => item.candidate === choice.candidate) });
-
-      const moved = choice !== tested[0] || choice.penalty > 0;
-      const rect = choice.rect;
-      if (target && opts.leader !== false) {
-        const anchor = {
-          x: target.x < rect.x ? rect.x
-            : target.x > rect.x + rect.w ? rect.x + rect.w
-              : clamp(target.x, rect.x, rect.x + rect.w),
-          y: target.y < rect.y ? rect.y
-            : target.y > rect.y + rect.h ? rect.y + rect.h
-              : clamp(target.y, rect.y, rect.y + rect.h),
-        };
-        plateLeader(ctx, target, anchor, { head: opts.head || 3.2 });
-      }
-      if (opts.backed !== false || moved) {
-        ctx.save();
-        ctx.fillStyle = PLATE.paper;
-        ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
-        ctx.restore();
-      }
-      const textX = rect.align === 'center'
-        ? rect.x + rect.w / 2
-        : rect.align === 'right' ? rect.x + rect.w - rect.padding : rect.x + rect.padding;
-      plateText(ctx, text, textX, rect.y + rect.h / 2, {
-        ...opts,
-        align: rect.align,
-      });
-      occupied.push(expand(rect, gap));
-      return { rect, candidate: choice.candidate, moved };
+      if (!result) return null;
+      occupied.push(expand(result.rect, gap));
+      const moved = result.seat !== list[0] || penaltyOf(result.rect) > 0;
+      return { rect: result.rect, candidate: result.seat, moved };
     },
   };
 }
@@ -713,6 +834,302 @@ function frame(ts) {
 }
 requestAnimationFrame(frame);
 
+/* "Your view": your own sight of the star, as a small navigation schematic
+   set in the figure's caption. The globe calls it out from where you stand,
+   as an engineering drawing calls out a part, and keeps the whole figure
+   for itself. */
+
+// the figure's layout: the main drawing takes the whole canvas under its
+// heading; the detail is a small canvas of its own in the caption
+function plateDetailLayout(w, h, compact, ctx) {
+  const pad = compact ? 10 : 16;
+  return {
+    compact,
+    detail: plateCaptionDetail(ctx),
+    field: { x: pad, y: pad, w: w - pad * 2, h: h - pad * 2 },
+    heading: { x: w / 2, y: pad + 4, align: 'center', w: w - pad * 2 },
+  };
+}
+
+// the caption's canvas, made on first use and cleared each frame: floated
+// beside the caption text on a phone, under the figure number in the
+// margin on a wide page. Dragging in it calls the figure's onDetailDrag
+// handler with the altitude the pointer sets.
+function plateCaptionDetail(ctx) {
+  const fig = ctx.canvas.closest('figure');
+  const cap = fig && fig.querySelector('figcaption');
+  if (!cap) return null;
+  let cv = fig._detailCanvas;
+  if (!cv) {
+    cv = document.createElement('canvas');
+    cv.className = 'caption-detail grab';
+    cv.setAttribute('aria-hidden', 'true');
+    cap.prepend(cv);
+    fig._detailCanvas = cv;
+    // fn(alt, first): first is true for the press that starts a drag
+    let first = false;
+    addDrag(cv, {
+      start(p) { first = true; this.move(p); },
+      move(p) {
+        if (cv._altAt && fig._onDetailDrag) fig._onDetailDrag(cv._altAt(p), first);
+        first = false;
+      },
+    });
+  }
+  const phone = window.innerWidth <= 720;
+  const cw = phone ? 132 : Math.min(cap.clientWidth || 160, 170);
+  const ch = Math.round(cw * (phone ? 1.12 : 1.02));
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  if (cv.width !== Math.round(cw * dpr) || cv.height !== Math.round(ch * dpr)) {
+    cv.width = Math.round(cw * dpr);
+    cv.height = Math.round(ch * dpr);
+    cv.style.width = cw + 'px';
+    cv.style.height = ch + 'px';
+  }
+  const c2 = cv.getContext('2d');
+  c2.setTransform(dpr, 0, 0, dpr, 0, 0);
+  c2.fillStyle = PLATE.paper;
+  c2.fillRect(0, 0, cw, ch);
+  return { x: 0, y: 0, w: cw, h: ch, compact: true, ctx: c2, canvas: cv };
+}
+
+// a figure's handler for drags in its caption detail: fn(alt, first)
+function onDetailDrag(d, fn) {
+  d.fig._onDetailDrag = fn;
+}
+
+// the main drawing's heading, wrapped to its column. Returns how far it
+// pushes the drawing down.
+function plateDetailHeading(ctx, layout, text) {
+  const { heading } = layout;
+  const size = layout.compact ? 8 : 9;
+  const lh = plateSize(size) * 1.3;
+  const words = text.split(' ');
+  const lines = [];
+  for (const word of words) {
+    const tryLine = lines.length ? `${lines[lines.length - 1]} ${word}` : word;
+    if (lines.length && plateTextWidth(ctx, tryLine, { size, weight: 600 }) <= heading.w) lines[lines.length - 1] = tryLine;
+    else lines.push(word);
+  }
+  lines.forEach((t, i) => plateText(ctx, t, heading.x, heading.y + i * lh, { size, weight: 600, align: heading.align }));
+  return lines.length * lh + 8;
+}
+
+// the call-out on the main drawing, as engineering drawings mark one: a
+// dashed circle round the point and the detail's letter beside it. Draw it
+// before the main drawing's labels, and keep them off it with
+// plateDetailMarks.
+function plateDetailCallout(ctx, at, detail, { letter = null, toward = null, compact = false } = {}) {
+  if (!detail) return null;
+  const r1 = compact ? 11 : 13;
+  ctx.save();
+  ctx.strokeStyle = PLATE.ink;
+  ctx.lineWidth = 0.8;
+  ctx.setLineDash(plateDash('short'));
+  ctx.beginPath();
+  ctx.arc(at.x, at.y, r1, 0, TAU);
+  ctx.stroke();
+  ctx.restore();
+  // the letter sits on the side of the ring away from the given direction
+  // (usually the globe's centre), at about four o'clock otherwise
+  const la = toward ? Math.atan2(at.y - toward.y, at.x - toward.x) + 0.9 : Math.PI * 0.3;
+  const letterAt = letter ? { x: at.x + Math.cos(la) * (r1 + 8), y: at.y + Math.sin(la) * (r1 + 8) } : null;
+  if (letter) plateText(ctx, letter, letterAt.x, letterAt.y, { size: compact ? 8 : 9, weight: 700, align: 'center' });
+  return { ring: { x: at.x, y: at.y, r: r1 }, letter: letterAt };
+}
+
+// points along the call-out, for a figure's own label obstacles
+function plateDetailMarks(callout) {
+  if (!callout) return [];
+  const pts = [];
+  const { x, y, r } = callout.ring;
+  for (let t = 0; t < TAU; t += 0.4) pts.push({ x: x + Math.cos(t) * r, y: y + Math.sin(t) * r, r: 2 });
+  if (callout.letter) pts.push({ ...callout.letter, r: 6 });
+  return pts;
+}
+
+/* Your sight in the detail, drawn as a navigation schematic: you as a
+   point on hatched ground, the local horizontal and vertical as reference
+   axes, the line of sight out to each star, and h, the altitude, up from
+   the horizontal. Each sight is { alt, block }: a block is any
+   { w, h, draw(left, middle, alpha, ctx) } (plateFigureBlock makes one),
+   set in a break in that sight's h arc. sights[aim] is drawn heaviest.
+   mirror points it all left. */
+function plateAltitudeInstrument(detail, { title = 'YOUR VIEW', sights, aim = 0, mirror = false, below = null }) {
+  if (!detail) return null;
+  const ctx = detail.ctx;
+  const { x: bx, y: by, w: bw, h: bh } = detail;
+  const sx = mirror ? -1 : 1;
+  const ink = PLATE.ink;
+  const thin = 0.6;
+  const band = 18;
+
+  plateText(ctx, title, bx + 6, by + 10, { size: 7.5, weight: 700 });
+  ctx.save();
+  ctx.beginPath(); ctx.rect(bx, by, bw, bh); ctx.clip();
+  // the drawing's scale: the line of sight reaches r from you, clear of
+  // the title band above
+  const O = { x: mirror ? bx + bw * 0.77 : bx + bw * 0.23, y: by + bh * 0.85 };
+  // a little smaller with several sights, to leave room for their values
+  // beside the stars; fixed, so nothing resizes while you drag
+  const r = Math.min(bw * (sights.length > 1 ? 0.56 : 0.64), O.y - by - band - 10);
+  const dir = deg => ({ x: sx * Math.cos(deg * D2R), y: -Math.sin(deg * D2R) });
+  const at = (deg, len) => {
+    const u = dir(deg);
+    return { x: O.x + u.x * len, y: O.y + u.y * len };
+  };
+  const arcPath = (rad, d0, d1) => {
+    ctx.beginPath();
+    const n = Math.max(2, Math.ceil(Math.abs(d1 - d0) / 2));
+    for (let i = 0; i <= n; i++) {
+      const q = at(d0 + (d1 - d0) * i / n, rad);
+      ctx[i ? 'lineTo' : 'moveTo'](q.x, q.y);
+    }
+  };
+  const taken = [];
+  const hits = (p, q) => p.x < q.x + q.w && p.x + p.w > q.x && p.y < q.y + q.h && p.y + p.h > q.y;
+
+  // the ground under you, as a short hatched symbol
+  const gw = r * 0.2;
+  const ground = new Path2D();
+  ground.rect(O.x - gw, O.y, gw * 2, 6);
+  plateHatch(ctx, ground, { x: O.x - gw, y: O.y - 1, w: gw * 2, h: 9 }, { spacing: 4, weight: 0.45 });
+  // local horizontal and local vertical, as reference axes
+  const hLen = Math.min(r * 1.3, (mirror ? O.x - bx : bx + bw - O.x) - 6);
+  const vLen = O.y - by - band - 2;
+  plateVector(ctx, at(180, gw), at(0, hLen), { weight: thin, head: 3.4 });
+  plateVector(ctx, at(0, 0), at(90, vLen), { weight: thin, head: 3.4 });
+
+  const shown = sights.filter(s => s.alt >= 0);
+  const L = r;
+  const starR = 5.5;
+  // each line of sight, out to its star
+  shown.forEach(s => {
+    const heavy = sights.indexOf(s) === aim;
+    plateVector(ctx, O, at(s.alt, L - starR - 6), { weight: heavy ? 1.3 : 0.95, head: 4 });
+    const q = at(s.alt, L);
+    starGlyph(ctx, q.x, q.y, starR, ink);
+    taken.push({ x: q.x - starR - 2, y: q.y - starR - 2, w: starR * 2 + 4, h: starR * 2 + 4 });
+  });
+  // you
+  ctx.save();
+  ctx.fillStyle = ink;
+  ctx.beginPath(); ctx.arc(O.x, O.y, 2.6, 0, TAU); ctx.fill();
+  ctx.restore();
+  plateText(ctx, 'YOU', O.x - sx * 6, O.y - 8, { size: 6, weight: 700, align: mirror ? 'left' : 'right' });
+
+  // h for each sight, nested outward, its value in a break in the arc
+  const first = r * 0.56;
+  const step = shown.length > 1 ? Math.min(r * 0.15, (r * 0.92 - first) / (shown.length - 1)) : 0;
+  shown.forEach((s, i) => {
+    if (s.alt < 1) return;
+    const rh = first + i * step;
+    ctx.save();
+    ctx.strokeStyle = ink; ctx.lineWidth = thin;
+    arcPath(rh, 0, s.alt); ctx.stroke();
+    ctx.restore();
+    plateArrowhead(ctx, at(s.alt, rh), Math.atan2(-Math.cos(s.alt * D2R), -sx * Math.sin(s.alt * D2R)), 3.2);
+    plateArrowhead(ctx, at(0, rh), Math.PI / 2, 3.2);
+    // several sights: their values go by their stars instead (below)
+    if (shown.length > 1) return;
+    const b = s.block;
+    const boxAt = q => ({ x: q.x - b.w / 2 - 3, y: q.y - b.h / 2 - 1, w: b.w + 6, h: b.h + 2 });
+    // the first spot along the arc, then out past the line of sight, that
+    // keeps the value clear of every line, both axes and the stars
+    const clear = q => {
+      const box = boxAt(q);
+      const corners = [[box.x, box.y], [box.x + box.w, box.y], [box.x, box.y + box.h], [box.x + box.w, box.y + box.h]];
+      // in the drawing's own frame: u along the horizontal, v up
+      const uv = ([px, py]) => [sx * (px - O.x), O.y - py];
+      const pts = corners.map(uv);
+      if (box.x < bx + 2 || box.x + box.w > bx + bw - 2 || box.y < by + band || box.y + box.h > by + bh - 2) return false;
+      if (pts.some(([, v]) => v < 3)) return false;
+      if (!(pts.every(([u]) => u > 3) || pts.every(([u]) => u < -3))) return false;
+      for (const o of shown) {
+        const sn = Math.sin(o.alt * D2R), cs = Math.cos(o.alt * D2R);
+        const side = pts.map(([u, v]) => u * sn - v * cs);
+        if (!(side.every(d => d > 3) || side.every(d => d < -3))) return false;
+      }
+      return !taken.some(t => hits(box, t));
+    };
+    const tries = [];
+    for (const f of [0.5, 0.38, 0.62, 0.28, 0.72, 0.18, 0.82]) tries.push(at(s.alt * f, rh));
+    for (const k of [1.25, 1.5]) for (const f of [0.5, 0.3, 0.7]) tries.push(at(s.alt * f, rh * k));
+    for (const dd of [14, 22, 30, 40]) for (const k of [1, 1.3]) tries.push(at(Math.min(s.alt + dd, 88), rh * k));
+    const lp = tries.find(clear) || at(s.alt / 2, rh);
+    taken.push(boxAt(lp));
+    ctx.save();
+    ctx.fillStyle = PLATE.paper;
+    ctx.fillRect(lp.x - b.w / 2 - 3, lp.y - b.h / 2 - 1, b.w + 6, b.h + 2);
+    ctx.restore();
+    b.draw(lp.x - b.w / 2, lp.y, 1, ctx);
+  });
+  if (shown.length > 1) {
+    // each value beside its star, outboard, or above it where the frame
+    // runs out; the higher of two that touch moves up clear of the other
+    const right = bx + bw - 3, left = bx + 3;
+    const tags = shown.filter(s => s.alt >= 1).map(s => {
+      const q = at(s.alt, L);
+      const b = s.block;
+      const x = mirror ? q.x - starR - 4 - b.w : q.x + starR + 4;
+      if (x >= left && x + b.w <= right) return { b, x, y: q.y };
+      return { b, x: clamp(q.x - b.w / 2, left, right - b.w), y: q.y - starR - 3 - b.h / 2 };
+    }).sort((p, q) => q.y - p.y);
+    for (let i = 1; i < tags.length; i++) {
+      for (let j = 0; j < i; j++) {
+        const a = tags[i], o = tags[j];
+        const gap = (a.b.h + o.b.h) / 2 + 2;
+        if (a.x < o.x + o.b.w + 4 && a.x + a.b.w + 4 > o.x && Math.abs(a.y - o.y) < gap) a.y = o.y - gap;
+      }
+    }
+    tags.forEach(t => {
+      ctx.save();
+      ctx.fillStyle = PLATE.paper;
+      ctx.fillRect(t.x - 2, t.y - t.b.h / 2 - 1, t.b.w + 4, t.b.h + 2);
+      ctx.restore();
+      t.b.draw(t.x, t.y, 1, ctx);
+    });
+  }
+  if (below) {
+    plateText(ctx, below, bx + bw / 2, by + (bh + band) / 2, { size: 6, weight: 600, align: 'center' });
+  }
+  ctx.restore();
+  // a hairline frame
+  ctx.save();
+  ctx.strokeStyle = ink; ctx.lineWidth = 0.7;
+  ctx.strokeRect(bx + 0.5, by + 0.5, bw - 1, bh - 1);
+  ctx.restore();
+  // the altitude a pointer at p sets, for dragging
+  detail.canvas._altAt = p => clamp(Math.atan2(O.y - p.y, sx * (p.x - O.x)) * R2D, -90, 180);
+  return { pivot: O };
+}
+
+// a bold figure as a block for a dimension line
+function plateFigureBlock(ctx, text, compact) {
+  const size = compact ? 9 : 11;
+  const w = plateTextWidth(ctx, text, { size, weight: 700, font: PLATE.dataFont, uppercase: false, tracking: 0 });
+  return { w, h: plateSize(size) * 1.2, draw: (x, y, a, c2 = ctx) => plateDataText(c2, text, x, y, { size, weight: 700 }) };
+}
+
+// an eyepiece view, as an inset: fill() draws the field, clipped to the
+// circle, then the rim goes over it and the title above
+function plateEyepiece(ctx, x, y, r, fill, { title = null, compact = false } = {}) {
+  ctx.save();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.clip();
+  ctx.fillStyle = PLATE.paper;
+  ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  fill();
+  ctx.restore();
+  ctx.save();
+  ctx.strokeStyle = PLATE.ink;
+  ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.stroke();
+  ctx.lineWidth = 0.6;
+  ctx.beginPath(); ctx.arc(x, y, r + 3.5, 0, TAU); ctx.stroke();
+  ctx.restore();
+  if (title) plateText(ctx, title, x, y - r - (compact ? 12 : 15), { size: compact ? 7 : 8, weight: 600, align: 'center' });
+}
+
 /* controls */
 
 function el(tag, cls, parent) {
@@ -750,6 +1167,28 @@ function addSlider(d, { label: lab, min, max, step = 1, value, fmt = v => v, onc
   };
 }
 
+// A slider's value without the slider, for figures the reader drives by
+// dragging the drawing itself. Same {v, set} shape as addSlider, and the
+// arrow keys step it while the canvas has focus.
+function addValue(d, { label: lab, min, max, step = 1, value, onchange }) {
+  let v = value;
+  const value_ = {
+    get v() { return v; },
+    set(x, { emit = false } = {}) {
+      v = clamp(+x, min, max);
+      if (emit && onchange) onchange(v);
+    },
+  };
+  if (lab) d.canvas.setAttribute('aria-label', `${d.canvas.getAttribute('aria-label')}; arrow keys change the ${lab}`);
+  d.canvas.addEventListener('keydown', e => {
+    const dir = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1 }[e.key];
+    if (!dir) return;
+    e.preventDefault();
+    value_.set(v + dir * step * (e.shiftKey ? 10 : 1), { emit: true });
+  });
+  return value_;
+}
+
 function addStat(d, lab, wide) {
   const wrap = el('div', 'ctl-readout', d.groups.readouts);
   if (wide) wrap.classList.add('wide');
@@ -785,7 +1224,7 @@ function addCheck(d, lab, fn) {
 
 /* pointer dragging (pos in css px, move gets deltas) */
 function addDrag(canvas, handlers) {
-  let dragging = false, last = null;
+  let dragging = false, last = null, lastT = 0, speed = 0;
   const pos = e => {
     const r = canvas.getBoundingClientRect();
     return { x: e.clientX - r.left, y: e.clientY - r.top };
@@ -793,6 +1232,11 @@ function addDrag(canvas, handlers) {
   canvas.addEventListener('pointerdown', e => {
     dragging = true;
     last = pos(e);
+    // labels watch for the pointer slowing down (createPlateLabeler): this
+    // is the last time it was moving quickly
+    lastT = performance.now();
+    speed = 0;
+    canvas._plateDragFast = lastT;
     canvas.setPointerCapture(e.pointerId);
     canvas.classList.add('grabbing');
     handlers.start && handlers.start(last);
@@ -801,6 +1245,11 @@ function addDrag(canvas, handlers) {
   canvas.addEventListener('pointermove', e => {
     if (!dragging) return;
     const p = pos(e);
+    const t = performance.now();
+    const v = Math.hypot(p.x - last.x, p.y - last.y) / (Math.max(4, t - lastT) / 1000);
+    speed = speed * 0.6 + v * 0.4;
+    lastT = t;
+    if (speed > LABEL_SLOW) canvas._plateDragFast = t;
     handlers.move && handlers.move(p, { dx: p.x - last.x, dy: p.y - last.y });
     last = p;
   });

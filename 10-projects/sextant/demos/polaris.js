@@ -14,8 +14,8 @@
     draw,
   });
   let lat = 45;
-  const latSlider = addSlider(d, {
-    label: 'your latitude', min: 5, max: 80, step: 0.5, value: lat,
+  const latSlider = addValue(d, {
+    label: 'latitude', min: 5, max: 80, step: 0.5, value: lat,
     fmt: v => v.toFixed(1) + '° N',
     onchange: v => { lat = v; },
   });

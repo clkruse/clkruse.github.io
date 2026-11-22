@@ -158,7 +158,7 @@
       You now know that measuring the altitude of a star tells you how far away you are from the star’s ground
       position. But it doesn’t tell you which direction. Suppose you measure the altitude of a star at 60°.
       That puts you 30° from its ground position (<span class="num">90° − 60°</span>). In two dimensions,
-      there are two such places: 30° to the left of the GP or 30° to the right.
+      you could either be 30° to the left of the GP or 30° to the right.
     </p>
 
     <aside class="gloss"><span class="gloss-term">Ring of position</span>Every place that sees a star at one altitude. Its center is the GP; its radius is 90° − altitude.</aside>
@@ -169,90 +169,107 @@
       to be at the same altitude above the horizon.
     </p>
 
-    <p>
-      To mark this ring, measure 30° from the star’s ground position, your distance from the GP, and trace a
-      circle of that radius around the point.
-    </p>
-
     <figure class="demo" id="demo-circle" data-initial-preset="sixty">
       <div class="demo-panel">
         <canvas class="grab"></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption><span class="fig-title">The circle of equal altitude</span> Every point on the ring sees the star at the same altitude. Raise the altitude and the ring
+      <figcaption><span class="fig-title">The circle of equal altitude</span> Every point on the ring sees the star at the same altitude. Drag the line of sight in Your View higher and the ring
         shrinks toward the ground position. Drag yourself around the ring: the star stays at the same height,
         only the direction you look changes.</figcaption>
     </figure>
 
-    <h2 id="crossing-rings"><span class="sec-no">4.0</span><span class="sec-title">Two sights, two rings, two locations</span></h2>
+    <h3 class="sub" id="crossing-rings"><span class="sec-no">3.1</span><span class="sec-title">Two rings identify a location</span></h3>
 
     <p>
       If measuring the altitude of a star gives a full ring of valid positions, how are we going to use the
       stars to find our position on the globe? There’s a trick! We can measure the altitude of more than one
-      star, each of which gives an independent ring of positions.
+      star, each of which gives an independent ring of possible positions. The points at which these circles
+      intersect give your location as they represent the only places where you could view both stars at their
+      measured altitudes.
     </p>
 
     <p>Let’s give this a try with two stars:</p>
 
-    <ul class="steps">
-      <li>Measure the altitude of star one. It is 60° above the horizon.</li>
-      <li>Mark the ring of positions given by star one by measuring 30° from the star’s GP and trace a
-        circle.</li>
-      <li>Measure the altitude of star two. It is 40° above the horizon.</li>
-      <li>Trace a circle with a radius of 50° around star two’s ground position.</li>
-    </ul>
+    <ol class="steps keyed">
+      <li>Measure the altitude of your first star. We’ll use “Vega” in this example. Suppose that it’s <span class="live" data-fix="vega-alt">60°</span>
+        above the horizon. This means that you are <span class="live" data-fix="vega-z">30°</span> from Vega’s ground
+        position.</li>
+      <li>Mark the ring of positions given by Vega by measuring <span class="live" data-fix="vega-z">30°</span> from its GP
+        and tracing a circle.</li>
+      <li>Measure the altitude of star two, “Sirius” in this case. Suppose it’s <span class="live" data-fix="sirius-alt">40°</span> above
+        the horizon.</li>
+      <li>Trace a circle with a radius of <span class="live" data-fix="sirius-z">50°</span> around Sirius’s ground
+        position.</li>
+    </ol>
 
     <figure class="demo" id="demo-twostar" data-initial-preset="sixty-forty">
       <div class="demo-panel">
         <canvas class="grab"></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption><span class="fig-title">A fix from crossing circles</span> Two rings cross at two points. Reveal a third sight and only one of them survives.</figcaption>
+      <figcaption><span class="fig-title">Two rings cross at two points</span> The numbers match the steps above. Drag either line of sight in the detail to change its altitude, and drag the globe to turn it. Reveal a third star and only one crossing fits all three.</figcaption>
     </figure>
 
     <p>
-      You’ll notice that these circles intersect at exactly two points. These points represent the only
-      locations on the globe where you could see these two stars at these altitudes. This means that measuring
-      the position of two stars allows you to find the two possible positions on the globe where you are
-      located.
+      These two locations of intersection are often quite far from one another. In most cases, you can simply
+      rule out one of the two possibilities because it’s so far away from your estimated position. Or, you can
+      measure the altitude of a third star and draw another ring of position. These three rings will intersect at
+      only a single point, and that represents your location.
+    </p>
+
+    <h2 id="measuring-altitude"><span class="sec-no">4.0</span><span class="sec-title">The sextant</span></h2>
+
+    <p>
+      We now understand how measuring a star’s altitude above the horizon will enable you to determine your
+      location. It’s essential to do this very precisely and accurately. If your measurement of a star’s
+      altitude is off by only a half degree, your position will be off by about 30 miles!
     </p>
 
     <p>
-      These two locations are often quite far from one another. In most cases, you can simply rule out one of
-      the two possibilities because you have a rough idea of your position. Or, you can measure the altitude of
-      a third star and draw a ring of position. These three rings will intersect at only one point, and that
-      represents your location.
+      How might we do this? You could imagine a system on land where a telescope is mounted on a level stand,
+      and the angle that the scope points is marked along an arc. You could look through the telescope and
+      center the star in view, and then mark the angle between the flat ground and the telescope. This angle
+      gives the star’s altitude.
     </p>
 
-    <h2 id="measuring-altitude"><span class="sec-no">5.0</span><span class="sec-title">The sextant</span></h2>
-
-    <p>
-      We now understand the importance of measuring a star’s altitude above the horizon as it will determine
-      our location. We need to do this very precisely and accurately, oftentimes from the deck of a rocking
-      boat. If your measurement of a star’s altitude is off by only a half degree, your position can be off by
-      about 30 miles!
-    </p>
-
-    <p>
-      This is where the sextant comes in handy. Here’s how it works and how to use it.
-    </p>
-
-    <aside class="gloss"><span class="gloss-term">Sextant</span>A handheld instrument that measures the angle between a star and the horizon with two mirrors and a small telescope.</aside>
-    <p>
-      A sextant lets you see the star and the horizon at the same time. Look through its small telescope and
-      you see the horizon straight ahead. Beside it, a pair of mirrors shows you the star. Swing the sextant’s
-      arm until the star appears to sit right on the horizon, then read the angle off the scale. That angle is
-      the star’s altitude.
-    </p>
-
-    <figure class="demo" id="demo-sextant">
+    <figure class="demo" id="demo-stand">
       <div class="demo-panel">
         <canvas class="grab"></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption><span class="fig-title">The light path through a sextant</span> Follow the star’s light through both mirrors, then swing the arm until the star sits on the
-        horizon.</figcaption>
+      <figcaption><span class="fig-title">Measuring altitude on land</span> Drag the telescope onto the star and read its angle off the arc. Then put the stand on a rocking deck: the angle between the deck and the star never holds still.</figcaption>
     </figure>
+
+    <p>
+      This works on land, but celestial navigation was primarily developed to navigate at sea. Here, you need
+      to measure this angle from a boat that’s rocking on the waves. If you simply mounted a telescope to the
+      deck, the angle between the deck and the star would constantly be changing as waves jostle the boat.
+      You need to measure the angle between a fixed landmark and the star. In this case, the horizon works
+      well as a stable and level reference.
+    </p>
+
+    <aside class="gloss"><span class="gloss-term">Sextant</span>A handheld instrument that measures the angle between a star and the horizon with two mirrors and a small telescope.</aside>
+    <p>
+      A sextant has been designed for exactly this purpose. It measures the angles between two objects
+      precisely. A sextant is a telescope of a sort, but it shows two views side by side at the same time. One
+      half of the view is that of a small telescope while the other is a view deflected by a mirror at an
+      angle.
+    </p>
+
+    <figure class="demo" id="demo-twoviews">
+      <div class="demo-panel">
+        <canvas class="grab"></canvas>
+        <div class="demo-controls"></div>
+      </div>
+      <figcaption><span class="fig-title">Two views at once</span> One half of the view looks straight ahead at the horizon. The other half is turned up by a pair of mirrors. Drag the arm until the star sits on the horizon: the angle it is turned through is the star’s altitude.</figcaption>
+    </figure>
+
+    <p>
+      Look through its small telescope and you see the horizon straight ahead. Beside it, a pair of mirrors
+      shows you the star. Swing the sextant’s arm until the star appears to sit right on the horizon, then
+      read the angle off the scale. That angle is the star’s altitude.
+    </p>
 
     <aside class="gloss"><span class="gloss-term">Arcminute</span>One sixtieth of a degree. On Earth’s surface it spans about one nautical mile.</aside>
     <p>
@@ -270,7 +287,7 @@
         the time.</figcaption>
     </figure>
 
-    <h2 id="fundamentals"><span class="sec-no">6.0</span><span class="sec-title">Now you know the fundamentals</span></h2>
+    <h2 id="fundamentals"><span class="sec-no">5.0</span><span class="sec-title">Now you know the fundamentals</span></h2>
 
     <p>
       This is all that you need to conceptually understand the entire system. Measure the altitude of two or
@@ -285,7 +302,7 @@
 
     <h2 class="part-title"><span class="sec-no">Part two</span><span class="sec-title">The full picture</span></h2>
 
-    <h2 id="moving-ground-positions"><span class="sec-no">7.0</span><span class="sec-title">The stars move!</span></h2>
+    <h2 id="moving-ground-positions"><span class="sec-no">6.0</span><span class="sec-title">The stars move!</span></h2>
 
     <p>
       All of our previous explanations made the simplifying assumption that a star’s ground position is one
@@ -326,7 +343,7 @@
       Longitude Prize and John Harrison’s development of a clock that could keep accurate time while at sea.
     </p>
 
-    <h2 id="almanac"><span class="sec-no">8.0</span><span class="sec-title">How do you look up stellar ground positions?</span></h2>
+    <h2 id="almanac"><span class="sec-no">7.0</span><span class="sec-title">How do you look up stellar ground positions?</span></h2>
 
     <p>
       I’ve simplified the idea that we can take a sight and then look up that star’s ground position in a
@@ -363,11 +380,11 @@
         Aries value changes.</figcaption>
     </figure>
 
-    <h2 id="together"><span class="sec-no">9.0</span><span class="sec-title">Putting it all together</span></h2>
+    <h2 id="together"><span class="sec-no">8.0</span><span class="sec-title">Putting it all together</span></h2>
 
     <p class="draft-note">This section is still being written.</p>
 
-    <h2 id="worked-example"><span class="sec-no">10.0</span><span class="sec-title">A worked example</span></h2>
+    <h2 id="worked-example"><span class="sec-no">9.0</span><span class="sec-title">A worked example</span></h2>
 
     <aside class="gloss"><span class="gloss-term">Nautical Almanac</span>A yearly book of positions for the Sun, Moon, planets, Aries and 57 navigation stars.</aside>
     <p>
@@ -544,7 +561,9 @@
   <script src="demos/arcminute.js" defer></script>
   <script src="demos/globes.js" defer></script>
   <script src="demos/ring.js" defer></script>
-  <script src="demos/sextant.js" defer></script>
+  <script src="demos/fix.js" defer></script>
+  <script src="demos/stand.js" defer></script>
+  <script src="demos/twoviews.js" defer></script>
   <script src="demos/scope.js" defer></script>
   <script src="demos/motion.js" defer></script>
   <script src="demos/samesky.js" defer></script>
