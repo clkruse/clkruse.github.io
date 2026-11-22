@@ -28,6 +28,7 @@
   let geo = null;
   d.canvas.classList.add('grab');
   addDrag(d.canvas, {
+    hit: p => nearGrab(p, geo && geo.grab),
     move(p) {
       if (!geo) return;
       let a = Math.atan2(geo.eye.y - p.y, p.x - geo.eye.x) * R2D;
@@ -122,6 +123,7 @@
     const reach = Math.min(span * 0.8, cx - pad - (compact ? 18 : 30));
     const sightLen = overhead ? span - starR - 10 : reach;
     const end = { x: eye.x + Math.cos(a) * sightLen, y: eye.y + Math.sin(a) * sightLen };
+    geo.grab = [[eye, end]];
     if (overhead) {
       plateVector(ctx, eye, end, { weight: compact ? 2.2 : 2.6, head: compact ? 5 : 6 });
     } else {

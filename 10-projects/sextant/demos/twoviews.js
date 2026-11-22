@@ -39,6 +39,7 @@
   let grab = null;
   d.canvas.classList.add('grab');
   addDrag(d.canvas, {
+    hit: p => nearGrab(p, geo && geo.grab),
     start(p) { grab = true; this.move(p); },
     move(p) {
       if (!geo || !grab) return;
@@ -60,8 +61,13 @@
   const dirOf = deg => ({ x: Math.cos(deg * D2R), y: -Math.sin(deg * D2R) });
 
   // line weights: outlines, lesser parts, and the thin work of
-  // dimensions, leaders and hatching
-  const HEAVY = 1.35, MEDIUM = 0.9, THIN = 0.55;
+  // dimensions, leaders and hatching. The instrument itself is drawn in
+  // a lighter set, so the lines of sight carry the figure
+  const WEIGHTS = { HEAVY: 1.35, MEDIUM: 0.9, THIN: 0.55 };
+  const THIN_WEIGHTS = { HEAVY: 0.75, MEDIUM: 0.5, THIN: 0.4 };
+  let HEAVY, MEDIUM, THIN;
+  const useWeights = set => ({ HEAVY, MEDIUM, THIN } = set);
+  useWeights(WEIGHTS);
 
   function draw(ctx, w, h) {
     ctx.fillStyle = PLATE.paper;
@@ -85,7 +91,7 @@
       ctx.restore();
     };
 
-    plateText(ctx, 'ELEVATION · A SEXTANT', w / 2, pad + 4, { size: compact ? 7.5 : 9, weight: 600, align: 'center' });
+    plateText(ctx, 'A SEXTANT · TWO LINES OF SIGHT', w / 2, pad + 4, { size: compact ? 7.5 : 9, weight: 600, align: 'center' });
 
     // ——— the instrument's geometry ———
     // the drawing has the canvas to itself: the eyepiece is in the caption
@@ -122,9 +128,11 @@
     const phi0 = phiOf(0);
     const at = (a, r) => ({ x: Pv.x + Math.cos(phiOf(a)) * r, y: Pv.y + Math.sin(phiOf(a)) * r });
 
-    geo = { Pv, phi0, rate, k: geo && geo.k };
+    // a finger takes the index arm, anywhere from the mirror to its foot
+    geo = { Pv, phi0, rate, k: geo && geo.k, grab: [[at(hs, R * 0.15), at(hs, R * 0.98)]] };
 
     // ——— the frame ———
+    useWeights(THIN_WEIGHTS);
     // the frame spreads wide enough that its legs carry the telescope's
     // ring on one side and the horizon mirror on the other
     const FA0 = -20, FA1 = 140;
@@ -208,34 +216,42 @@
     }
 
     // ——— the index arm, on the frame's face, under the telescope and the light ———
-    const armEnd = at(hs, R * 1.02);
     const ad = { x: Math.cos(phiOf(hs)), y: Math.sin(phiOf(hs)) };
     const an = { x: -ad.y, y: ad.x };
     const aw = Math.max(3, R * 0.028);
-    outline(poly([
-      { x: Pv.x + an.x * aw, y: Pv.y + an.y * aw }, { x: armEnd.x + an.x * aw, y: armEnd.y + an.y * aw },
-      { x: armEnd.x - an.x * aw, y: armEnd.y - an.y * aw }, { x: Pv.x - an.x * aw, y: Pv.y - an.y * aw },
-    ]), HEAVY);
-    // the index window at the limb: a frame round the graduations, a fine line through it
-    const iw = aw * 2.4;
-    const wa = at(hs, R * 0.93), wb = at(hs, R * 1.1);
-    outline(poly([
-      { x: wa.x + an.x * iw, y: wa.y + an.y * iw }, { x: wb.x + an.x * iw, y: wb.y + an.y * iw },
-      { x: wb.x - an.x * iw, y: wb.y - an.y * iw }, { x: wa.x - an.x * iw, y: wa.y - an.y * iw },
-    ]), MEDIUM);
-    // the graduations show through the window
-    ctx.save();
-    ctx.strokeStyle = ink; ctx.lineWidth = THIN;
-    for (let a = Math.ceil((hs - 6) / 2) * 2; a <= hs + 6; a += 2) {
-      if (a < 0 || a > 120) continue;
-      const len = a % 10 === 0 ? R * 0.1 : a % 5 === 0 ? R * 0.065 : R * 0.04;
-      const q0 = at(a, R * 1.07 - len), q1 = at(a, R * 1.07);
-      const off = (q0.x - wa.x) * an.x + (q0.y - wa.y) * an.y;
-      if (Math.abs(off) > iw - 1) continue;
-      ctx.beginPath(); ctx.moveTo(q0.x, q0.y); ctx.lineTo(q1.x, q1.y); ctx.stroke();
+    // the arm ends in a foot curved to the arc, riding just inside the limb
+    // so the graduations stay open; a fine index line runs from it across them
+    const fIn = R * 0.904, fOut = R * 0.955;
+    {
+      const dA = aw * 2.6 / fOut / Math.abs(rate);
+      const foot = new Path2D();
+      for (let i = 0; i <= 24; i++) { const q = at(hs - dA + 2 * dA * i / 24, fOut); foot[i ? 'lineTo' : 'moveTo'](q.x, q.y); }
+      for (let i = 24; i >= 0; i--) { const q = at(hs - dA + 2 * dA * i / 24, fIn); foot.lineTo(q.x, q.y); }
+      foot.closePath();
+      outline(foot, HEAVY);
     }
-    ctx.restore();
-    plateLine(ctx, wa, wb, { weight: MEDIUM });
+    // the shaft, one piece with the foot: paper laid a little into the foot
+    // to clear the seam, and only its sides and pivot end drawn
+    {
+      const pt = (along, side) => ({ x: Pv.x + ad.x * along + an.x * side, y: Pv.y + ad.y * along + an.y * side });
+      const into = fIn + (fOut - fIn) * 0.3, meet = Math.sqrt(fIn * fIn - aw * aw);
+      ctx.save(); ctx.fillStyle = PLATE.paper;
+      ctx.fill(poly([pt(0, aw), pt(into, aw), pt(into, -aw), pt(0, -aw)]));
+      ctx.strokeStyle = ink; ctx.lineWidth = HEAVY; ctx.lineJoin = 'miter';
+      const sides = [pt(meet, aw), pt(0, aw), pt(0, -aw), pt(meet, -aw)];
+      ctx.beginPath(); sides.forEach((q, i) => ctx[i ? 'lineTo' : 'moveTo'](q.x, q.y)); ctx.stroke();
+      ctx.restore();
+    }
+    // the index: a small pointer on the foot's edge and a firm line across
+    // the graduations, heavier than any tick so it reads at a glance
+    {
+      const tip = at(hs, fOut), base = at(hs, fOut - aw * 1.05), pw = aw * 0.55;
+      ctx.save(); ctx.fillStyle = ink;
+      ctx.beginPath(); ctx.moveTo(tip.x, tip.y);
+      ctx.lineTo(base.x + an.x * pw, base.y + an.y * pw); ctx.lineTo(base.x - an.x * pw, base.y - an.y * pw);
+      ctx.closePath(); ctx.fill(); ctx.restore();
+      plateLine(ctx, tip, at(hs, R * 1.075), { weight: WEIGHTS.MEDIUM * 1.2 });
+    }
 
     // ——— the telescope, clamped to the frame's near leg and looking at the
     // horizon mirror, its eyepiece hanging out past the frame ———
@@ -253,6 +269,8 @@
     // its mounting ring, where the tube crosses the leg
     tube(legX - R * 0.035, legX + R * 0.035, tr * 1.35, MEDIUM);
     const eye = { x: back, y: HM.y };
+
+    useWeights(WEIGHTS);
 
     // ——— the lines of sight ———
     // traced outward from the eye, as in 4-1: one straight ahead, one turned
@@ -297,7 +315,7 @@
     ray(Tc, { x: sx0 - 4, y: hy }, MEDIUM);
     // the star, fixed in the sky
     const sd = dirOf(STAR);
-    const sReach = Math.min((w - pad - 14 - Pv.x) / sd.x, (Pv.y - pad - 26) / -sd.y);
+    const sReach = Math.min((w - pad - 14 - Pv.x) / sd.x, (Pv.y - pad - (compact ? 40 : 48)) / -sd.y);  // its label held under the title
     const star = { x: Pv.x + sd.x * sReach, y: Pv.y + sd.y * sReach };
     const starR = compact ? 6.5 : 8;
     // turned: up the telescope, off the silvered half, off the index mirror,
@@ -349,6 +367,7 @@
 
 
     // ——— the mirrors ———
+    useWeights(THIN_WEIGHTS);
     // a mirror on a backing plate: silvered face toward n, hatched back;
     // half: only one half silvered, the other plain glass
     const mirror = (c, n, len, half = false) => {
@@ -365,7 +384,7 @@
         w: Math.abs(b.x - s0.x) + th * 2 + 8, h: Math.abs(b.y - s0.y) + th * 2 + 8,
       }, { spacing: 2.4, weight: 0.5 });
       ctx.save(); ctx.strokeStyle = ink; ctx.lineWidth = MEDIUM; ctx.stroke(silver); ctx.restore();
-      plateLine(ctx, s0, b, { weight: 1.8 });
+      plateLine(ctx, s0, b, { weight: HEAVY * 1.35 });
       if (half) outline(plate(a, c), THIN);
       return { a, b };
     };
@@ -381,6 +400,8 @@
     ctx.moveTo(Pv.x, Pv.y - 7); ctx.lineTo(Pv.x, Pv.y + 7);
     ctx.stroke();
     ctx.restore();
+
+    useWeights(WEIGHTS);
 
     // ——— names, on leaders ———
     // a label set on a paper knockout, so a stray ray never runs through it

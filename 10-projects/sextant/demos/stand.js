@@ -38,6 +38,7 @@
   // swings the tube from behind, the objective end from in front
   let byBack = false;
   addDrag(d.canvas, {
+    hit: p => nearGrab(p, geo && geo.grab),
     start(p) {
       if (!geo) return;
       byBack = (p.x - geo.P.x) * geo.u.x + (p.y - geo.P.y) * geo.u.y < 0;
@@ -87,7 +88,7 @@
       ctx.restore();
     };
 
-    plateText(ctx, atSea ? 'ELEVATION · THE SAME STAND ON A ROLLING DECK' : 'ELEVATION · A TELESCOPE ON A LEVEL STAND',
+    plateText(ctx, atSea ? 'THE SAME STAND ON A ROLLING DECK' : 'A TELESCOPE ON A LEVEL STAND',
       w / 2, pad + 4, { size: compact ? 7.5 : 9, weight: 600, align: 'center' });
 
     // ——— the frame that rolls with the deck, about the pedestal's foot ———
@@ -202,6 +203,8 @@
     const at = (s, tt = 0) => ({ x: P.x + u.x * s + n.x * tt, y: P.y + u.y * s + n.y * tt });
     const seg = (s0, s1, r, weight = HEAVY) => outline(poly([at(s0, r), at(s1, r), at(s1, -r), at(s0, -r)]), weight);
     const tr = compact ? 4.2 : 5.4;
+    // a finger takes the telescope, from eyepiece to objective
+    geo.grab = [[at(-aft), at(fore)]];
     // the index arm: from the pivot down to the limb, pointing at the reading
     const bk = back(aim.v);
     plateLine(ctx, P, rp(bk, rim), { weight: MEDIUM });

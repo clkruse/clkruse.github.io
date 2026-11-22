@@ -13,6 +13,7 @@
   d.canvas.classList.add('grab');
   let geo = null;
   addDrag(d.canvas, {
+    hit: p => nearGrab(p, geo && geo.grab),
     move(p) {
       if (!geo) return;
       ang = Math.atan2(p.y - geo.cy, p.x - geo.cx);
@@ -48,7 +49,8 @@
       x: cx + (R + extension) * u.x,
       y: cy + (R + extension) * u.y,
     };
-    geo = { cx, cy, R };
+    // a finger takes the line from the centre out through the GP to the star
+    geo = { cx, cy, R, grab: [[{ x: cx + u.x * R * 0.3, y: cy + u.y * R * 0.3 }, star]] };
 
     plateWireSphere(ctx, cx, cy, R, {
       graticule: false,

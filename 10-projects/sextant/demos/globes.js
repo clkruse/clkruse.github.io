@@ -9,6 +9,7 @@ function makeGlobe(d, spin0, tilt0, hit) {
   const g = { spin: spin0, tilt: tilt0, armed: true };
   g.view = globeView(g.spin, g.tilt);
   addDrag(d.canvas, {
+    touch: 'x',
     start(p) { g.armed = !hit || hit(p); },
     move(p, dp) {
       if (!g.armed) return;

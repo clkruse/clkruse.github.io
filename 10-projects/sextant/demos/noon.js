@@ -84,6 +84,7 @@
 
   let geo = null;
   addDrag(d.canvas, {
+    touch: 'x',
     start(p) { moveCursor(p); },
     move(p) { moveCursor(p); },
   });

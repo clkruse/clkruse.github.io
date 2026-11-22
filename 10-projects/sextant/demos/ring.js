@@ -44,6 +44,8 @@
   // walks you around the ring
   onDetailDrag(d, a => alt.set(clamp(Math.round(a), 5, 85), { emit: false }));
   addDrag(d.canvas, {
+    // a finger takes the ring itself
+    hit: p => nearGrab(p, geo && geo.ring && geo.ring.filter(q => q.front), 24),
     start(p) { this.move(p); },
     move(p) {
       if (!geo) return;

@@ -69,6 +69,7 @@
     detailStar.alt.set(Math.round(clamp(a, 0, 90)));
   });
   addDrag(d.canvas, {
+    touch: 'x',
     start(p) {
       drag = null;
       if (!geo) return;
