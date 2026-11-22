@@ -216,6 +216,34 @@ body {
 }
 .article .steps li + li { margin-top: 0.35em; }
 .article .steps + p { text-indent: 0; }
+/* numbers in the prose that follow a figure as the reader drags it */
+.article .live { font-variant-numeric: lining-nums tabular-nums; }
+/* steps keyed to a figure: each number in the same small circle the
+   drawing uses to mark that step */
+.article .steps.keyed {
+  list-style: none;
+  counter-reset: step;
+  padding-left: 0;
+}
+.article .steps.keyed li {
+  counter-increment: step;
+  position: relative;
+  padding-left: 2.1em;
+}
+.article .steps.keyed li::before {
+  content: counter(step);
+  position: absolute;
+  left: 0.15em;
+  top: 0.2em;
+  width: 1.3em;
+  height: 1.3em;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font: 700 0.72em/1 var(--font-plate);
+  font-variant-numeric: lining-nums tabular-nums;
+}
 
 .article .method-thesis {
   margin: var(--half-rhythm) 3ch var(--rhythm);
@@ -585,7 +613,8 @@ strong { font-weight: 800; }
     var(--rule-dash) 1rem 0 / calc(100% - 2rem) 1px no-repeat,
     var(--paper);
 }
-.demo-controls:empty { display: none; }
+.demo-controls:empty,
+.demo-controls:not(:has(> :not(:empty))) { display: none; }
 
 .ctl-rows:empty,
 .ctl-actions:empty,
@@ -839,4 +868,11 @@ input[type="range"]::-moz-range-thumb {
 @media (prefers-reduced-motion: reduce) {
   .demo-panel { animation: none; }
   html { scroll-behavior: auto; }
+}
+
+/* Detail A: your view of the star, a small drawing set in the caption.
+   Under the figure number in the margin; floated beside the text on phones */
+.caption-detail { display: block; margin: 0.2rem 0 0.6rem; touch-action: none; }
+@media (max-width: 720px) {
+  .caption-detail { float: right; margin: 0.15rem 0 0.4rem 0.8rem; }
 }

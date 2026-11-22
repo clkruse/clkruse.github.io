@@ -34,55 +34,61 @@ Let's see how this works using the North Star (Polaris). The ground position of 
 
 **3\. Rings of position**  
 
-You now know that measuring the altitude of a star tells you how far away you are from the star’s ground position. But it doesn’t tell you which direction. Suppose you measure the altitude of a star at 60°. That puts you 30° from its ground position (90° \- 60°). In two dimensions, there are two such places: 30° to the left of the GP or 30° to the right.
+You now know that measuring the altitude of a star tells you how far away you are from the star’s ground position. But it doesn’t tell you which direction. Suppose you measure the altitude of a star at 60°. That puts you 30° from its ground position (90° \- 60°). In two dimensions, you could either be 30° to the left of the GP or 30° to the right.
 
 In three dimensions, there are even more positions where you can see the star at the same altitude. You can move 30° east or west of the star's ground position, but you can also move 30° north, 30° south, 30° southeast and so on. It turns out that there’s a full ring of positions where the star will appear to be at the same altitude above the horizon.
 
-To mark this ring, measure 30° from the star’s ground position, your distance from the GP, and trace a circle of that radius around the point. 
 
-**4\. Two sights, two rings, two locations**  
-If measuring the altitude of a star gives a full ring of valid positions, how are we going to use the stars to find our position on the globe? There’s a trick\! We can measure the altitude of more than one star, each of which gives an independent ring of positions.   
+**3\.1 Two rings identify a location**  
+If measuring the altitude of a star gives a full ring of valid positions, how are we going to use the stars to find our position on the globe? There’s a trick\! We can measure the altitude of more than one star, each of which gives an independent ring of possible positions. The points at which these circles intersect give your location as they represent the only places where you could view both stars at their measured altitudes. 
+
 Let’s give this a try with two stars:
-- Measure the altitude of star one. It is 60° above the horizon.  
-- Mark the ring of positions given by star one by measuring 30° from the star’s GP and trace a circle.  
-- Measure the altitude of star two. It is 40° above the horizon.   
-- Trace a circle with a radius of 50° around star two’s ground position.
+- Measure the altitude of your first star. We'll use "Vega" in this example. Suppose that it's 60° above the horizon. This means that you are 30° from Vega's ground position.
+- Mark the ring of positions given by Vega by measuring 30° from its GP and tracing a circle.  
+- Measure the altitude of star two, "Sirius" in this case. Suppose it's 40° above the horizon.   
+- Trace a circle with a radius of 50° around Sirius’s ground position.
 
-You’ll notice that these circles intersect at exactly two points. These points represent the only locations on the globe where you could see these two stars at these altitudes. This means that measuring the position of two stars allows you to find the two possible positions on the globe where you are located. 
+These two locations of intersection are often quite far from one another. In most cases, you can simply rule out one of the two possibilities because it's so far away from your estimated position. Or, you can measure the altitude of a third star and draw another ring of position. These three rings will intersect at only a single point, and that represents your location.
 
-These two locations are often quite far from one another. In most cases, you can simply rule out one of the two possibilities because you have a rough idea of your position. Or, you can measure the altitude of a third star and draw a ring of position. These three rings will intersect at only one point, and that represents your location.
+**4\. The sextant**
+We now understand how measuring a star's altitude above the horizon will enable you to determine your location. It's essential to do this very precisely and accurately. If your measurement of a star's altitude is off by only a half degree, your position will be off by about 30 miles! 
 
-**5\. The sextant**
-We now understand the importance of measuring a star's altitude above the horizon as it will determine our location. We need to do this very precisely and accurately, oftentimes from the deck of a rocking boat. If your measurement of a star's altitude is off by only a half degree, your position can be off by about 30 miles!
+How might we do this? You could imagine a system on land where a telescope is mounted on a level stand, and the angle that that the scope points is marked along an arc. You could look through the telescope and center the star in view, and then mark the angle between the flat ground and the telescope. This angle gives the star's altitude.
 
-This is where the sextant comes in handy. Here's how it works and how to use it.
+<insert figure showing a telescope and angle>
 
-A sextant lets you see the star and the horizon at the same time. Look through its small telescope and you see the horizon straight ahead. Beside it, a pair of mirrors shows you the star. Swing the sextant's arm until the star appears to sit right on the horizon, then read the angle off the scale. That angle is the star's altitude.
+This works on land, but celestial navigation was primarily developed to navigate at sea. Here, you need to measure this angle from a boat that's rocking on the waves. If you simply mounted a telescope to the deck, the angle between the deck and the star would constantly be changing as waves jostle the boat. You need to measure the angle between a fixed landmark and the star. In this case, the horizon works well as a stable and level reference.
+
+A sextant has been designed for exactly this purpose. It measures the angles between two objects precisely. A sextant is a telescope of a sort, but it shows two views side by side at the same time. One half of the view looks straight ahead while the other is a view deflected by a mirror at an angle. You can change the angle of the 
+Traditionally, you point the straight view to be fixed on the horizon while 
+<insert a figure showing the two views and how one comes from a deflected angle>
+
+ through its small telescope and you see the horizon straight ahead. Beside it, a pair of mirrors shows you the star. Swing the sextant's arm until the star appears to sit right on the horizon, then read the angle off the scale. That angle is the star's altitude.
 
 Because the star and the horizon are in the same view, they rock together with the boat, and the angle between them stays steady. With practice, a sight is good to about one arcminute, or about one nautical mile. At the moment the star touches the horizon, note the exact time. We'll see why that matters soon.
 
-**6\. Now you know the fundamentals**
+**5\. Now you know the fundamentals**
 This is all that you need to conceptually understand the entire system. Measure the altitude of two or three stars with a sextant, look up where each star's GP was at the moment of measurement, draw the circles, and find where the circles cross.
 
 The next sections will go into some of the additional pieces of celestial navigation that are needed in practice.
 
 **Section 2: The full picture**
 
-**7\. The stars move!**
+**6\. The stars move!**
 All of our previous explanations made the simplifying assumption that a star's ground position is one fixed location on earth. However, this is not the case. The location of the stars are fixed in the sky, but the earth rotates. This means that the ground position of a star will move to the west. For the longitude of a star at the equator, the ground position moves by about one mile every four seconds. Because the earth rotates on an axis, a star's latitude remains constant.
 
 In practice, this means that taking a sextant sight and drawing a circle of position requires that you know the exact time that you took that sight, and that you have the ability to look up the ground position of that star at that specific time.
 
 As an aside, this is why the development of celestial navigation relied upon accurate timekeeping. I'd highly recommend reading the book "[Longitude](https://en.wikipedia.org/wiki/Longitude_(book))." It tells the story of the Longitude Prize and John Harrison's development of a clock that could keep accurate time while at sea. 
 
-**8\. How do you look up stellar ground positions?**
+**7\. How do you look up stellar ground positions?**
 I've simplified the idea that we can take a sight and then look up that star's ground position in a magical book. Consider for a moment what this book would need to look like. It would need to list ground positions for hundreds of stars every hour for each day of the year. This would add up to a table with something like a million rows and thousands of printed pages. That would clearly be infeasible. We need a more-efficient way to go about representing this information. 
 
 It turns out that all the stars move at the same rate. The stars are fixed in the sky while earth rotates. If the ground position of one star moves west by 10°, the ground positions of all the other stars will move by 10° to the west as well. This allows us to simply list the position of a single reference star hour by hour in a book, and then have a table with a row for each star in the sky that lists a constant offset between it and the reference.
 
 For reasons that we don't need to detail, astronomers and navigators settled on using a point in the sky called Aries as this constant reference. The Nautical Almanac will list the position of Aries each hour of the day across a year, and have a table of offsets for something like 60 stars of interest. You mark the time of day for your sight, look up the position of Aries at that time, and then add the offset for your star of interest to find the longitude of your star's ground position. Latitude is simply listed in the book as it varies little over the course of a day. 
 
-**9\. Putting it all together**
+**8\. Putting it all together**
 
 
 

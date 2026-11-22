@@ -29,7 +29,7 @@
     fmt: v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1) + '°',
     onchange: () => { resetReveal(); },
   });
-  const timeSlider = addSlider(d, {
+  const timeSlider = addValue(d, {
     label: 'sample UTC', min: T0, max: T1, step: 1 / 60, value: cursorT,
     fmt: v => clock(v),
     onchange: v => { setCursorTime(v); },

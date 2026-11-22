@@ -2,20 +2,20 @@
 /* A worked example with Polaris, the one star whose ground position the
    reader already knows: the North Pole. Pick a latitude (or a city) and the
    star stands that many degrees above your horizon, while you stand 90°
-   minus that from its GP. Built on the walk figure (demos/walk.js): your
-   view beside the outside view of the same moment. */
+   minus that from its GP. Built on the walk figure (demos/walk.js): the
+   outside view, with "Your view" called out from where you stand. */
 
 (function demoNorthStar() {
   const d = createDemo('demo-northstar', {
     aspect: 1.75,
     maxH: 400,
-    compactAspect: 0.68,
-    compactMaxH: 540,
+    compactAspect: 0.85,
+    compactMaxH: 680,
     draw,
   });
 
-  const lat = addSlider(d, {
-    label: 'your latitude',
+  const lat = addValue(d, {
+    label: 'latitude',
     min: 0,
     max: 90,
     step: 1,
@@ -47,24 +47,12 @@
   let side = 1;
   let geo = null;
   d.canvas.classList.add('grab');
-  // a drag that starts in "what you see" moves the star up and down that
-  // panel, under the pointer; anywhere else it walks you around the globe
-  let dragView = false;
-  const inView = p => geo && geo.view && p.x >= geo.view.x && p.x <= geo.view.x + geo.view.w
-    && p.y >= geo.view.y && p.y <= geo.view.y + geo.view.h;
+  // dragging in the caption's detail swings the line of sight to the
+  // pointer; dragging the globe walks you around it
+  onDetailDrag(d, a => lat.set(snapLat(clamp(a, 0, 90)), { emit: false }));
   addDrag(d.canvas, {
-    start(p) {
-      dragView = inView(p);
-      if (dragView) this.move(p);
-    },
     move(p) {
       if (!geo) return;
-      if (dragView) {
-        const v = geo.view;
-        const alt = clamp(90 * (v.horizonY - p.y) / (v.horizonY - v.topY), 0, 90);
-        lat.set(snapLat(alt), { emit: false });
-        return;
-      }
       let fromGp = Math.atan2(p.y - geo.cy, p.x - geo.cx) - geo.gpA;
       while (fromGp > Math.PI) fromGp -= TAU;
       while (fromGp < -Math.PI) fromGp += TAU;
@@ -82,49 +70,20 @@
     const z = clamp(dist.v, 0, 90);
     const alt = 90 - z;
 
-    // two panes, your view first and the outside view beside it (below it on
-    // phones), split by a hairline, each with its own heading
-    const pad = compact ? 10 : 16;
-    const fieldTop = pad;
-    const fieldBottom = h - pad;
-    const headSize = compact ? 8 : 9;
-    const headLine = plateSize(headSize) * 1.3;
-    const viewHead = 'YOUR VIEW OF POLARIS';
-    const globeHead = 'YOUR LATITUDE ON THE GLOBE';
-    const headW = t => plateTextWidth(ctx, t, { size: headSize, weight: 600 });
-    const heading = (lines, x, y) => lines.forEach((t, i) =>
-      plateText(ctx, t, x, y + i * headLine, { size: headSize, weight: 600, align: 'center' }));
-    let globeBox, viewBox;
-    if (compact) {
-      const headH = headLine + 8;
-      const viewH = Math.min(150, (fieldBottom - fieldTop) * 0.36);
-      viewBox = { x: pad, y: fieldTop + headH, w: w - pad * 2, h: viewH };
-      const splitY = viewBox.y + viewH + 12;
-      plateLine(ctx, { x: pad, y: splitY }, { x: w - pad, y: splitY }, { weight: 0.55 });
-      heading([viewHead], w / 2, fieldTop + headLine / 2);
-      heading([globeHead], w / 2, splitY + 12 + headLine / 2);
-      const gy = splitY + 12 + headH;
-      globeBox = { x: pad, y: gy, w: w - pad * 2, h: fieldBottom - gy };
-    } else {
-      const viewW = Math.min(260, w * 0.34);
-      // a narrow view pane breaks its heading over two lines; both panes
-      // then start at the same depth
-      const wrap = headW(viewHead) > viewW - 8;
-      const viewLines = wrap ? ['YOUR VIEW', 'OF POLARIS'] : [viewHead];
-      const headH = headLine * viewLines.length + 10;
-      const splitX = pad + viewW + pad;
-      viewBox = { x: pad, y: fieldTop + headH, w: viewW, h: fieldBottom - fieldTop - headH };
-      globeBox = { x: splitX + pad, y: fieldTop + headH, w: w - splitX - pad * 2, h: fieldBottom - fieldTop - headH };
-      plateLine(ctx, { x: splitX, y: fieldTop }, { x: splitX, y: fieldBottom }, { weight: 0.55 });
-      heading(viewLines, viewBox.x + viewW / 2, fieldTop + headLine / 2);
-      heading([globeHead], globeBox.x + globeBox.w / 2, fieldTop + headLine / 2);
-    }
+    // the outside view, with "Your view" in the caption
+    const layout = plateDetailLayout(w, h, compact, ctx);
+    const { detail, field } = layout;
+    const headH = plateDetailHeading(ctx, layout, 'YOUR LATITUDE ON THE GLOBE');
+    const globeBox = { x: field.x, y: field.y + headH, w: field.w, h: field.h - headH };
 
-    drawGlobe(ctx, globeBox, z, alt, compact);
-    drawView(ctx, viewBox, alt, compact);
+    const look = drawGlobe(ctx, globeBox, z, alt, compact, detail);
+    plateAltitudeInstrument(detail, {
+      sights: [{ alt, block: plateFigureBlock(ctx, `h = ${fmtDeg(Math.max(0, alt))}`, compact) }],
+      mirror: look.mirror,
+    });
   }
 
-  function drawGlobe(ctx, box, z, alt, compact) {
+  function drawGlobe(ctx, box, z, alt, compact, detail) {
     const size = compact ? 8 : 9;
     // the star, drawn as in Figure 1-1, at the head of the GP's starlight
     const starR = compact ? 7.5 : 9;
@@ -259,9 +218,13 @@
     ctx.stroke();
     ctx.restore();
 
+    // "Your view" is called out from where you stand
+    const callout = plateDetailCallout(ctx, you, detail, { toward: { x: cx, y: cy }, compact });
+
     const labels = createPlateLabeler(ctx, {
       left: box.x, top: box.y, right: box.x + box.w, bottom: box.y + box.h, gap: compact ? 2 : 3,
     });
+    plateDetailMarks(callout).forEach(q => labels.reserve({ x: q.x - q.r, y: q.y - q.r, w: q.r * 2, h: q.r * 2 }, 1));
     // keep labels off the marks and lines they describe
     const reserveSegment = (p, q) => {
       const n = Math.max(1, Math.ceil(Math.hypot(q.x - p.x, q.y - p.y) / 6));
@@ -412,93 +375,9 @@
         { x: you.x - tx * 1.05, y: you.y - ty * 1.05 + 10, align: 'center' },
       ], { size: 7.5, leader: false, fallback: 'hide' });
     }
-  }
-
-  function drawView(ctx, box, alt, compact) {
-    const size = compact ? 7.5 : 8.5;
-    const ruleY = box.y;
-
-    // sky above a sea horizon; altitude runs linearly up the frame
-    const seaH = Math.max(compact ? 14 : 22, box.h * 0.13);
-    const horizonY = box.y + box.h - seaH;
-    const topY = ruleY + (compact ? 12 : 16);
-    const yOf = deg => horizonY - (horizonY - topY) * deg / 90;
-    if (geo) geo.view = { ...box, horizonY, topY };
-    const scaleX = box.x + (compact ? 34 : 42);
-    const right = box.x + box.w - 8;
-
-    // sea: short broken strokes thinning toward the eye
-    for (let y = horizonY + 5, i = 0; y < box.y + box.h - 3; y += compact ? 5 : 6, i++) {
-      ctx.save();
-      ctx.strokeStyle = PLATE.ink;
-      ctx.lineWidth = 0.45;
-      ctx.setLineDash([6 + i * 3, 5 + i * 2]);
-      ctx.lineDashOffset = i * 7;
-      ctx.beginPath();
-      ctx.moveTo(box.x + 4, y);
-      ctx.lineTo(box.x + box.w - 4, y);
-      ctx.stroke();
-      ctx.restore();
-    }
-    plateLine(ctx, { x: box.x + 1, y: horizonY }, { x: box.x + box.w - 1, y: horizonY }, {
-      weight: compact ? 1.2 : 1.5,
-    });
-
-    // altitude scale
-    plateLine(ctx, { x: scaleX, y: horizonY }, { x: scaleX, y: topY }, { weight: 0.8 });
-    for (let deg = 0; deg <= 90; deg += 15) {
-      const y = yOf(deg);
-      const major = deg % 30 === 0;
-      plateLine(ctx, { x: scaleX - (major ? 5 : 3), y }, { x: scaleX, y }, { weight: 0.7 });
-      if (major) {
-        plateDataText(ctx, `${deg}°`, scaleX - 8, deg === 0 ? y - 6 : y, { size, align: 'right' });
-        if (deg > 0) {
-          plateLine(ctx, { x: scaleX + 3, y }, { x: right, y }, { kind: 'short', weight: 0.3 });
-        }
-      }
-    }
-    plateText(ctx, 'HORIZON', right, horizonY - (compact ? 7 : 9), {
-      size: compact ? 7 : 7.5, align: 'right',
-    });
-    plateText(ctx, 'OVERHEAD', right, topY - (compact ? 7 : 9), {
-      size: compact ? 7 : 7.5, align: 'right',
-    });
-
-    // the star stands mid-panel, moved left only as far as its stacked
-    // readout needs to stay inside the frame
-    const readoutW = plateTextWidth(ctx, 'ALTITUDE', { size: compact ? 7 : 7.5 }) + (compact ? 10 : 13) + 6;
-    const starX = Math.max(scaleX + 14, Math.min((scaleX + right) / 2 + (compact ? 0 : 6), box.x + box.w - readoutW));
-    if (alt >= 0) {
-      const sy = yOf(alt);
-      // a measured mark from the horizon up to the star
-      plateLine(ctx, { x: starX, y: horizonY }, { x: starX, y: sy + 9 }, { kind: 'long', weight: 0.7 });
-      starGlyph(ctx, starX, sy, compact ? 5.5 : 7, PLATE.ink);
-      // low stars lift their figure clear of the HORIZON label
-      const ay = clamp(sy, topY + 4, horizonY - (compact ? 18 : 24));
-      // "ALTITUDE 65°" sits right of the star, or left of it when the
-      // widest reading would run past the panel; sized on "90°" so it never
-      // switches sides as the number changes
-      const wSize = compact ? 7 : 7.5, nSize = compact ? 8.5 : 10;
-      const wordW = plateTextWidth(ctx, 'ALTITUDE', { size: wSize });
-      const numW = plateTextWidth(ctx, '90°', { size: nSize, weight: 700, font: PLATE.dataFont, uppercase: false, tracking: 0 });
-      const gapX = compact ? 10 : 13;
-      const room = box.x + box.w - 6 - (starX + gapX);
-      const ax = starX + gapX;
-      if (wordW + 5 + numW <= room) {
-        plateText(ctx, 'ALTITUDE', ax, ay, { size: wSize });
-        plateDataText(ctx, fmtDeg(alt), ax + wordW + 5, ay, { size: nSize, weight: 700 });
-      } else {
-        // a narrow panel stacks the word over the number, still right of the star
-        const lh = plateSize(wSize) * 0.75;
-        // two lines need more clearance above the HORIZON label
-        const sy2 = Math.min(ay, horizonY - (compact ? 26 : 34));
-        plateText(ctx, 'ALTITUDE', ax, sy2 - lh, { size: wSize });
-        plateDataText(ctx, fmtDeg(alt), ax, sy2 + lh + 1, { size: nSize, weight: 700 });
-      }
-    } else {
-      plateText(ctx, 'BELOW THE HORIZON', starX, yOf(compact ? 30 : 22), {
-        size: compact ? 7.5 : 8.5, weight: 600, align: 'center',
-      });
-    }
+    // the detail faces the way Polaris lies from you on the page
+    // the detail faces the GP: on its right you look back left to the star.
+    // It turns only when you cross the GP, not as the horizon tilts.
+    return { mirror: side > 0 };
   }
 })();
