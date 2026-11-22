@@ -51,6 +51,7 @@
   // pointer; dragging the globe walks you around it
   onDetailDrag(d, a => lat.set(snapLat(clamp(a, 0, 90)), { emit: false }));
   addDrag(d.canvas, {
+    hit: p => nearGrab(p, geo && geo.grab),
     move(p) {
       if (!geo) return;
       let fromGp = Math.atan2(p.y - geo.cy, p.x - geo.cx) - geo.gpA;
@@ -128,6 +129,8 @@
     // local zenith: the centre line carried on out past the observer
     const zenithLen = Math.min(R * 0.42, compact ? 34 : 48);
     const zenithEnd = { x: you.x + Math.cos(a) * zenithLen, y: you.y + Math.sin(a) * zenithLen };
+    // a finger takes the observer, or the zenith line over them
+    geo.grab = [[you, zenithEnd]];
     plateLine(ctx, { x: cx, y: cy }, you, { kind: 'construction', weight: compact ? 0.6 : 0.75 });
     plateVector(ctx, you, zenithEnd, { kind: 'construction', weight: 0.75, head: compact ? 3 : 3.6 });
 

@@ -25,6 +25,8 @@
   d.canvas.classList.add('grab');
   let geo = null, pane = null;
   addDrag(d.canvas, {
+    // a finger takes the observer on the globe, or the sight line to the pole
+    hit: p => nearGrab(p, geo && [geo.globe.O, [geo.local, geo.local.tip]]),
     start(p) {
       if (geo) {
         pane = geo.layout === 'stacked'
@@ -453,7 +455,7 @@
       align: 'center',
     });
 
-    return { cx, cy };
+    return { cx, cy, O };
   }
 
   function drawPlateLocalAltitude(ctx, bounds, { compact, paired }) {
@@ -599,7 +601,7 @@
         align: 'center',
       });
 
-    return origin;
+    return { ...origin, tip: idealPole };
   }
 
   function drawPlatePolarisCaveat(ctx, bounds, compact) {

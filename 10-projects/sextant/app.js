@@ -1222,16 +1222,47 @@ function addCheck(d, lab, fn) {
   return { get v() { return input.checked; } };
 }
 
-/* pointer dragging (pos in css px, move gets deltas) */
+/* touch grab zones: on a phone a drag starts only on or near what it moves,
+   so a swipe anywhere else on a figure scrolls the page. Shapes are points
+   {x, y} and segments [a, b], in css px. */
+const TOUCH_REACH = 30;
+function nearGrab(p, shapes, reach = TOUCH_REACH) {
+  if (!shapes) return false;
+  for (const s of shapes) {
+    if (Array.isArray(s)) {
+      const [a, b] = s;
+      const dx = b.x - a.x, dy = b.y - a.y, L2 = dx * dx + dy * dy || 1;
+      const t = clamp(((p.x - a.x) * dx + (p.y - a.y) * dy) / L2, 0, 1);
+      if (Math.hypot(p.x - a.x - dx * t, p.y - a.y - dy * t) <= reach) return true;
+    } else if (Math.hypot(p.x - s.x, p.y - s.y) <= reach) return true;
+  }
+  return false;
+}
+
+/* pointer dragging (pos in css px, move gets deltas)
+   handlers.touch picks what a finger may do on the canvas:
+     'all'  (default) every touch drags; the canvas never scrolls the page
+     'hit'  only touches where handlers.hit(p) is true drag; others scroll
+     'x'    sideways swipes drag, up-and-down swipes scroll (scrubbers, globes)
+   a mouse always drags anywhere */
 function addDrag(canvas, handlers) {
-  let dragging = false, last = null, lastT = 0, speed = 0;
+  let dragging = false, last = null, lastT = 0, speed = 0, pending = null;
+  const touch = handlers.touch || (handlers.hit ? 'hit' : 'all');
+  canvas.style.touchAction = touch === 'x' ? 'pan-y' : touch === 'hit' ? 'manipulation' : 'none';
   const pos = e => {
     const r = canvas.getBoundingClientRect();
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   };
-  canvas.addEventListener('pointerdown', e => {
+  if (touch === 'hit') {
+    // the page scrolls unless the finger lands on a grab zone
+    canvas.addEventListener('touchstart', e => {
+      if (e.touches.length !== 1) return;
+      if (handlers.hit(pos(e.touches[0]))) e.preventDefault();
+    }, { passive: false });
+  }
+  const begin = (e, p) => {
     dragging = true;
-    last = pos(e);
+    last = p;
     // labels watch for the pointer slowing down (createPlateLabeler): this
     // is the last time it was moving quickly
     lastT = performance.now();
@@ -1239,10 +1270,28 @@ function addDrag(canvas, handlers) {
     canvas._plateDragFast = lastT;
     canvas.setPointerCapture(e.pointerId);
     canvas.classList.add('grabbing');
-    handlers.start && handlers.start(last);
+    handlers.start && handlers.start(p);
+  };
+  canvas.addEventListener('pointerdown', e => {
+    const p = pos(e);
+    if (e.pointerType === 'touch') {
+      if (touch === 'hit' && !handlers.hit(p)) return;
+      // wait to see which way the finger goes before taking hold
+      if (touch === 'x') { pending = { p, id: e.pointerId }; return; }
+    }
+    begin(e, p);
     e.preventDefault();
   });
   canvas.addEventListener('pointermove', e => {
+    if (pending && e.pointerId === pending.id) {
+      const dx = e.clientX - canvas.getBoundingClientRect().left - pending.p.x;
+      const dy = e.clientY - canvas.getBoundingClientRect().top - pending.p.y;
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      const from = pending.p;
+      pending = null;
+      if (Math.abs(dy) >= Math.abs(dx)) return;
+      begin(e, from);
+    }
     if (!dragging) return;
     const p = pos(e);
     const t = performance.now();
@@ -1254,6 +1303,7 @@ function addDrag(canvas, handlers) {
     last = p;
   });
   const up = () => {
+    pending = null;
     if (!dragging) return;
     dragging = false;
     canvas.classList.remove('grabbing');
@@ -1447,6 +1497,7 @@ function drawEarthCrust(ctx, cx, cy, R, thickness = 20) {
   d.canvas.classList.add('grab');
   let geo = null;
   addDrag(d.canvas, {
+    hit: p => nearGrab(p, geo && geo.grab),
     move(p) {
       if (!geo) return;
       if (geo.local && p.x >= geo.local.x) {
@@ -1810,6 +1861,11 @@ function drawEarthCrust(ctx, cx, cy, R, thickness = 20) {
     ctx.fill();
 
     geo = {
+      // a finger takes the observer on the globe, or the sight line
+      grab: [
+        [{ x: cx + (observer.x - cx) * 0.5, y: cy + (observer.y - cy) * 0.5 }, observer],
+        [localOrigin, rayEnd],
+      ],
       mode: 'proof',
       cx,
       cy,
