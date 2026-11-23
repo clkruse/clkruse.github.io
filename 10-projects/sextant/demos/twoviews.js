@@ -38,15 +38,26 @@
   let geo = null;
   let grab = null;
   d.canvas.classList.add('grab');
+  // the scale reading the pointer points at, seen from the pivot
+  const angleAt = p => {
+    let a = Math.atan2(p.y - geo.Pv.y, p.x - geo.Pv.x) - geo.phi0;
+    while (a > Math.PI) a -= TAU;
+    while (a < -Math.PI) a += TAU;
+    return a / geo.rate;
+  };
   addDrag(d.canvas, {
-    hit: p => nearGrab(p, geo && geo.grab),
-    start(p) { grab = true; this.move(p); },
+    hit: p => nearGrab(p, geo && [...geo.grab, ...(geo.label || [])]),
+    start(p) {
+      // taken by the reading under the scale, the arm keeps its place and
+      // turns by as much as the pointer does; taken by the arm, it follows
+      const byLabel = geo && geo.label && nearGrab(p, geo.label, 24) && !nearGrab(p, geo.grab);
+      grab = { off: 0 };
+      if (byLabel) grab.off = reading.v - angleAt(p);
+      this.move(p);
+    },
     move(p) {
       if (!geo || !grab) return;
-      let a = Math.atan2(p.y - geo.Pv.y, p.x - geo.Pv.x) - geo.phi0;
-      while (a > Math.PI) a -= TAU;
-      while (a < -Math.PI) a += TAU;
-      settle(a / geo.rate);
+      settle(angleAt(p) + grab.off);
     },
     end() { grab = null; },
   });
@@ -462,6 +473,10 @@
       ctx.save(); ctx.fillStyle = PLATE.paper; ctx.fillRect(armLab.x - vw / 2 - 3, armLab.y - plateSize(vs) * 0.6, vw + 6, plateSize(vs) * 1.2); ctx.restore();
       plateDataText(ctx, vt, armLab.x, armLab.y, { size: vs, weight: 700, align: 'center' });
       label('INDEX ARM · DRAG', armLab.x, armLab.y + (compact ? 14 : 17), { size: lsize, weight: 600, align: 'center' });
+      // the reading and its label are a handle too
+      const lw = plateTextWidth(ctx, 'INDEX ARM · DRAG', { size: lsize }) / 2;
+      const ly = armLab.y + (compact ? 7 : 8);
+      geo.label = [[{ x: armLab.x - lw, y: ly }, { x: armLab.x + lw, y: ly }]];
     }
 
     // ——— the eyepiece, in the caption ———

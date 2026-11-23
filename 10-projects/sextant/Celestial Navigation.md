@@ -4,23 +4,23 @@ How to use a sextant and the stars to figure out where you are on the Earth
 **Section 1: The fundamentals**
 
 **1\. Stellar ground positions and altitudes**  
-Imagine that you are standing at the center of a transparent earth looking outward at the stars. If you pointed a laser at a star, your ray would draw a straight line that passes through the surface of the earth at a single point. That point is called the star’s **ground position** or **GP** for short.
-<Figure showing a line from the center of the earth to a star. Figure caption: If you draw a line between the center of the earth and a star, it will intersect the surface of the earth at one point. That point is called the star's ground position.>
+Imagine that you are standing at the center of a transparent Earth looking outward at the stars. If you pointed a laser at a star, your ray would draw a straight line that passes through the surface of the Earth at a single point. That point is called the star’s **ground position** or **GP** for short.
+<Figure showing a line from the center of the Earth to a star. Figure caption: If you draw a line between the center of the Earth and a star, it will intersect the surface of the Earth at one point. That point is called the star's ground position.>
 
-Now let’s imagine that you traveled up that laser beam’s path to the star’s ground position on the earth’s surface. Where would you expect the star to be found?  You would find it directly overhead. This means that if you planted a flagpole at that spot, it would point right at the star. 
+Now let’s imagine that you traveled up that laser beam’s path to the star’s ground position on the Earth’s surface. Where would you expect the star to be found?  You would find it directly overhead. This means that if you planted a flagpole at that spot, it would point right at the star. 
 
 You can describe this star’s position in the sky with an angle. If looking level out at the horizon is 0°, then the flagpole is at a right angle to the horizon and points at 90°. This angle from the horizon to the direction of the star is called a star’s “altitude.”
-<Figure showing the earth's edge (like an arc of the earth), a horizon line, a star above, and an observer dot at the star's ground position. You can drag your view angle and see how many degrees it is when pointing directly at the star. Figure caption: The angle between the horizon and the star is called a star's altitude. When you are at the ground position of a star, it will be directly above you at 90°.>
+<Figure showing the Earth's edge (like an arc of the Earth), a horizon line, a star above, and an observer dot at the star's ground position. You can drag your view angle and see how many degrees it is when pointing directly at the star. Figure caption: The angle between the horizon and the star is called a star's altitude. When you are at the ground position of a star, it will be directly above you at 90°.>
 
 **2\. Finding your position by measuring a star’s altitude**  
-How does this fact help us use the stars to find out where on earth we’re located? One way to find your location would be to find a star that’s directly above you (90°), reference that star’s ground position in a book, and say that you are at the same location as the star’s known ground position.
+How does this fact help us use the stars to find out where on Earth we’re located? One way to find your location would be to find a star that’s directly above you (90°), reference that star’s ground position in a book, and say that you are at the same location as the star’s known ground position.
 
 But what if you don’t happen to be standing right on the ground position of a star? You’re still in luck, so long as you can precisely measure the star’s altitude. Let’s explore how a star’s altitude relates to how close you are to its ground position.
 
-Imagine once again that you’re standing on a star’s ground position and pointing straight up. This means that the star is 90° overhead. But what happens as you move away from the ground position? From your perspective, the horizon will always remain as a reference at 0°  as you move, and you’ll keep pointing directly overhead at 90°. But because the earth is round, the direction that you’re pointing in the sky will shift as your position changes. From an outside view, the direction you’re pointing overhead when at the North Pole will be completely different to the direction at the equator.
+Imagine once again that you’re standing on a star’s ground position and pointing straight up. This means that the star is 90° overhead. But what happens as you move away from the ground position? From your perspective, the horizon will always remain as a reference at 0°  as you move, and you’ll keep pointing directly overhead at 90°. But because the Earth is round, the direction that you’re pointing in the sky will shift as your position changes. From an outside view, the direction you’re pointing overhead when at the North Pole will be completely different to the direction at the equator.
 
 As you move on the round globe, it will seem as if the positions of the stars are moving. Let’s return to our original example. You start on the ground position of a star and then move away. As you do so, the star’s altitude will fall a little closer to the horizon. The star will continue to move lower in the sky until it disappears beyond the horizon. 
-<Figure showing a circle of the earth with the ground position of a star marked. Then, a position for the observer that slides around the globe. As you slide, the angle between the horizon and the star is shown. A paired figure along the side should somehow capture what this looks like from a first-person perspective. How you go from looking straight up at a star to seeing the star just above the horizon. Figure caption: The >
+<Figure showing a circle of the Earth with the ground position of a star marked. Then, a position for the observer that slides around the globe. As you slide, the angle between the horizon and the star is shown. A paired figure along the side should somehow capture what this looks like from a first-person perspective. How you go from looking straight up at a star to seeing the star just above the horizon. Figure caption: The >
 
 It's important to note that the altitude of the star is directly related to how far you've moved away from its ground position. You’ll notice that the star is directly overhead (90°) at the ground position, and then it falls lower in the sky as you move away. Travel 30° from the ground position, and the star's altitude will be 60°. Travel 70°, and the altitude will now be 20°. This continues until you've traveled 90° away from your starting position, where the star will be found right on the horizon (0°).
 
@@ -50,32 +50,33 @@ Let’s give this a try with two stars:
 
 These two locations of intersection are often quite far from one another. In most cases, you can simply rule out one of the two possibilities because it's so far away from your estimated position. Or, you can measure the altitude of a third star and draw another ring of position. These three rings will intersect at only a single point, and that represents your location.
 
-**4\. The sextant**
+**4\. How to measure angles precisely**
 We now understand how measuring a star's altitude above the horizon will enable you to determine your location. It's essential to do this very precisely and accurately. If your measurement of a star's altitude is off by only a half degree, your position will be off by about 30 miles! 
 
-How might we do this? You could imagine a system on land where a telescope is mounted on a level stand, and the angle that that the scope points is marked along an arc. You could look through the telescope and center the star in view, and then mark the angle between the flat ground and the telescope. This angle gives the star's altitude.
+How might we do this? You could imagine a system on land where a telescope is mounted on a level stand, and the angle that the scope points is marked along an arc. You could look through the telescope and center the star in view, and then mark the angle between the flat ground and the telescope. This angle gives the star's altitude.
 
-<insert figure showing a telescope and angle>
+<Figure 4-1, built: Measuring altitude on land. A telescope on a level stand, then on a rocking deck>
 
 This works on land, but celestial navigation was primarily developed to navigate at sea. Here, you need to measure this angle from a boat that's rocking on the waves. If you simply mounted a telescope to the deck, the angle between the deck and the star would constantly be changing as waves jostle the boat. You need to measure the angle between a fixed landmark and the star. In this case, the horizon works well as a stable and level reference.
 
-A sextant has been designed for exactly this purpose. It measures the angles between two objects precisely. A sextant is a telescope of a sort, but it shows two views side by side at the same time. One half of the view looks straight ahead while the other is a view deflected by a mirror at an angle. You can change the angle of the 
-Traditionally, you point the straight view to be fixed on the horizon while 
-<insert a figure showing the two views and how one comes from a deflected angle>
+**4\.1 The sextant**
 
- through its small telescope and you see the horizon straight ahead. Beside it, a pair of mirrors shows you the star. Swing the sextant's arm until the star appears to sit right on the horizon, then read the angle off the scale. That angle is the star's altitude.
+A sextant has been designed for exactly this purpose. A sextant is a telescope of a sort, but it looks at a mirror rather than directly at the sky. Instead of changing the angle of the telescope, you move and measure the angle of the mirror. But this mirror only covers half of the eyepiece. The other half is unobstructed, with the same straight view of a standard telescope. When the sextant mirror is set to 0°, both views look at the same spot. But when the mirror is tilted, the view on one half is deflected.
 
-Because the star and the horizon are in the same view, they rock together with the boat, and the angle between them stays steady. With practice, a sight is good to about one arcminute, or about one nautical mile. At the moment the star touches the horizon, note the exact time. We'll see why that matters soon.
+How does this help us make a measurement of a star's altitude? The innovation here is that the two views allow us to precisely measure the angles between two objects. You can point one view at the horizon, and deflect the mirror until the star comes into view and settles at the exact same height as the horizon line on the other half. The angle of the mirror now corresponds to the angle between the horizon and the star. Because the star and the horizon are in the same view, they rock together with the boat and the angle between them remains steady. 
+<Figure 4-2, built: Two views at once. The sextant's straight and deflected lines of sight, with the eyepiece view>
 
 **5\. Now you know the fundamentals**
-This is all that you need to conceptually understand the entire system. Measure the altitude of two or three stars with a sextant, look up where each star's GP was at the moment of measurement, draw the circles, and find where the circles cross.
+This is all that you need to conceptually understand the entire system. Measure the altitude of two or three stars with a sextant and look up each star's GP. Using the GP as the center and 90 - altitude as the radius, draw the circles. Find where the circles cross to identify your location.
 
-The next sections will go into some of the additional pieces of celestial navigation that are needed in practice.
+This is the core premise, but there are some additional elements that are needed in practice.
 
 **Section 2: The full picture**
 
 **6\. The stars move!**
-All of our previous explanations made the simplifying assumption that a star's ground position is one fixed location on earth. However, this is not the case. The location of the stars are fixed in the sky, but the earth rotates. This means that the ground position of a star will move to the west. For the longitude of a star at the equator, the ground position moves by about one mile every four seconds. Because the earth rotates on an axis, a star's latitude remains constant.
+All of our previous explanations made the simplifying assumption that a star's ground position is one fixed location on the Earth. However, this is not the case. The location of the stars are fixed in the sky, but the Earth rotates. This means that the ground position of a star will move to the west. For the longitude of a star at the equator, the ground position moves by about one mile every four seconds. Because the Earth rotates on an axis, a star's latitude remains constant.
+
+<Figure 6-1, built: The Earth turns under the starlight. The globe from the side under fixed starlight. The GP stays put while the ground turns east beneath it, leaving the GP's track along one parallel>
 
 In practice, this means that taking a sextant sight and drawing a circle of position requires that you know the exact time that you took that sight, and that you have the ability to look up the ground position of that star at that specific time.
 
@@ -84,7 +85,7 @@ As an aside, this is why the development of celestial navigation relied upon acc
 **7\. How do you look up stellar ground positions?**
 I've simplified the idea that we can take a sight and then look up that star's ground position in a magical book. Consider for a moment what this book would need to look like. It would need to list ground positions for hundreds of stars every hour for each day of the year. This would add up to a table with something like a million rows and thousands of printed pages. That would clearly be infeasible. We need a more-efficient way to go about representing this information. 
 
-It turns out that all the stars move at the same rate. The stars are fixed in the sky while earth rotates. If the ground position of one star moves west by 10°, the ground positions of all the other stars will move by 10° to the west as well. This allows us to simply list the position of a single reference star hour by hour in a book, and then have a table with a row for each star in the sky that lists a constant offset between it and the reference.
+It turns out that all the stars move at the same rate. The stars are fixed in the sky while Earth rotates. If the ground position of one star moves west by 10°, the ground positions of all the other stars will move by 10° to the west as well. This allows us to simply list the position of a single reference star hour by hour in a book, and then have a table with a row for each star in the sky that lists a constant offset between it and the reference.
 
 For reasons that we don't need to detail, astronomers and navigators settled on using a point in the sky called Aries as this constant reference. The Nautical Almanac will list the position of Aries each hour of the day across a year, and have a table of offsets for something like 60 stars of interest. You mark the time of day for your sight, look up the position of Aries at that time, and then add the offset for your star of interest to find the longitude of your star's ground position. Latitude is simply listed in the book as it varies little over the course of a day. 
 
@@ -102,7 +103,7 @@ Let's work through an example. As a reminder, our goal here is to draw a circle 
 3. You need to account for the 45 minutes and 12 seconds of movement since 5:00 am. In the back of the almanac, there is an "Increments and Corrections" table. There, you will find an increment of 11° 19.9'. 
 4. Add this to your original longitude of Aries. 309° 10.0' + 11° 19.9' = 320° 29.9'. You now know a precise ground position of Aries at the time of your measurement.
 5. Aries is our reference point, but we want to know the position of Vega. In the almanac, we see that Vega is 80° 32.8' from Aries. We add this offset to the position of Aries to find the longitude of Vega. 320° 29.9' + 80° 32.8' = 400° 62.7'.
-6. The earth only has 360°, and there are only 60 arcminutes in a degree. If your measurement exceeds 360°, you wrap around to 0°. If your minutes are greater than 60, you add a full degree and start from 0'. In this case, 400° 62.7' - 360° => 40° 62.7' = 41° 2.7'.
+6. The Earth only has 360°, and there are only 60 arcminutes in a degree. If your measurement exceeds 360°, you wrap around to 0°. If your minutes are greater than 60, you add a full degree and start from 0'. In this case, 400° 62.7' - 360° => 40° 62.7' = 41° 2.7'.
 7. You now have the longitude of Vega, the star that you measured with the sextant. You now know that it lies at a longitude of 41° 2.7' W (the almanac measures these angles westward from Greenwich). Its latitude is written in the Nautical Almanac as 38° 48.1'. At last, you know the ground position of your star.
 8. The last step is to draw a circle of possible locations where Vega would be seen at 35.5° at this time. To do so, set your compass drawing tool to an angle of 54.5° (90° - 35.5°), set its point at the ground position of Vega, and draw a circle. Any point on this line is a valid position.
 
