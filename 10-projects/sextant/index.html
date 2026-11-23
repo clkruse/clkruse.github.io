@@ -7,7 +7,26 @@
   <title>Celestial Navigation – Caleb Kruse</title>
   <meta name="description"
     content="An interactive explainer on how a sextant, a clock, and the stars can pin down your position on the open ocean to within a mile or two.">
-  <link rel="icon" href="data:,">
+  <link rel="canonical" href="https://calebkruse.com/10-projects/sextant/">
+  <link rel="icon" href="assets/favicon-32.png" sizes="32x32" type="image/png">
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="calebkruse.com">
+  <meta property="og:title" content="Celestial Navigation">
+  <meta property="og:description"
+    content="An interactive explainer on how a sextant, a clock, and the stars can pin down your position on the open ocean to within a mile or two.">
+  <meta property="og:url" content="https://calebkruse.com/10-projects/sextant/">
+  <meta property="og:image" content="https://calebkruse.com/10-projects/sextant/assets/og-card.png">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Celestial Navigation: a globe with two stars, their ground positions, and two rings of position crossing where you are">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Celestial Navigation">
+  <meta name="twitter:description"
+    content="An interactive explainer on how a sextant, a clock, and the stars can pin down your position on the open ocean to within a mile or two.">
+  <meta name="twitter:image" content="https://calebkruse.com/10-projects/sextant/assets/og-card.png">
   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-105607174-2"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -218,7 +237,7 @@
       only a single point, and that represents your location.
     </p>
 
-    <h2 id="measuring-altitude"><span class="sec-no">4.0</span><span class="sec-title">The sextant</span></h2>
+    <h2 id="measuring-altitude"><span class="sec-no">4.0</span><span class="sec-title">How to measure angles precisely</span></h2>
 
     <p>
       We now understand how measuring a star’s altitude above the horizon will enable you to determine your
@@ -249,12 +268,25 @@
       well as a stable and level reference.
     </p>
 
+    <h3 class="sub" id="sextant"><span class="sec-no">4.1</span><span class="sec-title">The sextant</span></h3>
+
     <aside class="gloss"><span class="gloss-term">Sextant</span>A handheld instrument that measures the angle between a star and the horizon with two mirrors and a small telescope.</aside>
     <p>
-      A sextant has been designed for exactly this purpose. It measures the angles between two objects
-      precisely. A sextant is a telescope of a sort, but it shows two views side by side at the same time. One
-      half of the view is that of a small telescope while the other is a view deflected by a mirror at an
-      angle.
+      A sextant has been designed for exactly this purpose. A sextant is a telescope of a sort, but it
+      looks at a mirror rather than directly at the sky. Instead of changing the angle of the
+      telescope, you move and measure the angle of the mirror. But this mirror only covers half of the
+      eyepiece. The other half is unobstructed, with the same straight view of a standard telescope. When the
+      sextant mirror is set to 0°, both views look at the same spot. But when the mirror is tilted, the view on
+      one half is deflected.
+    </p>
+
+    <p>
+      How does this help us make a measurement of a star’s altitude? The innovation here is that the two views
+      allow us to precisely measure the angles between two objects. You can point one view at the horizon, and
+      deflect the mirror until the star comes into view and settles at the exact same height as the horizon
+      line on the other half. The angle of the mirror now corresponds to the angle between the horizon and the
+      star. Because the star and the horizon are in the same view, they rock together with the boat and the
+      angle between them remains steady.
     </p>
 
     <figure class="demo" id="demo-twoviews">
@@ -263,28 +295,6 @@
         <div class="demo-controls"></div>
       </div>
       <figcaption><span class="fig-title">Two views at once</span> One half of the view looks straight ahead at the horizon. The other half is turned up by a pair of mirrors. Drag the arm until the star sits on the horizon: the angle it is turned through is the star’s altitude.</figcaption>
-    </figure>
-
-    <p>
-      Look through its small telescope and you see the horizon straight ahead. Beside it, a pair of mirrors
-      shows you the star. Swing the sextant’s arm until the star appears to sit right on the horizon, then
-      read the angle off the scale. That angle is the star’s altitude.
-    </p>
-
-    <aside class="gloss"><span class="gloss-term">Arcminute</span>One sixtieth of a degree. On Earth’s surface it spans about one nautical mile.</aside>
-    <p>
-      Because the star and the horizon are in the same view, they rock together with the boat, and the angle
-      between them stays steady. With practice, a sight is good to about one arcminute, or about one nautical
-      mile. At the moment the star touches the horizon, note the exact time. We’ll see why that matters soon.
-    </p>
-
-    <figure class="demo" id="demo-scope">
-      <div class="demo-panel">
-        <canvas></canvas>
-        <div class="demo-controls"></div>
-      </div>
-      <figcaption><span class="fig-title">The view through the telescope</span> The view through the telescope. Bring the star down to the horizon, then record the reading and
-        the time.</figcaption>
     </figure>
 
     <h2 id="fundamentals"><span class="sec-no">5.0</span><span class="sec-title">Now you know the fundamentals</span></h2>
@@ -317,8 +327,7 @@
         <canvas></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption><span class="fig-title">The ground position moves west</span> As the Earth turns, the star’s ground position slides west along a line of constant
-        latitude.</figcaption>
+      <figcaption><span class="fig-title">The Earth turns under the starlight</span> The starlight holds still, so the GP stays put on the page. The ground turns east beneath it, and the GP’s track is left behind on the ground, along one parallel. Drag the globe to turn it.</figcaption>
     </figure>
 
     <p>
@@ -564,7 +573,6 @@
   <script src="demos/fix.js" defer></script>
   <script src="demos/stand.js" defer></script>
   <script src="demos/twoviews.js" defer></script>
-  <script src="demos/scope.js" defer></script>
   <script src="demos/motion.js" defer></script>
   <script src="demos/samesky.js" defer></script>
   <script src="demos/clock.js" defer></script>

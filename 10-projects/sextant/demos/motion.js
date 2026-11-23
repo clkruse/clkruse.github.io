@@ -1,224 +1,249 @@
 'use strict';
-/* The inconvenient fact, anchored to the worked Vega sight: Earth turns
-   under the nearly rigid star field, carrying Vega's GP west at the shared
-   sidereal rate while its declination stays effectively fixed. */
+/* §6, "The stars move!": a star's ground position is fixed in space (it is
+   wherever the line from Earth's center to the star meets the surface), but
+   the Earth turns under it. The globe is seen from the side under fixed
+   starlight, as in Figures 1-1 and 3-1: the GP stays put on the page while
+   the ground turns east beneath it, and its track is left on the ground
+   along one parallel. One generic star at 40° N; its GP starts at 30° W. */
 
-(function demoMotion() {
-  const d = createDemo('demo-motion', {
-    aspect: 1.5,
-    maxH: 510,
-    draw,
-  });
+const MOTION = (() => {
+  const RATE = 360 / 23.9344696;        // degrees of Earth rotation per hour
+  const DEC = 40;
+  const LON0 = -30;
+  const MAX_H = 24;
 
-  let sight = SIGHT_STORY.state;
-  const STELLAR_RATE = SIGHT_STORY.constants.stellarRate;
-  const MAX_HOURS = 8;
-  const hours = addSlider(d, {
-    label: 'hours after the sight',
-    min: 0,
-    max: MAX_HOURS,
-    step: 1 / 60,
-    value: 0,
-    fmt: v => {
-      const hh = Math.floor(v);
-      const mm = Math.round((v - hh) * 60);
-      return `${hh}h ${String(mm).padStart(2, '0')}m`;
-    },
-  });
+  const wrap180 = l => {
+    const x = ((((l + 180) % 360) + 360) % 360) - 180;
+    return x === -180 ? 180 : x;
+  };
+  const lonText = l => {
+    const x = wrap180(l);
+    const a = Math.abs(x);
+    return a < 0.05 ? '0.0°' : `${a.toFixed(1)}° ${x < 0 ? 'W' : 'E'}`;
+  };
+  const fmtH = v => {
+    let hh = Math.floor(v);
+    let mm = Math.round((v - hh) * 60);
+    if (mm === 60) { hh += 1; mm = 0; }
+    return `${hh}h ${String(mm).padStart(2, '0')}m`;
+  };
 
-  SIGHT_STORY.subscribe(state => { sight = state; });
-
-  function draw(ctx, w, h) {
-    drawSiderealRatePlate(ctx, w, h);
-  }
-
-  // GHA runs 0–360° west of Greenwich; as a longitude it is west up to
-  // 180° and east beyond
-  const lonText = gha => gha <= 180
-    ? `${fmtDM(gha, 1)} W`
-    : `${fmtDM(360 - gha, 1)} E`;
-
-  // largest nominal size (down to a floor) at which a line fits its column
-  function fitSize(ctx, text, width, size, opts = {}) {
-    let fitted = size;
-    while (fitted > size * 0.72
-      && plateTextWidth(ctx, text, { ...opts, size: fitted }) > width) fitted -= 0.25;
-    return fitted;
-  }
-
-  function drawSiderealRatePlate(ctx, w, h) {
-    ctx.fillStyle = PLATE.paper;
-    ctx.fillRect(0, 0, w, h);
-
-    const compact = w < 500 || h < 330;
-    const bodySize = compact ? 8 : 9.2;
-    const dataSize = compact ? 8 : 9;
-    // the figure's title is set in its caption, so the field starts at the top
-    const fieldTop = compact ? 10 : 16;
-    const ruleY = h - (compact ? 42 : 54);
-    const fieldBottom = ruleY - (compact ? 5 : 9);
-    const fieldH = fieldBottom - fieldTop;
-    const cx = w * (compact ? 0.245 : 0.30);
-    const cy = fieldTop + fieldH * (compact ? 0.49 : 0.54);
-    const R = Math.max(25, Math.min(
-      w * (compact ? 0.13 : 0.18),
-      fieldH * (compact ? 0.31 : 0.37)
-    ));
-    const rightX = w * (compact ? 0.445 : 0.56);
-    const rightW = w - rightX - (compact ? 7 : 14);
-    const moved = Math.max(0, hours.v * STELLAR_RATE);
-    const startA = -Math.PI / 2;
-    const movedA = startA + moved * D2R;
-    const wrap360 = value => ((value % 360) + 360) % 360;
-    const currentGha = wrap360(sight.gha + moved);
-
-    plateText(ctx, compact ? 'GP TRAVEL' : 'VEGA’S GP TRAVEL AROUND EARTH',
-      cx, fieldTop + (compact ? 5 : 8), {
-        size: bodySize, align: 'center', underline: !compact,
-      });
-
+  // a run of points; null lifts the pen
+  function polyline(ctx, pts, { kind = 'solid', weight = 1 } = {}) {
     ctx.save();
-    ctx.fillStyle = PLATE.paper;
     ctx.strokeStyle = PLATE.ink;
-    ctx.lineWidth = compact ? 1.35 : 1.7;
+    ctx.lineWidth = weight;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.setLineDash(plateDash(kind));
     ctx.beginPath();
-    ctx.arc(cx, cy, R, 0, TAU);
-    ctx.fill();
+    let pen = false;
+    for (const p of pts) {
+      if (!p) { pen = false; continue; }
+      if (pen) ctx.lineTo(p.x, p.y);
+      else { ctx.moveTo(p.x, p.y); pen = true; }
+    }
     ctx.stroke();
     ctx.restore();
+  }
 
-    for (let degree = 0; degree < 360; degree += 15) {
-      const a = startA + degree * D2R;
-      const major = degree % 90 === 0;
-      plateLine(ctx, {
-        x: cx + Math.cos(a) * R * (major ? 0.80 : 0.91),
-        y: cy + Math.sin(a) * R * (major ? 0.80 : 0.91),
-      }, {
-        x: cx + Math.cos(a) * R,
-        y: cy + Math.sin(a) * R,
-      }, { weight: major ? (compact ? 0.7 : 0.9) : 0.4 });
+  // coastlines in thin ink. project(lat, lon) gives a point, or null where
+  // it is out of sight; jump(lonA, lonB) lifts the pen across a map's seam
+  function strokeLand(ctx, project, weight, jump) {
+    const pts = [];
+    for (const ring of LAND) {
+      let prev = null;
+      for (let i = 0; i < ring.length; i += 2) {
+        const lon = ring[i];
+        if (jump && prev !== null && jump(prev, lon)) pts.push(null);
+        pts.push(project(ring[i + 1], lon));
+        prev = lon;
+      }
+      pts.push(null);
     }
+    polyline(ctx, pts, { weight });
+  }
 
-    plateLine(ctx, { x: cx, y: cy }, {
-      x: cx, y: cy - R,
-    }, { kind: 'construction', weight: compact ? 0.55 : 0.7 });
-    plateVector(ctx, { x: cx, y: cy }, {
-      x: cx + Math.cos(movedA) * R * 0.88,
-      y: cy + Math.sin(movedA) * R * 0.88,
-    }, { kind: 'long', weight: compact ? 0.9 : 1.1, head: compact ? 3.1 : 4 });
-
-    if (moved > 0.25) {
-      ctx.save();
-      ctx.strokeStyle = PLATE.ink;
-      ctx.lineWidth = compact ? 1.35 : 1.75;
-      ctx.beginPath();
-      ctx.arc(cx, cy, R * 0.52, startA, movedA, false);
-      ctx.stroke();
-      ctx.restore();
-      plateArrowhead(ctx, {
-        x: cx + Math.cos(movedA) * R * 0.52,
-        y: cy + Math.sin(movedA) * R * 0.52,
-      }, movedA + Math.PI / 2, compact ? 3 : 3.8);
-    }
-
+  function dot(ctx, p, r) {
     ctx.save();
     ctx.fillStyle = PLATE.ink;
     ctx.beginPath();
-    ctx.arc(cx, cy, compact ? 1.7 : 2.2, 0, TAU);
+    ctx.arc(p.x, p.y, r, 0, TAU);
     ctx.fill();
+    ctx.restore();
+  }
+
+  function ring(ctx, p, r, { dashed = false, weight = 1.1 } = {}) {
+    ctx.save();
     ctx.strokeStyle = PLATE.ink;
-    ctx.lineWidth = compact ? 0.8 : 1;
+    ctx.fillStyle = PLATE.paper;
+    ctx.lineWidth = weight;
+    if (dashed) ctx.setLineDash(plateDash('short'));
     ctx.beginPath();
-    ctx.arc(cx, cy - R, compact ? 2.5 : 3.2, 0, TAU);
+    ctx.arc(p.x, p.y, r, 0, TAU);
+    ctx.fill();
     ctx.stroke();
     ctx.restore();
+  }
 
-    plateText(ctx, 'SIGHT', cx, cy - R - (compact ? 8 : 12), {
-      size: bodySize, align: 'center',
+  // text hung off an anchor in a direction, easing from right- through
+  // centre- to left-aligned as the direction turns, as in Figure 1-1
+  function hang(ctx, text, anchor, dir, { size = 9, weight = 500, gap = 5, bounds = null } = {}) {
+    const tw = plateTextWidth(ctx, text, { size, weight });
+    const lh = plateSize(size) * 1.2;
+    const kx = clamp(dir.x / 0.6, -1, 1);
+    const ky = clamp(dir.y / 0.6, -1, 1);
+    let x = anchor.x + kx * (tw / 2 + gap);
+    const y = anchor.y + ky * (lh / 2 + gap * 0.6) * (1 - Math.abs(kx) * 0.75);
+    if (bounds) x = clamp(x, bounds.x + tw / 2 + 2, bounds.x + bounds.w - tw / 2 - 2);
+    plateText(ctx, text, x, y, { size, weight, align: 'center' });
+    return { x: x - tw / 2, y: y - lh / 2, w: tw, h: lh };
+  }
+
+  function heading(ctx, x, y, text, compact) {
+    plateText(ctx, text, x, y, { size: compact ? 8 : 9, weight: 600, align: 'center' });
+  }
+
+  // text on a paper ground, so it reads over coastlines and grid
+  function backedText(ctx, text, x, y, opts) {
+    const tw = plateTextWidth(ctx, text, opts);
+    const th = plateSize(opts.size) * 1.25;
+    const align = opts.align || 'left';
+    const left = align === 'center' ? x - tw / 2 : align === 'right' ? x - tw : x;
+    ctx.save();
+    ctx.fillStyle = PLATE.paper;
+    ctx.fillRect(left - 3, y - th / 2, tw + 6, th);
+    ctx.restore();
+    plateText(ctx, text, x, y, opts);
+  }
+
+  return { RATE, DEC, LON0, MAX_H, lonText, fmtH, strokeLand, dot, ring, hang, heading, backedText };
+})();
+
+(function demoMotion() {
+  const M = MOTION;
+  const TILT = 18;
+  const d = createDemo('demo-motion', {
+    aspect: 1.5, maxH: 460, compactAspect: 0.85, compactMaxH: 520, draw,
+  });
+  const hours = addSlider(d, {
+    label: 'hours', min: 0, max: M.MAX_H, step: 1 / 60, value: 3, fmt: M.fmtH,
+  });
+  const lonStat = addStat(d, 'GP longitude');
+  const latStat = addStat(d, 'GP latitude');
+  let geo = null;
+  d.canvas.classList.add('grab');
+  addDrag(d.canvas, {
+    touch: 'x',
+    move(p, dp) {
+      if (!geo) return;
+      // the ground follows the pointer: drag right to turn the Earth east
+      hours.set(clamp(hours.v + dp.dx / geo.R * R2D / M.RATE, 0, M.MAX_H));
+    },
+  });
+
+  function draw(ctx, w, h) {
+    ctx.fillStyle = PLATE.paper;
+    ctx.fillRect(0, 0, w, h);
+    const compact = w < 500;
+    const size = compact ? 8 : 9;
+    const pad = compact ? 10 : 16;
+    M.heading(ctx, w / 2, pad + 4, 'THE STARLIGHT HOLDS STILL · THE EARTH TURNS UNDER IT', compact);
+    const starR = compact ? 7 : 9;
+    const starY = pad + (compact ? 30 : 36) + starR;
+    const rayTop = starY + starR + 6;
+    const below = compact ? 46 : 56;
+    const R = Math.max(40, Math.min(w * (compact ? 0.4 : 0.27), (h - rayTop - below - 24) / 2));
+    const cx = w / 2;
+    const cy = h - below - R;
+    geo = { R };
+
+    const moved = hours.v * M.RATE;
+    const scene = drawPlateGlobeFrame(ctx, { spin: -M.LON0 + moved, tilt: TILT }, cx, cy, R, compact, {
+      showCenter: false,
+      gridLatitudes: [-60, -30, 0, 30, 60],
+      gridLongitudeStep: 30,
+      // canvas ignores a zero line width, so the far side's grid is drawn
+      // at a hairline too faint to see
+      gridHiddenWeight: 0.01,
+      gridVisibleWeight: compact ? 0.3 : 0.36,
+      outlineWeight: compact ? 1.4 : 1.7,
     });
-    const gpLabelY = cy + R + (compact ? 9 : 14);
-    if (moved < 0.05) {
-      plateText(ctx, 'GP AT SIGHT', cx, gpLabelY, {
-        size: bodySize, align: 'center',
-      });
-    } else {
-      const direct = 'GP NOW';
-      const value = `+${moved.toFixed(1)}° west`;
-      const directOpts = { size: bodySize };
-      const valueOpts = {
-        size: dataSize, font: PLATE.dataFont, tracking: 0, uppercase: false,
-      };
-      const gap = compact ? 3 : 4;
-      const directW = plateTextWidth(ctx, direct, directOpts);
-      const valueW = plateTextWidth(ctx, value, valueOpts);
-      const labelX = cx - (directW + gap + valueW) / 2;
-      plateText(ctx, direct, labelX, gpLabelY, directOpts);
-      plateDataText(ctx, value, labelX + directW + gap, gpLabelY, {
-        size: dataSize,
-      });
+    const pr = scene.project;
+    M.strokeLand(ctx, (lat, lon) => { const q = pr(lat, lon); return q.front ? q : null; }, compact ? 0.5 : 0.6);
+
+    // the GP's parallel
+    const par = [];
+    for (let lon = -180; lon <= 180; lon += 3) par.push(pr(M.DEC, lon));
+    strokePlateHemisphere(ctx, par, true, { kind: 'long', weight: compact ? 0.55 : 0.7 });
+
+    // the GP's track over the ground, solid in front and dashed behind
+    const track = [];
+    const steps = Math.max(2, Math.ceil(moved));
+    for (let i = 0; i <= steps; i++) track.push(pr(M.DEC, M.LON0 - moved * i / steps));
+    strokePlateHemisphere(ctx, track, false, { kind: 'short', weight: 0.75 });
+    strokePlateHemisphere(ctx, track, true, { weight: compact ? 1.8 : 2.2 });
+    for (let k = 1; k * M.RATE <= moved + 1e-6; k++) {
+      const lon = M.LON0 - k * M.RATE;
+      const q = pr(M.DEC, lon);
+      if (!q.front) continue;
+      const q2 = pr(M.DEC, lon + 1);
+      const tt = norm({ x: q2.x - q.x, y: q2.y - q.y });
+      const tk = compact ? 3.5 : 4.5;
+      plateLine(ctx, { x: q.x - tt.y * tk, y: q.y + tt.x * tk }, { x: q.x + tt.y * tk, y: q.y - tt.x * tk },
+        { weight: compact ? 0.7 : 0.85 });
+    }
+    const start = pr(M.DEC, M.LON0);
+    if (moved > 2) M.ring(ctx, start, compact ? 3.2 : 4, { dashed: !start.front, weight: start.front ? 1.1 : 0.8 });
+
+    // starlight straight out from the GP, which stays put on the page
+    const gp = pr(M.DEC, M.LON0 - moved);
+    const u = norm({ x: gp.x - cx, y: gp.y - cy });
+    const len = (gp.y - rayTop) / -u.y;
+    const rayEnd = { x: gp.x + u.x * len, y: gp.y + u.y * len };
+    plateVector(ctx, gp, rayEnd, { kind: 'long', weight: compact ? 0.8 : 1, head: compact ? 3.2 : 4 });
+    const star = { x: rayEnd.x + u.x * ((rayTop - starY) / -u.y), y: starY };
+    starGlyph(ctx, star.x, star.y, starR, PLATE.ink);
+    M.dot(ctx, gp, compact ? 2.8 : 3.4);
+
+    // the turn, as an arrow round the axis under the globe
+    const ay = cy + R + (compact ? 14 : 18);
+    const rx = R * 0.5, ry = compact ? 6 : 8;
+    ctx.save();
+    ctx.strokeStyle = PLATE.ink;
+    ctx.lineWidth = compact ? 0.9 : 1.1;
+    ctx.beginPath();
+    ctx.ellipse(cx, ay - ry, rx, ry, 0, Math.PI * 0.92, Math.PI * 0.1, true);
+    ctx.stroke();
+    ctx.restore();
+    const ea = Math.PI * 0.1;
+    const tip = { x: cx + rx * Math.cos(ea), y: ay - ry + ry * Math.sin(ea) };
+    plateArrowhead(ctx, tip, Math.atan2(ry * Math.cos(ea), -rx * Math.sin(ea)), compact ? 4 : 5);
+    plateText(ctx, 'EARTH TURNS EAST', cx, ay + (compact ? 10 : 13), { size, weight: 600, align: 'center' });
+
+    // labels
+    const bounds = { x: pad, w: w - pad * 2 };
+    M.hang(ctx, 'STAR', { x: star.x + starR + 2, y: star.y }, { x: 1, y: 0 }, { size, weight: 600, gap: 4 });
+    // the starlight is named where it runs clear of the globe
+    const limbTop = cy - Math.sqrt(Math.max(0, R * R - (rayEnd.x - cx) ** 2));
+    if (limbTop - rayTop > 16) {
+      plateText(ctx, 'STARLIGHT', rayEnd.x - 6, (limbTop + rayTop) / 2, { size: size - 0.5, align: 'right' });
+    }
+    // the track always runs east of the GP, so its name sits to the west
+    M.backedText(ctx, compact ? 'GP' : 'GP · STAYS UNDER THE STAR', gp.x - 8, gp.y - (compact ? 8 : 10),
+      { size, weight: 600, align: 'right' });
+    if (moved > 12 && start.front) {
+      M.backedText(ctx, 'GP AT 0 h', clamp(start.x, bounds.x + 30, bounds.x + bounds.w - 30), start.y + (compact ? 11 : 13),
+        { size: size - 0.5, align: 'center' });
+    }
+    // the parallel, named at its left end
+    let left = null;
+    for (const q of par) if (q.front && (!left || q.x < left.x)) left = q;
+    if (left && !compact) {
+      plateText(ctx, `${M.DEC}° N`, left.x - 6, left.y, { size: size - 1, align: 'right' });
     }
 
-    // right column flows top to bottom so the larger plate text never
-    // collides: why-box, the GP's latitude, then the elapsed-time scale
-    const boxY = fieldTop + (compact ? 2 : 5);
-    const why = compact
-      ? ['EARTH TURNS EAST.', 'THE GP MOVES WEST.', 'ITS LATITUDE HOLDS.']
-      : ['EARTH TURNS EAST.', 'THE POINT UNDER VEGA MOVES WEST.', 'ITS LATITUDE STAYS FIXED.'];
-    const boxH = plateBox(ctx, rightX, boxY, rightW, why, {
-      title: 'WHY THE GP MOVES',
-      size: bodySize,
-      lineHeight: compact ? 9.5 : 13,
-      padding: compact ? 6 : 8,
-    });
-
-    const latLabel = 'LATITUDE OF THE GP';
-    const latValue = `${fmtDM(Math.abs(sight.dec), 1)} ${sight.dec < 0 ? 'S' : 'N'}, unchanged`;
-    const latY = boxY + boxH + (compact ? 13 : 22);
-    plateText(ctx, latLabel, rightX, latY, { size: bodySize, weight: 600 });
-    plateDataText(ctx, latValue, rightX, latY + (compact ? 12 : 17), {
-      size: fitSize(ctx, latValue, rightW, dataSize, { font: PLATE.dataFont, tracking: 0, uppercase: false }),
-    });
-
-    const scaleY = fieldBottom - (compact ? 12 : 22);
-    const scaleTitle = 'HOURS AFTER THE SIGHT';
-    plateText(ctx, scaleTitle, rightX + rightW / 2, scaleY - (compact ? 16 : 20), {
-      size: bodySize, weight: 600, align: 'center',
-    });
-    const scaleX0 = rightX + (compact ? 5 : 9);
-    const scaleX1 = rightX + rightW - (compact ? 5 : 9);
-    plateLine(ctx, { x: scaleX0, y: scaleY }, {
-      x: scaleX1 - (compact ? 3 : 5), y: scaleY,
-    }, {
-      weight: compact ? 0.9 : 1.2,
-    });
-    plateArrowhead(ctx, { x: scaleX1, y: scaleY }, 0, compact ? 3 : 3.8);
-    for (const hour of [0, 4, 8]) {
-      const x = scaleX0 + (scaleX1 - scaleX0) * hour / MAX_HOURS;
-      plateLine(ctx, { x, y: scaleY - (compact ? 3 : 5) },
-        { x, y: scaleY + (compact ? 3 : 5) }, {
-          weight: hour === 0 ? (compact ? 0.75 : 0.9) : 0.55,
-        });
-      // the 0 h label clears the heavy start tick
-      plateDataText(ctx, `${hour} h`, x + (hour === 0 ? 3 : 0), scaleY + (compact ? 10 : 14), {
-        size: dataSize,
-        align: hour === 0 ? 'left' : hour === 8 ? 'right' : 'center',
-      });
-    }
-    const markerX = scaleX0 + (scaleX1 - scaleX0) * hours.v / MAX_HOURS;
-    plateLine(ctx, { x: markerX, y: scaleY - (compact ? 6 : 8) },
-      { x: markerX, y: scaleY + (compact ? 6 : 8) }, {
-        weight: compact ? 1.4 : 1.8,
-      });
-
-    plateRule(ctx, ruleY, 14, w - 14);
-    const rateLine = `${hours.v.toFixed(2)} h × ${STELLAR_RATE.toFixed(3)}°/h = ${moved.toFixed(2)}° west`;
-    const lonLine = `GP longitude ${lonText(sight.gha)} → ${lonText(currentGha)}`;
-    const dataOpts = { font: PLATE.dataFont, tracking: 0, uppercase: false };
-    plateDataText(ctx, rateLine, w / 2, ruleY + (compact ? 11 : 17), {
-      size: fitSize(ctx, rateLine, w - 28, dataSize, dataOpts), align: 'center',
-    });
-    plateDataText(ctx, lonLine, w / 2, ruleY + (compact ? 27 : 36), {
-      size: fitSize(ctx, lonLine, w - 28, dataSize, dataOpts), align: 'center',
-    });
+    lonStat.set(`${M.lonText(M.LON0)} → ${M.lonText(M.LON0 - moved)}`);
+    latStat.set(`${M.DEC.toFixed(1)}° N, unchanged`);
   }
 })();
