@@ -877,3 +877,128 @@ input[type="range"]::-moz-range-thumb {
 @media (max-width: 720px) {
   .caption-detail { float: right; margin: 0.15rem 0 0.4rem 0.8rem; }
 }
+
+/* a worked sum as an engineering data sheet, after a sight-reduction
+   form: a framed sheet with a ruled title band, numbered lines, an operator
+   column, and figures set in fixed slots so degrees, minutes and N/S/E/W
+   line up down the page. A heavy rule marks each result. */
+.article .sheet {
+  width: 100%;
+  max-width: 34rem;
+  margin: var(--half-rhythm) 0 var(--rhythm);
+  border-collapse: collapse;
+  border: 1.5px solid var(--ink);
+  font-family: var(--font-plate);
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1.2;
+}
+.article .sheet caption {
+  padding: 0.6em 0.8em 0.5em;
+  border: 1.5px solid var(--ink);
+  border-bottom: 0;
+  font: 700 0.68rem/1.2 var(--font-plate);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: left;
+}
+.article .sheet caption span + span {
+  float: right;
+  margin-left: 2ch;
+  font-weight: 600;
+  color: var(--faint);
+}
+.article .sheet th,
+.article .sheet td {
+  padding: 0.5em 0.8em;
+  border-top: 1px solid var(--hair);
+  vertical-align: middle;
+}
+.article .sheet thead th {
+  padding-top: 0.45em;
+  padding-bottom: 0.4em;
+  border-top: 1px solid var(--ink);
+  border-bottom: 1px solid var(--ink);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: right;
+}
+.article .sheet thead + tbody tr:first-child > * { border-top: 0; }
+.article .sheet caption + tbody tr:first-child > * { border-top: 1px solid var(--ink); }
+.article .sheet .no {
+  width: 1.6em;
+  padding-right: 0.5em;
+  border-right: 1px solid var(--hair);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--faint);
+  text-align: right;
+}
+.article .sheet tbody th {
+  padding-left: 0.7em;
+  font-size: 0.64rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-align: left;
+}
+.article .sheet .op {
+  width: 1.2em;
+  padding-left: 0;
+  padding-right: 0.3em;
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: center;
+  white-space: nowrap;
+}
+.article .sheet .val {
+  border-left: 1px solid var(--hair);
+  font-size: 0.9rem;
+  font-weight: 500;
+  text-align: right;
+  white-space: nowrap;
+}
+.article .sheet .ang { display: inline-flex; justify-content: flex-end; }
+.article .sheet .deg { display: inline-block; min-width: 2.2em; text-align: right; }
+.article .sheet .min { display: inline-block; width: 2.85em; text-align: right; }
+.article .sheet .hem { display: inline-block; width: 1.25em; padding-left: 0.25em; text-align: left; }
+.article .sheet tr.total > * {
+  border-top: 1.5px solid var(--ink);
+  font-weight: 700;
+}
+.article .sheet tr.total .no { font-weight: 700; color: var(--ink); }
+.article .sheet .sr {
+  position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0);
+}
+.article .sheet + p { text-indent: 0; }
+@media (max-width: 560px) {
+  .article .sheet th, .article .sheet td { padding: 0.45em 0.4em; }
+  .article .sheet tbody th { font-size: 0.56rem; letter-spacing: 0.05em; }
+  .article .sheet .val, .article .sheet .op { font-size: 0.8rem; }
+  .article .sheet .no { width: 1.3em; }
+}
+
+/* the worked example's steps: one shows at a time, under its figure; the
+   number sits in the same small circle the figure's tabs use */
+.article .worked-stage > p:first-child { margin-top: 0; }
+.article .stage-title {
+  margin: var(--half-rhythm) 0 0;
+  font-weight: 700;
+  text-indent: 0;
+}
+.article .stage-title + p { text-indent: 0; }
+.article .step-key {
+  display: inline-grid;
+  place-items: center;
+  width: 1.35em;
+  height: 1.35em;
+  margin-right: 0.5em;
+  border: 1px solid var(--ink);
+  border-radius: 50%;
+  font: 700 0.7em/1 var(--font-plate);
+  font-variant-numeric: lining-nums tabular-nums;
+  vertical-align: 0.12em;
+}
+.demo-panel .worked-stages { padding: 0 0 var(--half-rhythm); }

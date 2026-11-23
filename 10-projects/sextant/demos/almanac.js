@@ -13,7 +13,7 @@
   const RATE = SIGHT_STORY.constants.stellarRate;
   const STARS = [
     { name: 'Vega', sha: WORKED.sha, dec: WORKED.dec },
-    { name: 'Arcturus', sha: 145 + 49 / 60, dec: 19.07 },
+    { name: 'Arcturus', sha: 145 + 46.8 / 60, dec: 19 + 2.8 / 60 },
     { name: 'Capella', sha: 280 + 30 / 60, dec: 46.02 },
   ];
   const wrap360 = a => ((a % 360) + 360) % 360;

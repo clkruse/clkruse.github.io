@@ -387,45 +387,110 @@
 
     <aside class="gloss"><span class="gloss-term">Nautical Almanac</span>A yearly book of positions for the Sun, Moon, planets, Aries and 57 navigation stars.</aside>
     <p>
-      Let’s work through an example. As a reminder, our goal here is to draw a circle of position based on
-      taking a star sight. To do this, we need to know the ground position of a star of interest (marks the
-      center of the circle of position) and the altitude of the star (the radius of the circle).
+      Let’s find a position from start to finish. It’s 05:16:24 UTC on 19 August 2026, and you’re sailing
+      somewhere in the Pacific. You measure two stars, Vega and Arcturus. Follow along in the figure, one step at
+      a time.
     </p>
-
-    <ol class="steps">
-      <li>Use the sextant to measure the angle between the horizon and the star Vega. Mark the time of your
-        measurement. Suppose you measured 35.5° at 5:45:12 am on May 16, 2025.</li>
-      <li>Look up the longitude of Aries in the Nautical Almanac at your date and the hour of measurement. In
-        this case, it is found at <span class="num">309° 10.0′</span> at 5:00 am on May 16th.</li>
-      <li>You need to account for the 45 minutes and 12 seconds of movement since 5:00 am. In the back of the
-        almanac, there is an “Increments and Corrections” table. There, you will find an increment of
-        <span class="num">11° 19.9′</span>.</li>
-      <li>Add this to your original longitude of Aries.
-        <span class="num">309° 10.0′ + 11° 19.9′ = 320° 29.9′</span>. You now know a precise ground position of
-        Aries at the time of your measurement.</li>
-      <li>Aries is our reference point, but we want to know the position of Vega. In the almanac, we see that
-        Vega is <span class="num">80° 32.8′</span> from Aries. We add this offset to the position of Aries to
-        find the longitude of Vega. <span class="num">320° 29.9′ + 80° 32.8′ = 400° 62.7′</span>.</li>
-      <li>The Earth only has 360°, and there are only 60 arcminutes in a degree. If your measurement exceeds 360°,
-        you wrap around to 0°. If your minutes are greater than 60, you add a full degree and start from 0′. In
-        this case, <span class="num">400° 62.7′ − 360° = 40° 62.7′ = 41° 02.7′</span>.</li>
-      <li>You now have the longitude of Vega, the star that you measured with the sextant. You now know that it
-        lies at a longitude of <span class="num">41° 02.7′ W</span> (the almanac measures these angles westward
-        from Greenwich). Its latitude is written in the Nautical Almanac as <span class="num">38° 48.1′</span>. At last, you know the ground position of your star.</li>
-      <li>The last step is to draw a circle of possible locations where Vega would be seen at 35.5° at this
-        time. To do so, set your compass drawing tool to an angle of
-        <span class="num">54.5° (90° − 35.5°)</span>, set its point at the ground position
-        of Vega, and draw a circle. Any point on this line is a valid position.</li>
-    </ol>
 
     <figure class="demo" id="demo-worked">
       <div class="demo-panel">
         <canvas></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption><span class="fig-title">A worked sight, from time to ring</span> Step through the sight. The almanac turns the time into Vega’s ground position, and the
-        altitude sets the radius of the ring around it.</figcaption>
+      <figcaption><span class="fig-title">From two sights to a position</span> Press Next to step through the sight, or pick a step along the top. Drag the globe to turn it.</figcaption>
     </figure>
+
+    <div class="worked-stages" id="worked-stages">
+      <section class="worked-stage" data-stage="1">
+        <p class="stage-title"><span class="step-key" aria-hidden="true">1</span>Measure the stars</p>
+        <p>Measure each star’s altitude with the sextant, and note the time.</p>
+        <table class="sheet">
+          <caption><span>Sight log</span><span>Step 1</span></caption>
+          <thead><tr><th scope="col" colspan="3"><span class="sr">Line</span></th><th scope="col">Vega</th><th scope="col">Arcturus</th></tr></thead>
+          <tbody>
+            <tr><td class="no">01</td><th scope="row">Altitude</th><td class="op"></td><td class="val"><span class="ang"><span class="deg">42°</span><span class="min">30.1′</span><span class="hem"></span></span></td><td class="val"><span class="ang"><span class="deg">37°</span><span class="min">05.3′</span><span class="hem"></span></span></td></tr>
+            <tr><td class="no">02</td><th scope="row">Time, UTC</th><td class="op"></td><td class="val" colspan="2">05:16:24</td></tr>
+            <tr><td class="no">03</td><th scope="row">Date</th><td class="op"></td><td class="val" colspan="2">19 Aug 2026</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="worked-stage" data-stage="2">
+        <p class="stage-title"><span class="step-key" aria-hidden="true">2</span>Find Aries</p>
+        <p>
+          The almanac lists where Aries is at the start of each hour. Look up 05:00 on 19 August, then add how far
+          Aries moves in the extra 16 minutes and 24 seconds, from a table in the back of the book.
+        </p>
+        <table class="sheet">
+          <caption><span>Aries at the sight</span><span>Step 2</span></caption>
+          <tbody>
+            <tr><td class="no">01</td><th scope="row">Aries at 05:00</th><td class="op"></td><td class="val"><span class="ang"><span class="deg">42°</span><span class="min">34.0′</span><span class="hem">W</span></span></td></tr>
+            <tr><td class="no">02</td><th scope="row">Movement in 16 min 24 s</th><td class="op">+</td><td class="val"><span class="ang"><span class="deg">4°</span><span class="min">06.7′</span><span class="hem"></span></span></td></tr>
+            <tr class="total"><td class="no">03</td><th scope="row">Aries at 05:16:24</th><td class="op">=</td><td class="val"><span class="ang"><span class="deg">46°</span><span class="min">40.7′</span><span class="hem">W</span></span></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="worked-stage" data-stage="3">
+        <p class="stage-title"><span class="step-key" aria-hidden="true">3</span>Find each star’s ground position</p>
+        <p>
+          Add each star’s offset to Aries to get the longitude of its ground position. The almanac also lists each
+          star’s latitude.
+        </p>
+        <table class="sheet">
+          <caption><span>Ground positions</span><span>Step 3</span></caption>
+          <thead><tr><th scope="col" colspan="3"><span class="sr">Line</span></th><th scope="col">Vega</th><th scope="col">Arcturus</th></tr></thead>
+          <tbody>
+            <tr><td class="no">01</td><th scope="row">Aries</th><td class="op"></td><td class="val"><span class="ang"><span class="deg">46°</span><span class="min">40.7′</span><span class="hem">W</span></span></td><td class="val"><span class="ang"><span class="deg">46°</span><span class="min">40.7′</span><span class="hem">W</span></span></td></tr>
+            <tr><td class="no">02</td><th scope="row">Offset from Aries</th><td class="op">+</td><td class="val"><span class="ang"><span class="deg">80°</span><span class="min">32.1′</span><span class="hem"></span></span></td><td class="val"><span class="ang"><span class="deg">145°</span><span class="min">46.8′</span><span class="hem"></span></span></td></tr>
+            <tr class="total"><td class="no">03</td><th scope="row">Longitude</th><td class="op">=</td><td class="val"><span class="ang"><span class="deg">127°</span><span class="min">12.8′</span><span class="hem">W</span></span></td><td class="val"><span class="ang"><span class="deg">192°</span><span class="min">27.5′</span><span class="hem">W</span></span></td></tr>
+            <tr><td class="no">04</td><th scope="row">Wrapped past 180°</th><td class="op"></td><td class="val">—</td><td class="val"><span class="ang"><span class="deg">167°</span><span class="min">32.5′</span><span class="hem">E</span></span></td></tr>
+            <tr><td class="no">05</td><th scope="row">Latitude</th><td class="op"></td><td class="val"><span class="ang"><span class="deg">38°</span><span class="min">48.6′</span><span class="hem">N</span></span></td><td class="val"><span class="ang"><span class="deg">19°</span><span class="min">02.8′</span><span class="hem">N</span></span></td></tr>
+          </tbody>
+        </table>
+        <p>
+          Arcturus comes out more than 180° west, so it wraps around to the east:
+          <span class="num">360° − 192° 27.5′ = 167° 32.5′ E</span>. Vega’s ground position is off California, and
+          Arcturus’s is near Wake Island.
+        </p>
+      </section>
+
+      <section class="worked-stage" data-stage="4">
+        <p class="stage-title"><span class="step-key" aria-hidden="true">4</span>Draw Vega’s ring</p>
+        <p>
+          The ring’s radius is 90° minus the star’s altitude. Draw it around Vega’s ground position. You’re somewhere
+          on this ring.
+        </p>
+        <table class="sheet">
+          <caption><span>Vega’s ring</span><span>Step 4</span></caption>
+          <tbody>
+            <tr><td class="no">01</td><th scope="row">Overhead</th><td class="op"></td><td class="val"><span class="ang"><span class="deg">90°</span><span class="min">00.0′</span><span class="hem"></span></span></td></tr>
+            <tr><td class="no">02</td><th scope="row">Altitude</th><td class="op">−</td><td class="val"><span class="ang"><span class="deg">42°</span><span class="min">30.1′</span><span class="hem"></span></span></td></tr>
+            <tr class="total"><td class="no">03</td><th scope="row">Radius</th><td class="op">=</td><td class="val"><span class="ang"><span class="deg">47°</span><span class="min">29.9′</span><span class="hem"></span></span></td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="worked-stage" data-stage="5">
+        <p class="stage-title"><span class="step-key" aria-hidden="true">5</span>Draw Arcturus’s ring</p>
+        <p>Do the same for Arcturus.</p>
+        <table class="sheet">
+          <caption><span>Arcturus’s ring and the fix</span><span>Step 5</span></caption>
+          <tbody>
+            <tr><td class="no">01</td><th scope="row">Overhead</th><td class="op"></td><td class="val"><span class="ang"><span class="deg">90°</span><span class="min">00.0′</span><span class="hem"></span></span></td></tr>
+            <tr><td class="no">02</td><th scope="row">Altitude</th><td class="op">−</td><td class="val"><span class="ang"><span class="deg">37°</span><span class="min">05.3′</span><span class="hem"></span></span></td></tr>
+            <tr class="total"><td class="no">03</td><th scope="row">Radius</th><td class="op">=</td><td class="val"><span class="ang"><span class="deg">52°</span><span class="min">54.7′</span><span class="hem"></span></span></td></tr>
+            <tr class="total"><td class="no">04</td><th scope="row">You: latitude</th><td class="op"></td><td class="val"><span class="ang"><span class="deg">5°</span><span class="min">44.6′</span><span class="hem">S</span></span></td></tr>
+            <tr><td class="no">05</td><th scope="row">You: longitude</th><td class="op"></td><td class="val"><span class="ang"><span class="deg">144°</span><span class="min">59.0′</span><span class="hem">W</span></span></td></tr>
+          </tbody>
+        </table>
+        <p>
+          The two rings cross at two points. One is in the Arctic, thousands of miles from where you could be, so
+          you can rule it out. The other is where you are: <span class="num">5° 44.6′ S, 144° 59.0′ W</span>, in the
+          Pacific northwest of the Marquesas Islands.
+        </p>
+      </section>
+    </div>
 
     <h2 id="further"><span class="sec-no">A</span><span class="sec-title">Further reading</span></h2>
 
