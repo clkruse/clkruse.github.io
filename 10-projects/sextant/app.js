@@ -679,17 +679,49 @@ function arrow(ctx, x1, y1, x2, y2, size = 7) {
   ctx.fill();
 }
 
+// a star as a burst: a small dot with eight rays standing off it, long on
+// the axes and short on the diagonals. r is the reach of the long rays.
 function starGlyph(ctx, x, y, r, color) {
   ctx.save();
   ctx.translate(x, y);
   ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(0.9, r * 0.13);
+  ctx.lineCap = 'round';
+  ctx.setLineDash([]);
   ctx.beginPath();
   for (let i = 0; i < 8; i++) {
-    const rr = i % 2 === 0 ? r : r * 0.36;
     const a = (i / 8) * TAU - Math.PI / 2;
-    ctx[i === 0 ? 'moveTo' : 'lineTo'](rr * Math.cos(a), rr * Math.sin(a));
+    const reach = i % 2 === 0 ? r : r * 0.66;
+    ctx.moveTo(Math.cos(a) * r * 0.38, Math.sin(a) * r * 0.38);
+    ctx.lineTo(Math.cos(a) * reach, Math.sin(a) * reach);
   }
-  ctx.closePath();
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0, 0, r * 0.22, 0, TAU);
+  ctx.fill();
+  ctx.restore();
+}
+
+// the star at sketch size, where the burst's rays would close up: a dot
+// inside four ticks, as through a sight. r is the reach of the ticks.
+function starReticle(ctx, x, y, r, color) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.fillStyle = color;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(0.9, r * 0.15);
+  ctx.lineCap = 'round';
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  for (let i = 0; i < 4; i++) {
+    const a = i * Math.PI / 2;
+    ctx.moveTo(Math.cos(a) * r * 0.58, Math.sin(a) * r * 0.58);
+    ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+  }
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(0, 0, r * 0.34, 0, TAU);
   ctx.fill();
   ctx.restore();
 }
@@ -1008,7 +1040,7 @@ function plateAltitudeInstrument(detail, { title = 'YOUR VIEW', sights, aim = 0,
     const heavy = sights.indexOf(s) === aim;
     plateVector(ctx, O, at(s.alt, L - starR - 6), { weight: heavy ? 1.3 : 0.95, head: 4 });
     const q = at(s.alt, L);
-    starGlyph(ctx, q.x, q.y, starR, ink);
+    starReticle(ctx, q.x, q.y, starR, ink);
     taken.push({ x: q.x - starR - 2, y: q.y - starR - 2, w: starR * 2 + 4, h: starR * 2 + 4 });
   });
   // you
@@ -1091,7 +1123,16 @@ function plateAltitudeInstrument(detail, { title = 'YOUR VIEW', sights, aim = 0,
     });
   }
   if (below) {
-    plateText(ctx, below, bx + bw / 2, by + (bh + band) / 2, { size: 6, weight: 600, align: 'center' });
+    // in the open side of the drawing, clear of the vertical axis, broken
+    // into two lines where it would not fit across
+    const midX = mirror ? (bx + O.x) / 2 : (O.x + bx + bw) / 2;
+    const room = (mirror ? O.x - bx : bx + bw - O.x) - 12;
+    const words = below.split(' ');
+    const half = Math.ceil(words.length / 2);
+    const lines = plateTextWidth(ctx, below, { size: 6, weight: 600 }) <= room
+      ? [below] : [words.slice(0, half).join(' '), words.slice(half).join(' ')];
+    const midY = by + (bh + band) / 2;
+    lines.forEach((t, i) => plateText(ctx, t, midX, midY + (i - (lines.length - 1) / 2) * 9, { size: 6, weight: 600, align: 'center' }));
   }
   ctx.restore();
   // a hairline frame

@@ -316,9 +316,9 @@
 
     <p>
       All of our previous explanations made the simplifying assumption that a star’s ground position is one
-      fixed location on Earth. However, this is not the case. The locations of the stars are fixed in the sky,
-      but the Earth rotates. This means that the ground position of a star will move to the west. For the
-      longitude of a star at the equator, the ground position moves by about one mile every four seconds.
+      fixed location on the Earth. However, this is not the case. The locations of the stars are fixed in the
+      sky, but the Earth rotates. This means that the ground position of a star will move to the west on the
+      globe. The ground position moves by about one mile every four seconds for a star near the equator.
       Because the Earth rotates on an axis, a star’s latitude remains constant.
     </p>
 
@@ -327,57 +327,43 @@
         <canvas></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption><span class="fig-title">The Earth turns under the starlight</span> The starlight holds still, so the GP stays put on the page. The ground turns east beneath it, and the GP’s track is left behind on the ground, along one parallel. Drag the globe to turn it.</figcaption>
+      <figcaption><span class="fig-title">The Earth turns under the starlight</span> Drag the globe to turn the Earth. The starlight holds still, so the GP stays put on the page while the ground turns east beneath it, leaving the GP’s track behind along one parallel. You stand still on the ground and are carried away from the GP, so the star sinks in your view.</figcaption>
     </figure>
 
     <p>
-      In practice, this means that taking a sextant sight and drawing a circle of position requires that you
-      know the exact time that you took that sight, and that you have the ability to look up the ground
-      position of that star at that specific time.
-    </p>
-
-    <figure class="demo" id="demo-clock">
-      <div class="demo-panel">
-        <canvas></canvas>
-        <div class="demo-controls"></div>
-      </div>
-      <figcaption><span class="fig-title">Time sets longitude</span> A clock error moves every ground position you look up. Four seconds of error is about one
-        mile.</figcaption>
-    </figure>
-
-    <p>
-      As an aside, this is why the development of celestial navigation relied upon accurate timekeeping. I’d
-      highly recommend reading the book
-      “<a href="https://en.wikipedia.org/wiki/Longitude_(book)">Longitude</a>.” It tells the story of the
-      Longitude Prize and John Harrison’s development of a clock that could keep accurate time while at sea.
+      In practice, drawing a circle of position requires that you are able to look up the ground position of
+      the star at a given time, and that you record the exact time that you took the sight. This dependence on
+      time is why the development of celestial navigation required accurate timekeeping. I’d highly recommend
+      reading the book “<a href="https://en.wikipedia.org/wiki/Longitude_(book)">Longitude</a>.” It tells the
+      story of the Longitude Prize and John Harrison’s development of a clock that could keep accurate time
+      while at sea.
     </p>
 
     <h2 id="almanac"><span class="sec-no">7.0</span><span class="sec-title">How do you look up stellar ground positions?</span></h2>
 
     <p>
-      I’ve simplified the idea that we can take a sight and then look up that star’s ground position in a
-      magical book. Consider for a moment what this book would need to look like. It would need to list ground
-      positions for hundreds of stars every hour for each day of the year. This would add up to a table with
-      something like a million rows and thousands of printed pages. That would clearly be infeasible. We need a
-      more efficient way to go about representing this information.
+      Given that the ground position of a star is constantly changing, consider for a moment what a book
+      listing the positions would look like. It would list ground positions for hundreds of stars at every hour
+      of the day across a year. This would add up to thousands of printed pages. We need a more efficient way
+      to go about representing this information.
     </p>
 
     <p>
-      It turns out that all the stars move at the same rate. The stars are fixed in the sky while the Earth
+      It turns out that all the stars move at the same rate. The stars are fixed in the sky while Earth
       rotates. If the ground position of one star moves west by 10°, the ground positions of all the other
-      stars will move by 10° to the west as well. This allows us to simply list the position of a single
-      reference star hour by hour in a book, and then have a table with a row for each star in the sky that
-      lists a constant offset between it and the reference.
+      stars will move by 10° to the west as well. So the book only needs to track a single point in the sky
+      over time, and list a fixed offset for each star of interest.
     </p>
 
-    <aside class="gloss"><span class="gloss-term">Aries</span>The reference point in the sky the almanac lists hour by hour. Each star’s offset from it barely changes.</aside>
+    <aside class="gloss"><span class="gloss-term">Aries</span>A point in the sky, not a star: where the Sun sits at the March equinox. The almanac lists it hour by hour, and each star’s offset from it barely changes.</aside>
     <p>
-      For reasons that we don’t need to detail, astronomers and navigators settled on using a point in the sky called
-      Aries as this constant reference. The Nautical Almanac will list the position of Aries each hour of the day
-      across a year, and have a table of offsets for something like 60 stars of interest. You mark the time of
-      day for your sight, look up the position of Aries at that time, and then add the offset for your star of
-      interest to find the longitude of your star’s ground position. Latitude is simply listed in the book as
-      it varies little over the course of a day.
+      Astronomers and navigators settled on using a point in the sky called the First Point of Aries, or just
+      Aries, as this reference. Aries isn’t a star. It is the place in the sky where the Sun sits at the March
+      equinox, when the Sun’s ground position crosses the equator heading north. The Nautical Almanac lists the
+      position of Aries each hour of the day across a year, along with a table of offsets for 57 stars of
+      interest. You mark the time of day for your sight, look up the position of Aries at that time, and then
+      add the offset for your star of interest to find the longitude of your star’s ground position. Latitude
+      is simply listed in the book, as it barely changes over months.
     </p>
 
     <figure class="demo" id="demo-almanac">
@@ -385,9 +371,13 @@
         <canvas></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption><span class="fig-title">One Aries column, plus one offset per star</span> One changing value for Aries, plus one nearly fixed offset per star. Move the time and only the
-        Aries value changes.</figcaption>
+      <figcaption><span class="fig-title">One Aries column, plus one offset per star</span> Drag the map to run the clock. The sky’s scale holds still, with each star a fixed offset
+        west of Aries, while the ground slides east beneath it. Only Aries’s longitude changes; add a star’s offset to it
+        to find that star’s ground position.</figcaption>
     </figure>
+
+
+
 
     <h2 id="together"><span class="sec-no">8.0</span><span class="sec-title">Putting it all together</span></h2>
 
@@ -575,7 +565,6 @@
   <script src="demos/twoviews.js" defer></script>
   <script src="demos/motion.js" defer></script>
   <script src="demos/samesky.js" defer></script>
-  <script src="demos/clock.js" defer></script>
   <script src="demos/almanac.js" defer></script>
   <script src="demos/worked.js" defer></script>
   <script src="demos/corrections.js" defer></script>

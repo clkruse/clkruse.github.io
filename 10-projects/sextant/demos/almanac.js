@@ -1,237 +1,201 @@
 'use strict';
-/* §06: why the almanac stays small. It tabulates one racing number
-   (GHA Aries); each star keeps a nearly fixed catalog offset (SHA), so a
-   star's GHA is one addition. Declination stays separate as the GP's
-   latitude. Hour angles run westward from Greenwich. */
+/* §7: why the almanac stays small, as a slide rule. The sky's scale holds
+   still on top, Aries at its right and each star a fixed offset (SHA) to
+   the west; the ground map slides east under it as the Earth turns. The
+   one number the book tracks is where Aries's line meets the ground.
+   Hour angles run westward from Greenwich. */
 
 (function demoAlmanac() {
-  const d = createDemo('demo-almanac', {
-    aspect: 1.6,
-    maxH: 400,
-    compactAspect: 0.86,
-    compactMaxH: 420,
-    draw,
-  });
+  const M = MOTION;
+  const d = createDemo('demo-almanac', { aspect: 1.7, maxH: 460, compactAspect: 0.9, compactMaxH: 440, draw });
   const STORY_SOURCE = 'demo-almanac';
   const WORKED = SIGHT_STORY.state;
-  const DATE_LABEL = (() => {
-    const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN',
-      'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
-    const [year, month, day] = WORKED.date.split('-').map(Number);
-    return `${day} ${months[month - 1]} ${year}`;
-  })();
-  const WORKED_UTC = WORKED.utcHours;
-  const VEGA_SHA = WORKED.sha;
-  const VEGA_DEC = WORKED.dec;
-  const STELLAR_RATE = SIGHT_STORY.constants.stellarRate;
-  let gmt = SIGHT_STORY.state.utcHours;
-  const gmtSlider = addSlider(d, {
-    // Stop one second before midnight: showing the next 00:00 without changing
-    // the displayed date would make its sidereal advance look stale.
-    label: 'UTC', min: 0, max: 24 - 1 / 3600, step: 1 / 3600, value: gmt,
-    fmt: utcText,
-    onchange: v => {
-      gmt = v;
-      if (Math.abs(SIGHT_STORY.state.utcHours - v) > 1e-10) {
-        SIGHT_STORY.set({ utcHours: v }, { source: STORY_SOURCE });
-      }
-    },
-  });
-
+  const RATE = SIGHT_STORY.constants.stellarRate;
   const STARS = [
-    { name: 'Vega', sha: VEGA_SHA, dec: `${fmtDM(VEGA_DEC, 1)} N`, main: true },
-    { name: 'Sirius', sha: 258.5, dec: '16° 44′ S' },
-    { name: 'Capella', sha: 280.5, dec: '46° 01′ N' },
+    { name: 'Vega', sha: WORKED.sha, dec: WORKED.dec },
+    { name: 'Arcturus', sha: 145 + 49 / 60, dec: 19.07 },
+    { name: 'Capella', sha: 280 + 30 / 60, dec: 46.02 },
   ];
   const wrap360 = a => ((a % 360) + 360) % 360;
-  const ghaAt = t => wrap360(
-    WORKED.ghaAries + (t - WORKED.utcHours) * STELLAR_RATE
-  );
-  function utcText(t) {
-    const raw = Math.round(t * 3600);
-    const total = ((raw % 86400) + 86400) % 86400;
-    const hh = Math.floor(total / 3600);
-    const mm = Math.floor((total % 3600) / 60);
-    const ss = total % 60;
-    return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
-  }
+  const gha = t => wrap360(WORKED.ghaAries + (t - WORKED.utcHours) * RATE);
+  const dm = v => {
+    let deg = Math.floor(v), m = Math.round((v - deg) * 60);
+    if (m === 60) { deg += 1; m = 0; }
+    return `${deg}° ${String(m).padStart(2, '0')}′`;
+  };
+  const utc = t => {
+    const s = Math.round(t * 3600), hh = Math.floor(s / 3600), mm = Math.floor((s % 3600) / 60);
+    return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')} UTC`;
+  };
 
-  d.addPreset('worked', () => {
-    gmtSlider.set(WORKED_UTC, { emit: true });
+  // time, by dragging the map or the arrow keys, shared with the sight story.
+  // The clock wraps through midnight, so the map pans without end. The figure
+  // shows no date, so crossing midnight steps Aries back the ~1° a day gains.
+  const wrap24 = h => ((h % 24) + 24) % 24;
+  // time only runs forward, as the Earth only turns east: the keys that would
+  // step it back are swallowed before addValue sees them
+  d.canvas.addEventListener('keydown', e => {
+    if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') { e.preventDefault(); e.stopImmediatePropagation(); }
   });
-
+  const t = addValue(d, {
+    label: 'time', min: -Infinity, max: Infinity, step: 1 / 12, value: WORKED.utcHours,
+    onchange: v => {
+      const u = wrap24(v);
+      if (u !== v) t.set(u);
+      if (Math.abs(SIGHT_STORY.state.utcHours - u) > 1e-10) SIGHT_STORY.set({ utcHours: u }, { source: STORY_SOURCE });
+    },
+  });
   SIGHT_STORY.subscribe((state, source) => {
-    if (source === STORY_SOURCE) return;
-    gmt = state.utcHours;
-    gmtSlider.set(gmt, { emit: false });
+    if (source !== STORY_SOURCE) t.set(state.utcHours);
   });
+  d.addPreset('worked', () => t.set(WORKED.utcHours, { emit: true }));
+  const stat = {
+    time: addStat(d, 'Time'),
+    aries: addStat(d, 'Aries longitude'),
+    vega: addStat(d, 'Vega longitude'),
+  };
 
-  function almanacState() {
-    const ghaAries = ghaAt(gmt);
-    const stars = STARS.map(st => ({ ...st, gha: wrap360(ghaAries + st.sha) }));
-    return {
-      ghaAries,
-      stars,
-      ghaVega: stars[0].gha,
-      wrapped: ghaAries + STARS[0].sha >= 360,
-    };
-  }
+  let k = 2;
+  d.canvas.classList.add('grab');
+  addDrag(d.canvas, { touch: 'x', move(p, dp) { if (dp.dx > 0) t.set(t.v + dp.dx / k / RATE, { emit: true }); } });
 
-  // GHA runs 0–360° west of Greenwich; as a longitude it is west up to
-  // 180° and east beyond
-  const lonText = gha => gha <= 180
-    ? `${fmtDM(gha, 1)} W`
-    : `${fmtDM(360 - gha, 1)} E`;
-  const DATA = { font: PLATE.dataFont, tracking: 0, uppercase: false };
-  function fitSize(ctx, text, width, size, opts = DATA) {
-    let fitted = size;
-    while (fitted > size * 0.72
-      && plateTextWidth(ctx, text, { ...opts, size: fitted }) > width) fitted -= 0.25;
-    return fitted;
+  // the caption's minimap: the same moment on a globe that holds still
+  // against the sky, faced midway between Aries and Vega, so the land turns
+  // east under them while Vega's offset holds as an arc on the equator
+  let globeR = 60;
+  function drawGlobe(lonAries) {
+    const detail = plateCaptionDetail(d.ctx);
+    if (!detail) return;
+    const c = detail.ctx, { w, h } = detail;
+    plateText(c, 'ON THE GLOBE', w / 2, 9, { size: 7, weight: 700, align: 'center' });
+    const R = Math.min(w / 2 - 8, (h - 26) / 2);
+    globeR = R;
+    // dragging the globe turns it, east only, as the map does: a sideways
+    // drag of one radius turns it one radian
+    if (!detail.canvas._almanacDrag) {
+      detail.canvas._almanacDrag = true;
+      addDrag(detail.canvas, { touch: 'x', move(p, dp) { if (dp.dx > 0) t.set(t.v + dp.dx / globeR * R2D / RATE, { emit: true }); } });
+    }
+    const cx = w / 2, cy = 18 + R + (h - 22 - R * 2) / 2;
+    const lonVega = lonAries - STARS[0].sha, facing = lonAries - STARS[0].sha / 2;
+    const scene = drawPlateGlobeFrame(c, { spin: -facing, tilt: 22 }, cx, cy, R, true, {
+      showCenter: false,
+      gridLatitudes: [-30, 0, 30, 60],
+      gridLongitudeStep: 30,
+      gridHiddenWeight: 0.01,
+      gridVisibleWeight: 0.3,
+      outlineWeight: 1.2,
+    });
+    const pr = scene.project;
+    MOTION.strokeLand(c, (lat, lon) => { const q = pr(lat, lon); return q.front ? q : null; }, 0.45);
+    // Vega's offset west of Aries, along the equator, and Vega's meridian
+    // down to it
+    const eq = Array.from({ length: 41 }, (_, i) => pr(0, lonAries - STARS[0].sha * i / 40));
+    strokePlateHemisphere(c, eq, true, { kind: 'solid', weight: 1.8 });
+    strokePlateHemisphere(c, Array.from({ length: 11 }, (_, i) => pr(STARS[0].dec * i / 10, lonVega)), true, { kind: 'construction', weight: 0.7 });
+    const mid = pr(0, lonAries - STARS[0].sha / 2);
+    MOTION.backedText(c, dm(STARS[0].sha), mid.x, mid.y + 9, { size: 6.5, weight: 700, align: 'center' });
+    // labels first, then the marks over them, so no label hides a mark;
+    // Aries is named toward the middle, the stars to their east
+    const marks = [
+      ...STARS.map(s => ({ name: s.name.toUpperCase(), q: pr(s.dec, lonAries - s.sha), dx: 4 })),
+      { name: 'ARIES', q: pr(0, lonAries), dx: -4, aries: true },
+    ].filter(m => m.q.front);
+    marks.forEach(m => MOTION.backedText(c, m.name, m.q.x + m.dx, m.q.y - 7,
+      { size: 6.5, weight: 700, align: m.dx < 0 ? 'right' : 'left' }));
+    marks.forEach(m => m.aries ? MOTION.ring(c, m.q, 2.8, { weight: 1.1 }) : starGlyph(c, m.q.x, m.q.y, 4.5, PLATE.ink));
   }
 
   function draw(ctx, w, h) {
-    const s = almanacState();
-    drawAlmanacPage(ctx, w, h, s);
-  }
+    ctx.fillStyle = PLATE.paper; ctx.fillRect(0, 0, w, h);
+    const compact = w < 500, size = compact ? 8 : 9, pad = compact ? 10 : 16;
+    const x0 = pad, W = w - pad * 2;
+    k = W / 360;
+    const xA = x0 + W * 0.88;
+    const g = gha(t.v), lonAries = -g;
 
-  // A boxed table: caps title, rule, header row, data rows, caps footnote.
-  // Columns are [{x, align}] relative to the box; returns the box height.
-  function drawTable(ctx, x, y, width, { title, columns, header, rows, note, size, row }) {
-    const pad = 8;
-    const titleH = row + 4;
-    const height = pad * 2 + titleH + row * (rows.length + 1) + (note ? row : 0);
+    // the sky: a fixed scale, with each star's offset west of Aries drawn
+    // as an arrow from Aries, stacked longest on top
+    const rowStep = compact ? 15 : 16, row0 = pad + (compact ? 28 : 30);
+    const rowY = i => row0 + (STARS.length - 1 - i) * rowStep;
+    const skyY = rowY(0) + (compact ? 13 : 14);
+    plateText(ctx, 'THE SKY · EACH STAR’S FIXED OFFSET FROM ARIES', x0, pad + 6, { size: size - 0.5, weight: 700 });
+    plateLine(ctx, { x: x0, y: skyY }, { x: x0 + W, y: skyY }, { weight: 1.2 });
+    for (let o = -40; o <= 320; o += 10) {
+      const x = xA - o * k;
+      if (x < x0 - 0.5 || x > x0 + W + 0.5) continue;
+      plateLine(ctx, { x, y: skyY }, { x, y: skyY + (o % 30 === 0 ? 6 : 3) }, { weight: 0.6 });
+    }
+    plateLine(ctx, { x: xA, y: skyY }, { x: xA, y: rowY(STARS.length - 1) - 4 }, { weight: 0.6 });
+    plateText(ctx, 'ARIES', xA, rowY(STARS.length - 1) - 12, { size, weight: 700, align: 'center' });
+    STARS.forEach((s, i) => {
+      const x = xA - s.sha * k, y = rowY(i);
+      plateLine(ctx, { x, y: skyY }, { x, y: y - 4 }, { weight: 0.6 });
+      plateLine(ctx, { x: xA, y }, { x: x + 1, y }, { weight: compact ? 0.8 : 0.9 });
+      plateArrowhead(ctx, { x, y }, Math.PI, compact ? 4.5 : 5);
+      M.backedText(ctx, dm(s.sha), (xA + x) / 2, y, { size: size - 1, weight: i === 0 ? 700 : 500, align: 'center' });
+    });
+
+    // the ground: a map band that slides east, tiled so it wraps
+    const mapTop = skyY + (compact ? 20 : 24), mapBot = h - pad - (compact ? 34 : 40);
+    const latY = lat => mapTop + (75 - lat) / 135 * (mapBot - mapTop);
+    const xOf = L => xA + (L - lonAries) * k;
     ctx.save();
-    ctx.fillStyle = PLATE.paper;
-    ctx.fillRect(x, y, width, height);
-    ctx.strokeStyle = PLATE.ink;
-    ctx.lineWidth = 0.8;
-    ctx.strokeRect(x, y, width, height);
+    ctx.beginPath(); ctx.rect(x0, mapTop, W, mapBot - mapTop); ctx.clip();
+    // coastlines a step back from the ink, the grid further still; the
+    // equator and Greenwich stay full as the references
+    ctx.globalAlpha = 0.6;
+    for (const sh of [-720, -360, 0, 360]) {
+      M.strokeLand(ctx, (lat, L) => lat >= -60 && lat <= 75 ? { x: xOf(L + sh), y: latY(lat) } : null, compact ? 0.5 : 0.6,
+        (a, b) => Math.abs(a - b) > 180);
+    }
+    ctx.globalAlpha = 0.35;
+    for (const lat of [-30, 30, 60]) plateLine(ctx, { x: x0, y: latY(lat) }, { x: x0 + W, y: latY(lat) }, { kind: 'short', weight: 0.3 });
+    // the meridians, turning with the ground
+    for (let L = -720; L <= 360; L += 30) {
+      const x = xOf(L);
+      if (L % 360 !== 0 && x >= x0 && x <= x0 + W) plateLine(ctx, { x, y: mapTop }, { x, y: mapBot }, { kind: 'short', weight: 0.3 });
+    }
+    ctx.globalAlpha = 1;
+    plateLine(ctx, { x: x0, y: latY(0) }, { x: x0 + W, y: latY(0) }, { kind: 'short', weight: 0.5 });
+    for (let L = -720; L <= 360; L += 360) {
+      const x = xOf(L);
+      if (x >= x0 && x <= x0 + W) plateLine(ctx, { x, y: mapTop }, { x, y: mapBot }, { weight: 0.6 });
+    }
     ctx.restore();
-    plateText(ctx, title, x + pad, y + pad + row * 0.45, { size, weight: 600 });
-    plateLine(ctx, { x: x + pad, y: y + pad + titleH - 3 },
-      { x: x + width - pad, y: y + pad + titleH - 3 }, { weight: 0.55 });
-    const cellY = i => y + pad + titleH + row * (i + 0.5);
-    header.forEach((text, c) => {
-      plateText(ctx, text, x + columns[c].x, cellY(0), {
-        size: size * 0.92, align: columns[c].align,
-      });
-    });
-    rows.forEach((cells, r) => {
-      const strong = cells.strong;
-      if (cells.marker) {
-        plateText(ctx, '▸', x + pad * 0.45, cellY(r + 1), { size, uppercase: false });
+    ctx.save(); ctx.strokeStyle = PLATE.ink; ctx.lineWidth = 1.2;
+    ctx.strokeRect(x0, mapTop, W, mapBot - mapTop); ctx.restore();
+    plateText(ctx, 'THE GROUND · SLIDES EAST', x0, mapBot + (compact ? 12 : 14), { size: size - 0.5, weight: 700 });
+    // the ground's longitude scale under the map
+    for (let L = -720; L <= 360; L += 30) {
+      const x = xOf(L);
+      if (x < x0 + 14 || x > x0 + W - 14) continue;
+      const ll = (((L + 540) % 360) + 360) % 360 - 180;
+      if (!compact || ll % 60 === 0) {
+        plateText(ctx, ll === 0 ? 'GREENWICH' : `${Math.abs(ll)}° ${ll < 0 ? 'W' : 'E'}`, x, mapBot + (compact ? 24 : 28),
+          { size: size - 1.5, align: 'center', weight: ll === 0 ? 700 : 500 });
       }
-      cells.forEach((text, c) => {
-        plateDataText(ctx, text, x + columns[c].x, cellY(r + 1), {
-          size, align: columns[c].align, weight: strong ? 700 : 500,
-        });
-      });
-    });
-    if (note) {
-      plateText(ctx, note, x + pad, cellY(rows.length + 1), { size: size * 0.9 });
-    }
-    return height;
-  }
-
-  function drawAlmanacPage(ctx, w, h, s) {
-    ctx.fillStyle = PLATE.paper;
-    ctx.fillRect(0, 0, w, h);
-
-    const compact = w < 500;
-    const size = compact ? 7.6 : 9.2;
-    const row = size * PLATE_TEXT_SCALE * 1.55;
-    const pad = 14;
-
-    // the figure's title is set in its caption, so the tables start at the top
-    const titleRule = compact ? 2 : 4;
-
-    // the two tables an almanac page actually prints: Aries hour by hour,
-    // and a short star list whose offsets barely change all year
-    const hour = Math.floor(gmt);
-    const ariesRows = [-1, 0, 1].map(k => {
-      const hh = ((hour + k) % 24 + 24) % 24;
-      const cells = [`${String(hh).padStart(2, '0')}h`, fmtDM(ghaAt(hour + k), 1)];
-      if (k === 0) { cells.strong = true; cells.marker = true; }
-      return cells;
-    });
-    const starRows = STARS.map(st => {
-      const cells = [st.name, fmtDM(st.sha, 1), st.dec];
-      if (st.main) { cells.strong = true; cells.marker = true; }
-      return cells;
-    });
-
-    const tablesY = titleRule + (compact ? 9 : 14);
-    let y;
-    if (compact) {
-      const tw = w - pad * 2;
-      const hA = drawTable(ctx, pad, tablesY, tw, {
-        title: `Aries · ${DATE_LABEL}`,
-        columns: [{ x: 18, align: 'left' }, { x: tw - 10, align: 'right' }],
-        header: ['UT', 'GHA ARIES'],
-        rows: ariesRows, note: 'Changes every hour', size, row,
-      });
-      const starsY = tablesY + hA + 8;
-      const hS = drawTable(ctx, pad, starsY, tw, {
-        title: 'Stars · offset from Aries',
-        columns: [{ x: 18, align: 'left' }, { x: tw * 0.6, align: 'right' }, { x: tw - 10, align: 'right' }],
-        header: ['STAR', 'SHA', 'DEC'],
-        rows: starRows, note: 'Nearly fixed all year', size, row,
-      });
-      y = starsY + hS;
-    } else {
-      const gap = 12;
-      const aw = (w - pad * 2 - gap) * 0.4;
-      const sw = w - pad * 2 - gap - aw;
-      const hA = drawTable(ctx, pad, tablesY, aw, {
-        title: `Aries · ${DATE_LABEL}`,
-        columns: [{ x: 20, align: 'left' }, { x: aw - 10, align: 'right' }],
-        header: ['UT', 'GHA ARIES'],
-        rows: ariesRows, note: 'Changes every hour', size, row,
-      });
-      const hS = drawTable(ctx, pad + aw + gap, tablesY, sw, {
-        title: 'Stars · offset from Aries',
-        columns: [{ x: 20, align: 'left' }, { x: sw * 0.58, align: 'right' }, { x: sw - 10, align: 'right' }],
-        header: ['STAR', 'SHA', 'DEC'],
-        rows: starRows, note: 'Nearly fixed all year', size, row,
-      });
-      y = tablesY + Math.max(hA, hS);
     }
 
-    // the worked addition at the slider's instant
-    const workRule = y + (compact ? 9 : 16);
-    plateRule(ctx, workRule, pad, w - pad);
-    const increment = s.ghaAries - ghaAt(hour);
-    const lines = [
-      { name: `GHA Aries ${String(hour).padStart(2, '0')}h`, value: fmtDM(ghaAt(hour), 1) },
-      { name: `+ ${utcText(gmt).slice(3, 5)}m ${utcText(gmt).slice(6)}s of turning`, value: fmtDM(((increment % 360) + 360) % 360, 1) },
-      { name: '+ Vega SHA', value: fmtDM(VEGA_SHA, 1) },
-      ...(s.wrapped ? [{ name: '− one full turn', value: '360°' }] : []),
-      { name: '= GHA Vega', value: fmtDM(s.ghaVega, 1), strong: true },
-    ];
-    const work = {
-      x0: compact ? pad + 6 : w * 0.18,
-      x1: compact ? w - pad - 6 : w * 0.82,
-    };
-    let ly = workRule + (compact ? 6 : 10) + row * 0.5;
-    plateText(ctx, `At ${utcText(gmt)} UTC`, work.x0, ly, { size, weight: 600 });
-    ly += row * 1.1;
-    for (const item of lines) {
-      plateText(ctx, item.name, work.x0, ly, {
-        size, weight: item.strong ? 700 : 500,
-        uppercase: true,
-      });
-      plateDataText(ctx, item.value, work.x1, ly, {
-        size, align: 'right', weight: item.strong ? 700 : 500,
-      });
-      ly += row;
-    }
-
-    const gpY = ly + (compact ? 6 : 10);
-    plateLine(ctx, { x: work.x0, y: gpY - row * 0.55 }, { x: work.x1, y: gpY - row * 0.55 }, { weight: 0.55 });
-    const gpLine = `Vega GP  ${fmtDM(VEGA_DEC, 1)} N · ${lonText(s.ghaVega)}`;
-    plateDataText(ctx, gpLine, (work.x0 + work.x1) / 2, gpY + row * 0.3, {
-      size: fitSize(ctx, gpLine, work.x1 - work.x0, size + 0.6), weight: 700, align: 'center',
+    // each star dropped from the sky's scale to its ground position
+    STARS.forEach(s => {
+      const x = xA - s.sha * k, gp = { x, y: latY(s.dec) };
+      plateLine(ctx, { x, y: skyY }, gp, { kind: 'long', weight: 0.7 });
+      starGlyph(ctx, x, skyY, compact ? 5 : 6, PLATE.ink);
+      M.backedText(ctx, s.name, x + 9, gp.y - 10, { size, weight: 600 });
+      starGlyph(ctx, gp.x, gp.y, compact ? 5 : 6, PLATE.ink);
     });
+
+    // Aries: its drop line meets the ground at its longitude
+    plateLine(ctx, { x: xA, y: skyY }, { x: xA, y: mapBot }, { kind: 'construction', weight: 1 });
+    M.ring(ctx, { x: xA, y: skyY }, compact ? 4 : 5, { weight: 1.4 });
+    M.ring(ctx, { x: xA, y: latY(0) }, compact ? 3 : 3.6, { weight: 1.2 });
+    M.backedText(ctx, `ARIES ${M.lonText(lonAries)}`, xA - 6, mapBot - 10, { size, weight: 700, align: 'right' });
+    plateText(ctx, 'DRAG THE MAP EAST', x0 + W, mapBot + (compact ? 12 : 14), { size: size - 1, weight: 600, align: 'right' });
+
+    drawGlobe(lonAries);
+    stat.time.set(utc(t.v));
+    stat.aries.set(M.lonText(lonAries));
+    stat.vega.set(`${M.lonText(lonAries)} + ${dm(STARS[0].sha)} = ${M.lonText(lonAries - STARS[0].sha)}`);
   }
 })();
