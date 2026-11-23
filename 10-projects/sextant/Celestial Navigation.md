@@ -30,7 +30,7 @@ If you measure the altitude of a star, it tells you how many degrees from the st
 **2.1 An example: Polaris**  
 
 Let's see how this works using the North Star (Polaris). The ground position of Polaris sits almost exactly at the location of the North Pole. If you stand at the North Pole, you'll find Polaris directly overhead. As you travel away, you'll notice that the star moves lower in the sky. This continues until you reach the equator, where the star will be on the horizon. By measuring the altitude of Polaris, you are able to know how far you are from the equator. This is called your "latitude."
-<Figure showing your view of Polaris beside a globe with Polaris above the North Pole, the equator, and you. Set your latitude with a slider or buttons for Quito, San Francisco, Oslo and the North Pole. Figure title: An example with Polaris. Figure caption: The ground position of Polaris is the North Pole. As you move around the globe, the star’s altitude always matches your latitude.>
+<Figure showing your view of Polaris beside a globe with Polaris above the North Pole, the equator, and you. Set your latitude with a slider or buttons for Quito, San Francisco, Oslo and the North Pole. Figure title: Find your latitude using Polaris. Figure caption: The ground position of Polaris is the North Pole. As you move around the globe, the star’s altitude always matches your latitude.>
 
 **3\. Rings of position**  
 
@@ -99,10 +99,10 @@ Astronomers and navigators settled on using a point in the sky called the First 
 
 Let's find a position from start to finish. It's 05:16:24 UTC on 19 August 2026, and you're sailing somewhere in the Pacific. You measure two stars, Vega and Arcturus. Follow along in the figure, one step at a time.
 
-<Figure 9-1, built: From two sights to a position. Five steps, driven by Back and Next or the tabs along the top, with each step's text and data sheet shown under the figure one at a time. Step 1 shows your two sights against the horizon; the rest build a globe: Aries's longitude from Greenwich, each star's offset from Aries to its ground position, Vega's ring, then Arcturus's ring crossing it at you and at a far point ruled out>
+<Figure 9-1, built: From two sights to a position. Five steps, driven by Back and Next or the tabs along the top, with each step's text and data sheet shown under the figure one at a time. In step 1 you take both sights yourself with the sextant from Figure 4-2: drag its arm, then the eyepiece, until Vega, then Arcturus, sits on the horizon, and press Take sight. Take sight records whatever the scale reads, right or wrong, and the rings, the fix and the sheets all follow from it; step 5 says how far off a bad sight puts you. The rest build a globe: Aries's longitude from Greenwich, each star's offset from Aries to its ground position, Vega's ring, then Arcturus's ring crossing it at you and at a far point ruled out>
 
 **Step 1. Measure the stars**
-Measure each star's altitude with the sextant, and note the time.
+Start with Vega. Drag the sextant's arm until Vega shows in the eyepiece, then drag in the eyepiece to set it exactly on the horizon. Press Take sight to record the altitude on the scale, then do the same for Arcturus.
 - Altitude: Vega 42° 30.1', Arcturus 37° 05.3'
 - Time: 05:16:24 UTC, 19 Aug 2026
 
@@ -127,7 +127,9 @@ The ring's radius is 90° minus the star's altitude. Draw it around Vega's groun
 Do the same for Arcturus.
 - 90° 00.0' - 37° 05.3' = 52° 54.7'
 
-The two rings cross at two points. One is in the Arctic, thousands of miles from where you could be, so you can rule it out. The other is where you are: 5° 44.6' S, 144° 59.0' W, in the Pacific northwest of the Marquesas Islands.
+The two rings cross at two points. One is in the Arctic, thousands of miles from where you could be, so you can rule it out. The other is your fix: 5° 44.6' S, 144° 59.0' W, in the Pacific northwest of the Marquesas Islands.
+
+<Shown only when your sights were off: Your sights were off, so this fix is about N nautical miles from where you really are. Each minute of error in an altitude moves its ring by about one nautical mile. Go back to step 1 to take them again.>
 
 
 

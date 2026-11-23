@@ -1285,19 +1285,22 @@ function nearGrab(p, shapes, reach = TOUCH_REACH) {
      'all'  (default) every touch drags; the canvas never scrolls the page
      'hit'  only touches where handlers.hit(p) is true drag; others scroll
      'x'    sideways swipes drag, up-and-down swipes scroll (scrubbers, globes)
-   a mouse always drags anywhere */
+   a mouse always drags anywhere. handlers.touch may also be a function
+   returning one of these, for a figure whose drawing changes; that figure
+   then sets the canvas's touch-action itself as it changes */
 function addDrag(canvas, handlers) {
   let dragging = false, last = null, lastT = 0, speed = 0, pending = null;
-  const touch = handlers.touch || (handlers.hit ? 'hit' : 'all');
-  canvas.style.touchAction = touch === 'x' ? 'pan-y' : touch === 'hit' ? 'manipulation' : 'none';
+  const modeOf = () => (typeof handlers.touch === 'function' ? handlers.touch() : handlers.touch) || (handlers.hit ? 'hit' : 'all');
+  const mode0 = modeOf();
+  canvas.style.touchAction = mode0 === 'x' ? 'pan-y' : mode0 === 'hit' ? 'manipulation' : 'none';
   const pos = e => {
     const r = canvas.getBoundingClientRect();
     return { x: e.clientX - r.left, y: e.clientY - r.top };
   };
-  if (touch === 'hit') {
+  if (handlers.hit) {
     // the page scrolls unless the finger lands on a grab zone
     canvas.addEventListener('touchstart', e => {
-      if (e.touches.length !== 1) return;
+      if (modeOf() !== 'hit' || e.touches.length !== 1) return;
       if (handlers.hit(pos(e.touches[0]))) e.preventDefault();
     }, { passive: false });
   }
@@ -1316,6 +1319,7 @@ function addDrag(canvas, handlers) {
   canvas.addEventListener('pointerdown', e => {
     const p = pos(e);
     if (e.pointerType === 'touch') {
+      const touch = modeOf();
       if (touch === 'hit' && !handlers.hit(p)) return;
       // wait to see which way the finger goes before taking hold
       if (touch === 'x') { pending = { p, id: e.pointerId }; return; }

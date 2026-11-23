@@ -108,7 +108,6 @@
       relates to how close you are to its ground position.
     </p>
 
-    <aside class="gloss"><span class="gloss-term">Your horizon</span>Always level under your feet, so it tilts with you as you travel over the curved Earth.</aside>
     <p>
       Imagine once again that you’re standing on a star’s ground position and pointing straight up. This
       means that the star is 90° overhead. But what happens as you move away from the ground position? From
@@ -166,7 +165,7 @@
         <canvas class="grab"></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption><span class="fig-title">An example with Polaris</span> The ground position of Polaris is
+      <figcaption><span class="fig-title">Find your latitude using Polaris</span> The ground position of Polaris is
         the North Pole. As you move around the globe, the star’s altitude always matches your
         latitude.</figcaption>
     </figure>
@@ -193,7 +192,7 @@
         <canvas class="grab"></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption><span class="fig-title">The circle of equal altitude</span> Every point on the ring sees the star at the same altitude. Drag the line of sight in Your View higher and the ring
+      <figcaption><span class="fig-title">A circle of possible positions</span> Every point on the ring sees the star at the same altitude. Drag the line of sight in the small figure and the ring
         shrinks toward the ground position. Drag yourself around the ring: the star stays at the same height,
         only the direction you look changes.</figcaption>
     </figure>
@@ -227,7 +226,7 @@
         <canvas class="grab"></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption><span class="fig-title">Two rings cross at two points</span> The numbers match the steps above. Drag either line of sight in the detail to change its altitude, and drag the globe to turn it. Reveal a third star and only one crossing fits all three.</figcaption>
+      <figcaption><span class="fig-title">Two rings cross at two points</span> The numbers match the steps above. Drag either line of sight in the small figure to change its altitude. Reveal a third star and only one crossing fits all three.</figcaption>
     </figure>
 
     <p>
@@ -257,7 +256,7 @@
         <canvas class="grab"></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption><span class="fig-title">Measuring altitude on land</span> Drag the telescope onto the star and read its angle off the arc. Then put the stand on a rocking deck: the angle between the deck and the star never holds still.</figcaption>
+      <figcaption><span class="fig-title">Measuring altitude on land</span> Drag the telescope to center the star in the view, then measure its angle. Put the stand on a rocking deck and this no longer works.</figcaption>
     </figure>
 
     <p>
@@ -294,7 +293,7 @@
         <canvas class="grab"></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption><span class="fig-title">Two views at once</span> One half of the view looks straight ahead at the horizon. The other half is turned up by a pair of mirrors. Drag the arm until the star sits on the horizon: the angle it is turned through is the star’s altitude.</figcaption>
+      <figcaption><span class="fig-title">Two views at once</span> One half of the view looks straight ahead at the horizon. The other half is turned up by a pair of mirrors. Drag the arm until the star sits on the horizon: the angle on the index arm is the star’s altitude.</figcaption>
     </figure>
 
     <h2 id="fundamentals"><span class="sec-no">5.0</span><span class="sec-title">Now you know the fundamentals</span></h2>
@@ -397,18 +396,22 @@
         <canvas></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption><span class="fig-title">From two sights to a position</span> Press Next to step through the sight, or pick a step along the top. Drag the globe to turn it.</figcaption>
+      <figcaption><span class="fig-title">From two sights to a position</span> Drag the sextant’s arm, then the eyepiece, until each star sits on the horizon, and press Take sight. Then press Next to step through the rest, or pick a step along the top. Drag the globe to turn it.</figcaption>
     </figure>
 
     <div class="worked-stages" id="worked-stages">
       <section class="worked-stage" data-stage="1">
         <p class="stage-title"><span class="step-key" aria-hidden="true">1</span>Measure the stars</p>
-        <p>Measure each star’s altitude with the sextant, and note the time.</p>
+        <p>
+          Start with Vega. Drag the sextant’s arm until Vega shows in the eyepiece, then drag in the eyepiece
+          to set it exactly on the horizon. Press Take sight to record the altitude on the scale, then do the
+          same for Arcturus.
+        </p>
         <table class="sheet">
           <caption><span>Sight log</span><span>Step 1</span></caption>
           <thead><tr><th scope="col" colspan="3"><span class="sr">Line</span></th><th scope="col">Vega</th><th scope="col">Arcturus</th></tr></thead>
           <tbody>
-            <tr><td class="no">01</td><th scope="row">Altitude</th><td class="op"></td><td class="val"><span class="ang"><span class="deg">42°</span><span class="min">30.1′</span><span class="hem"></span></span></td><td class="val"><span class="ang"><span class="deg">37°</span><span class="min">05.3′</span><span class="hem"></span></span></td></tr>
+            <tr><td class="no">01</td><th scope="row">Altitude</th><td class="op"></td><td class="val" data-sight="0"><span class="ang"><span class="deg">42°</span><span class="min">30.1′</span></span></td><td class="val" data-sight="1"><span class="ang"><span class="deg">37°</span><span class="min">05.3′</span></span></td></tr>
             <tr><td class="no">02</td><th scope="row">Time, UTC</th><td class="op"></td><td class="val" colspan="2">05:16:24</td></tr>
             <tr><td class="no">03</td><th scope="row">Date</th><td class="op"></td><td class="val" colspan="2">19 Aug 2026</td></tr>
           </tbody>
@@ -444,7 +447,7 @@
             <tr><td class="no">01</td><th scope="row">Aries</th><td class="op"></td><td class="val"><span class="ang"><span class="deg">46°</span><span class="min">40.7′</span><span class="hem">W</span></span></td><td class="val"><span class="ang"><span class="deg">46°</span><span class="min">40.7′</span><span class="hem">W</span></span></td></tr>
             <tr><td class="no">02</td><th scope="row">Offset from Aries</th><td class="op">+</td><td class="val"><span class="ang"><span class="deg">80°</span><span class="min">32.1′</span><span class="hem"></span></span></td><td class="val"><span class="ang"><span class="deg">145°</span><span class="min">46.8′</span><span class="hem"></span></span></td></tr>
             <tr class="total"><td class="no">03</td><th scope="row">Longitude</th><td class="op">=</td><td class="val"><span class="ang"><span class="deg">127°</span><span class="min">12.8′</span><span class="hem">W</span></span></td><td class="val"><span class="ang"><span class="deg">192°</span><span class="min">27.5′</span><span class="hem">W</span></span></td></tr>
-            <tr><td class="no">04</td><th scope="row">Wrapped past 180°</th><td class="op"></td><td class="val">—</td><td class="val"><span class="ang"><span class="deg">167°</span><span class="min">32.5′</span><span class="hem">E</span></span></td></tr>
+            <tr><td class="no">04</td><th scope="row">Wrapped to east</th><td class="op"></td><td class="val"></td><td class="val"><span class="ang"><span class="deg">167°</span><span class="min">32.5′</span><span class="hem">E</span></span></td></tr>
             <tr><td class="no">05</td><th scope="row">Latitude</th><td class="op"></td><td class="val"><span class="ang"><span class="deg">38°</span><span class="min">48.6′</span><span class="hem">N</span></span></td><td class="val"><span class="ang"><span class="deg">19°</span><span class="min">02.8′</span><span class="hem">N</span></span></td></tr>
           </tbody>
         </table>
@@ -464,9 +467,9 @@
         <table class="sheet">
           <caption><span>Vega’s ring</span><span>Step 4</span></caption>
           <tbody>
-            <tr><td class="no">01</td><th scope="row">Overhead</th><td class="op"></td><td class="val"><span class="ang"><span class="deg">90°</span><span class="min">00.0′</span><span class="hem"></span></span></td></tr>
-            <tr><td class="no">02</td><th scope="row">Altitude</th><td class="op">−</td><td class="val"><span class="ang"><span class="deg">42°</span><span class="min">30.1′</span><span class="hem"></span></span></td></tr>
-            <tr class="total"><td class="no">03</td><th scope="row">Radius</th><td class="op">=</td><td class="val"><span class="ang"><span class="deg">47°</span><span class="min">29.9′</span><span class="hem"></span></span></td></tr>
+            <tr><td class="no">01</td><th scope="row">Overhead</th><td class="op"></td><td class="val"><span class="ang"><span class="deg">90°</span><span class="min">00.0′</span></span></td></tr>
+            <tr><td class="no">02</td><th scope="row">Altitude</th><td class="op">−</td><td class="val"><span class="ang" data-w="alt0"><span class="deg">42°</span><span class="min">30.1′</span></span></td></tr>
+            <tr class="total"><td class="no">03</td><th scope="row">Radius</th><td class="op">=</td><td class="val"><span class="ang" data-w="rad0"><span class="deg">47°</span><span class="min">29.9′</span></span></td></tr>
           </tbody>
         </table>
       </section>
@@ -478,16 +481,23 @@
           <caption><span>Arcturus’s ring and the fix</span><span>Step 5</span></caption>
           <tbody>
             <tr><td class="no">01</td><th scope="row">Overhead</th><td class="op"></td><td class="val"><span class="ang"><span class="deg">90°</span><span class="min">00.0′</span><span class="hem"></span></span></td></tr>
-            <tr><td class="no">02</td><th scope="row">Altitude</th><td class="op">−</td><td class="val"><span class="ang"><span class="deg">37°</span><span class="min">05.3′</span><span class="hem"></span></span></td></tr>
-            <tr class="total"><td class="no">03</td><th scope="row">Radius</th><td class="op">=</td><td class="val"><span class="ang"><span class="deg">52°</span><span class="min">54.7′</span><span class="hem"></span></span></td></tr>
-            <tr class="total"><td class="no">04</td><th scope="row">You: latitude</th><td class="op"></td><td class="val"><span class="ang"><span class="deg">5°</span><span class="min">44.6′</span><span class="hem">S</span></span></td></tr>
-            <tr><td class="no">05</td><th scope="row">You: longitude</th><td class="op"></td><td class="val"><span class="ang"><span class="deg">144°</span><span class="min">59.0′</span><span class="hem">W</span></span></td></tr>
+            <tr><td class="no">02</td><th scope="row">Altitude</th><td class="op">−</td><td class="val"><span class="ang" data-w="alt1"><span class="deg">37°</span><span class="min">05.3′</span><span class="hem"></span></span></td></tr>
+            <tr class="total"><td class="no">03</td><th scope="row">Radius</th><td class="op">=</td><td class="val"><span class="ang" data-w="rad1"><span class="deg">52°</span><span class="min">54.7′</span><span class="hem"></span></span></td></tr>
+          </tbody>
+          <tbody class="result">
+            <tr><td class="no">04</td><th scope="row">Your latitude</th><td class="op"></td><td class="val"><span class="ang" data-w="lat"><span class="deg">5°</span><span class="min">44.6′</span><span class="hem">S</span></span></td></tr>
+            <tr><td class="no">05</td><th scope="row">Your longitude</th><td class="op"></td><td class="val"><span class="ang" data-w="lon"><span class="deg">144°</span><span class="min">59.0′</span><span class="hem">W</span></span></td></tr>
           </tbody>
         </table>
         <p>
           The two rings cross at two points. One is in the Arctic, thousands of miles from where you could be, so
-          you can rule it out. The other is where you are: <span class="num">5° 44.6′ S, 144° 59.0′ W</span>, in the
+          you can rule it out. The other is your fix: <span class="num" data-w="fix">5° 44.6′ S, 144° 59.0′ W</span>, in the
           Pacific northwest of the Marquesas Islands.
+        </p>
+        <p data-w="miss" hidden>
+          Your sights were off, so this fix is <span data-w="miss-nm">a few nautical miles</span> from
+          where you really are. Each minute of error in an altitude moves its ring by about one nautical mile.
+          Go back to step 1 to take them again.
         </p>
       </section>
     </div>

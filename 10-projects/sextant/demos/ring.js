@@ -8,8 +8,9 @@
 
 (function demoRing() {
   const d = createDemo('demo-circle', {
-    aspect: 1.75,
-    maxH: 400,
+    // tall enough to stand beside its caption, whose sketch runs long
+    aspect: 1.5,
+    maxH: 460,
     compactAspect: 0.85,
     compactMaxH: 680,
     draw,
