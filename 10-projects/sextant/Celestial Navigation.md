@@ -97,15 +97,38 @@ Astronomers and navigators settled on using a point in the sky called the First 
 
 **N\. A worked example**
 
-Let's work through an example. As a reminder, our goal here is to draw a circle of position based on taking a star sight. To do this, we need to know the ground position of a star of interest (marks the center of the circle of position) and the altitude of the star (the radius of the circle).
-1. Use the sextant to measure the angle between the horizon and the star Vega. Mark the time of your measurement. Suppose you measured 35.5° at 5:45:12 am on May 16, 2025.
-2. Look up the longitude of Aries in the Nautical Almanac at your date and the hour of measurement. In this case, it is found at 309° 10.0' at 5:00 am on May 16th.
-3. You need to account for the 45 minutes and 12 seconds of movement since 5:00 am. In the back of the almanac, there is an "Increments and Corrections" table. There, you will find an increment of 11° 19.9'. 
-4. Add this to your original longitude of Aries. 309° 10.0' + 11° 19.9' = 320° 29.9'. You now know a precise ground position of Aries at the time of your measurement.
-5. Aries is our reference point, but we want to know the position of Vega. In the almanac, we see that Vega is 80° 32.8' from Aries. We add this offset to the position of Aries to find the longitude of Vega. 320° 29.9' + 80° 32.8' = 400° 62.7'.
-6. The Earth only has 360°, and there are only 60 arcminutes in a degree. If your measurement exceeds 360°, you wrap around to 0°. If your minutes are greater than 60, you add a full degree and start from 0'. In this case, 400° 62.7' - 360° => 40° 62.7' = 41° 2.7'.
-7. You now have the longitude of Vega, the star that you measured with the sextant. You now know that it lies at a longitude of 41° 2.7' W (the almanac measures these angles westward from Greenwich). Its latitude is written in the Nautical Almanac as 38° 48.1'. At last, you know the ground position of your star.
-8. The last step is to draw a circle of possible locations where Vega would be seen at 35.5° at this time. To do so, set your compass drawing tool to an angle of 54.5° (90° - 35.5°), set its point at the ground position of Vega, and draw a circle. Any point on this line is a valid position.
+Let's find a position from start to finish. It's 05:16:24 UTC on 19 August 2026, and you're sailing somewhere in the Pacific. You measure two stars, Vega and Arcturus. Follow along in the figure, one step at a time.
+
+<Figure 9-1, built: From two sights to a position. Five steps, driven by Back and Next or the tabs along the top, with each step's text and data sheet shown under the figure one at a time. Step 1 shows your two sights against the horizon; the rest build a globe: Aries's longitude from Greenwich, each star's offset from Aries to its ground position, Vega's ring, then Arcturus's ring crossing it at you and at a far point ruled out>
+
+**Step 1. Measure the stars**
+Measure each star's altitude with the sextant, and note the time.
+- Altitude: Vega 42° 30.1', Arcturus 37° 05.3'
+- Time: 05:16:24 UTC, 19 Aug 2026
+
+**Step 2. Find Aries**
+The almanac lists where Aries is at the start of each hour. Look up 05:00 on 19 August, then add how far Aries moves in the extra 16 minutes and 24 seconds, from a table in the back of the book.
+- Aries at 05:00: 42° 34.0' W
+- \+ Movement in 16 min 24 s: 4° 06.7'
+- = Aries at 05:16:24: 46° 40.7' W
+
+**Step 3. Find each star's ground position**
+Add each star's offset to Aries to get the longitude of its ground position. The almanac also lists each star's latitude.
+- Vega: 46° 40.7' W + 80° 32.1' = 127° 12.8' W; latitude 38° 48.6' N
+- Arcturus: 46° 40.7' W + 145° 46.8' = 192° 27.5' W, wrapped to 167° 32.5' E; latitude 19° 02.8' N
+
+Arcturus comes out more than 180° west, so it wraps around to the east: 360° - 192° 27.5' = 167° 32.5' E. Vega's ground position is off California, and Arcturus's is near Wake Island.
+
+**Step 4. Draw Vega's ring**
+The ring's radius is 90° minus the star's altitude. Draw it around Vega's ground position. You're somewhere on this ring.
+- 90° 00.0' - 42° 30.1' = 47° 29.9'
+
+**Step 5. Draw Arcturus's ring**
+Do the same for Arcturus.
+- 90° 00.0' - 37° 05.3' = 52° 54.7'
+
+The two rings cross at two points. One is in the Arctic, thousands of miles from where you could be, so you can rule it out. The other is where you are: 5° 44.6' S, 144° 59.0' W, in the Pacific northwest of the Marquesas Islands.
+
 
 
 
