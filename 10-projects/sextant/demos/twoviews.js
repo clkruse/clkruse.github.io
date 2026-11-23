@@ -45,19 +45,26 @@
     while (a < -Math.PI) a += TAU;
     return a / geo.rate;
   };
+  // the altitude the line of sight takes when it points at the pointer
+  const sightAt = p => Math.atan2(geo.Pv.y - p.y, p.x - geo.Pv.x) * R2D;
   addDrag(d.canvas, {
-    hit: p => nearGrab(p, geo && [...geo.grab, ...(geo.label || [])]),
+    hit: p => nearGrab(p, geo && [...geo.grab, ...(geo.sight || []), ...(geo.label || [])]),
     start(p) {
       // taken by the reading under the scale, the arm keeps its place and
-      // turns by as much as the pointer does; taken by the arm, it follows
-      const byLabel = geo && geo.label && nearGrab(p, geo.label, 24) && !nearGrab(p, geo.grab);
-      grab = { off: 0 };
-      if (byLabel) grab.off = reading.v - angleAt(p);
+      // turns by as much as the pointer does; taken by the arm, it follows.
+      // Taken by the line of sight out into the sky, the sight swings to
+      // follow the pointer about the index mirror, and the arm with it
+      if (!geo) return;
+      const onArm = nearGrab(p, geo.grab);
+      const bySight = !onArm && geo.sight && nearGrab(p, geo.sight, 24);
+      const byLabel = !onArm && !bySight && geo.label && nearGrab(p, geo.label, 24);
+      const at = bySight ? sightAt : angleAt;
+      grab = { at, off: bySight || byLabel ? reading.v - at(p) : 0 };
       this.move(p);
     },
     move(p) {
       if (!geo || !grab) return;
-      settle(angleAt(p) + grab.off);
+      settle(grab.at(p) + grab.off);
     },
     end() { grab = null; },
   });
@@ -286,8 +293,7 @@
     // ——— the lines of sight ———
     // traced outward from the eye, as in 4-1: one straight ahead, one turned
     // up by the mirrors. (Light runs the same paths the other way.) The
-    // turned one is drawn in red, since it is the one that finds the star
-    const red = P.red;
+    // turned one is drawn heavier, since it is the one that finds the star
     // a line of sight: a line with its arrow at the middle, running a → b
     const ray = (a, b, weight, color = ink) => {
       ctx.save();
@@ -342,11 +348,13 @@
       const f0 = R * 0.16;
       plateLine(ctx, { x: Pv.x + fd.x * f0, y: Pv.y + fd.y * f0 }, { x: Pv.x + fd.x * fl, y: Pv.y + fd.y * fl }, { kind: 'short', weight: THIN });
     }
-    ray({ x: eye.x, y: Ts.y }, Ts, sightW, red);
-    ray(Ts, Pv, sightW, red);
-    ray(Pv, outEnd, sightW, red);
+    ray({ x: eye.x, y: Ts.y }, Ts, sightW);
+    ray(Ts, Pv, sightW);
+    ray(Pv, outEnd, sightW);
+    // a finger can also take the line of sight, clear of the arm at the pivot
+    geo.sight = [[{ x: Pv.x + od.x * R * 0.3, y: Pv.y + od.y * R * 0.3 }, outEnd]];
     const starSeen = Math.abs(STAR - hs) < FOV * 0.95;
-    starGlyph(ctx, star.x, star.y, starR, red);
+    starGlyph(ctx, star.x, star.y, starR, ink);
     // the angle it is turned through, from the horizontal at the index mirror
     {
       const Rd = R * (compact ? 0.5 : 0.44);
@@ -512,7 +520,7 @@
       const mh = vy + hs * k;
       if (mh < vy + vr) sea(vx, vx + vr, mh);
       plateLine(c, { x: vx, y: vy }, { x: vx + vr, y: vy }, { kind: 'short', weight: THIN });
-      if (starSeen) starGlyph(c, vx + vr * 0.45, vy - (STAR - hs) * k, 6, red);
+      if (starSeen) starReticle(c, vx + vr * 0.45, vy - (STAR - hs) * k, 6, ink);
       plateLine(c, { x: vx, y: vy - vr }, { x: vx, y: vy + vr }, { weight: MEDIUM });
     });
     // out of the field: an arrow at the rim says which way it lies

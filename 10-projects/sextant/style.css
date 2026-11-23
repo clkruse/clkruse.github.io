@@ -727,6 +727,8 @@ strong { font-weight: 800; }
   box-shadow: -1px 0 0 var(--hair), 0 -1px 0 var(--hair);
 }
 .ctl-readout.wide { flex: 2 1 19rem; }
+/* 6-1's three short readouts stay on one row on a phone */
+#demo-motion .ctl-readout { flex-basis: 6rem; }
 .ctl-readout:first-child { padding-left: 0; box-shadow: 0 -1px 0 var(--hair); }
 .ctl-readout .ctl-label:empty { display: none; }
 .ctl-readout .ctl-label { white-space: normal; }

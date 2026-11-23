@@ -4,13 +4,17 @@
    the Earth turns under it. The globe is seen from the side under fixed
    starlight, as in Figures 1-1 and 3-1: the GP stays put on the page while
    the ground turns east beneath it, and its track is left on the ground
-   along one parallel. One generic star at 40° N; its GP starts at 30° W. */
+   along one parallel. One generic star at 40° N; its GP starts at 30° W.
+   You stand still on the ground at 20° N, 30° W, under the GP's start, and
+   "Your view" in the caption shows the star sinking as the ground carries
+   you away from the GP. */
 
 const MOTION = (() => {
   const RATE = 360 / 23.9344696;        // degrees of Earth rotation per hour
   const DEC = 40;
   const LON0 = -30;
   const MAX_H = 24;
+  const YOU = { lat: 20, lon: -30 };
 
   const wrap180 = l => {
     const x = ((((l + 180) % 360) + 360) % 360) - 180;
@@ -117,7 +121,7 @@ const MOTION = (() => {
     plateText(ctx, text, x, y, opts);
   }
 
-  return { RATE, DEC, LON0, MAX_H, lonText, fmtH, strokeLand, dot, ring, hang, heading, backedText };
+  return { RATE, DEC, LON0, MAX_H, YOU, lonText, fmtH, strokeLand, dot, ring, hang, heading, backedText };
 })();
 
 (function demoMotion() {
@@ -126,11 +130,12 @@ const MOTION = (() => {
   const d = createDemo('demo-motion', {
     aspect: 1.5, maxH: 460, compactAspect: 0.85, compactMaxH: 520, draw,
   });
-  const hours = addSlider(d, {
-    label: 'hours', min: 0, max: M.MAX_H, step: 1 / 60, value: 3, fmt: M.fmtH,
-  });
-  const lonStat = addStat(d, 'GP longitude');
+  // no slider: the reader turns the globe itself, or steps it a quarter
+  // hour at a time with the arrow keys
+  const hours = addValue(d, { label: 'time', min: 0, max: M.MAX_H, step: 0.25, value: 3 });
+  const timeStat = addStat(d, 'Time');
   const latStat = addStat(d, 'GP latitude');
+  const lonStat = addStat(d, 'GP longitude');
   let geo = null;
   d.canvas.classList.add('grab');
   addDrag(d.canvas, {
@@ -148,6 +153,7 @@ const MOTION = (() => {
     const compact = w < 500;
     const size = compact ? 8 : 9;
     const pad = compact ? 10 : 16;
+    const detail = plateCaptionDetail(ctx);
     M.heading(ctx, w / 2, pad + 4, 'THE STARLIGHT HOLDS STILL · THE EARTH TURNS UNDER IT', compact);
     const starR = compact ? 7 : 9;
     const starY = pad + (compact ? 30 : 36) + starR;
@@ -173,8 +179,10 @@ const MOTION = (() => {
     M.strokeLand(ctx, (lat, lon) => { const q = pr(lat, lon); return q.front ? q : null; }, compact ? 0.5 : 0.6);
 
     // the GP's parallel
+    // sampled from the GP, which holds still on the page, so the samples
+    // (and the label at the parallel's left end) hold still as it turns
     const par = [];
-    for (let lon = -180; lon <= 180; lon += 3) par.push(pr(M.DEC, lon));
+    for (let k = -60; k <= 60; k++) par.push(pr(M.DEC, M.LON0 - moved + k * 3));
     strokePlateHemisphere(ctx, par, true, { kind: 'long', weight: compact ? 0.55 : 0.7 });
 
     // the GP's track over the ground, solid in front and dashed behind
@@ -193,6 +201,20 @@ const MOTION = (() => {
       plateLine(ctx, { x: q.x - tt.y * tk, y: q.y + tt.x * tk }, { x: q.x + tt.y * tk, y: q.y - tt.x * tk },
         { weight: compact ? 0.7 : 0.85 });
     }
+    // you, standing still on the ground and carried east with it
+    const you = pr(M.YOU.lat, M.YOU.lon);
+    ctx.save();
+    ctx.fillStyle = PLATE.paper;
+    ctx.strokeStyle = PLATE.ink;
+    ctx.lineWidth = you.front ? 1.3 : 0.8;
+    if (!you.front) ctx.setLineDash(plateDash('short'));
+    ctx.beginPath();
+    ctx.arc(you.x, you.y, compact ? 3.6 : 4.4, 0, TAU);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+    const callout = you.front ? plateDetailCallout(ctx, you, detail, { toward: { x: cx, y: cy }, compact }) : null;
+
     const start = pr(M.DEC, M.LON0);
     if (moved > 2) M.ring(ctx, start, compact ? 3.2 : 4, { dashed: !start.front, weight: start.front ? 1.1 : 0.8 });
 
@@ -219,7 +241,7 @@ const MOTION = (() => {
     const ea = Math.PI * 0.1;
     const tip = { x: cx + rx * Math.cos(ea), y: ay - ry + ry * Math.sin(ea) };
     plateArrowhead(ctx, tip, Math.atan2(ry * Math.cos(ea), -rx * Math.sin(ea)), compact ? 4 : 5);
-    plateText(ctx, 'EARTH TURNS EAST', cx, ay + (compact ? 10 : 13), { size, weight: 600, align: 'center' });
+    plateText(ctx, 'DRAG TO TURN THE EARTH', cx, ay + (compact ? 10 : 13), { size, weight: 600, align: 'center' });
 
     // labels
     const bounds = { x: pad, w: w - pad * 2 };
@@ -232,6 +254,11 @@ const MOTION = (() => {
     // the track always runs east of the GP, so its name sits to the west
     M.backedText(ctx, compact ? 'GP' : 'GP · STAYS UNDER THE STAR', gp.x - 8, gp.y - (compact ? 8 : 10),
       { size, weight: 600, align: 'right' });
+    if (you.front) {
+      // under you, clear of the call-out ring
+      const ry = callout ? callout.ring.r : 6;
+      M.backedText(ctx, 'YOU', you.x, you.y + ry + (compact ? 7 : 8), { size, weight: 600, align: 'center' });
+    }
     if (moved > 12 && start.front) {
       M.backedText(ctx, 'GP AT 0 h', clamp(start.x, bounds.x + 30, bounds.x + bounds.w - 30), start.y + (compact ? 11 : 13),
         { size: size - 0.5, align: 'center' });
@@ -243,7 +270,24 @@ const MOTION = (() => {
       plateText(ctx, `${M.DEC}° N`, left.x - 6, left.y, { size: size - 1, align: 'right' });
     }
 
-    lonStat.set(`${M.lonText(M.LON0)} → ${M.lonText(M.LON0 - moved)}`);
-    latStat.set(`${M.DEC.toFixed(1)}° N, unchanged`);
+    timeStat.set(M.fmtH(hours.v));
+    latStat.set(`${M.DEC.toFixed(1)}° N`);
+    lonStat.set(M.lonText(M.LON0 - moved));
+
+    // your view: the star's altitude from where you stand, 90° less your
+    // distance from the GP.
+    const z = globeAngularDistance(M.YOU, { lat: M.DEC, lon: M.LON0 - moved });
+    const alt = 90 - z;
+    if (detail) {
+      // nothing in the sketch to drag: let the page scroll over it
+      detail.canvas.classList.remove('grab');
+      detail.canvas.style.touchAction = 'auto';
+    }
+    plateAltitudeInstrument(detail, {
+      sights: [{ alt, block: plateFigureBlock(ctx, `h = ${Math.max(0, alt).toFixed(0)}°`, compact) }],
+      // always looking west, toward where the GP goes, so the sketch never flips
+      mirror: true,
+      below: alt < 0 ? 'STAR BELOW THE HORIZON' : null,
+    });
   }
 })();

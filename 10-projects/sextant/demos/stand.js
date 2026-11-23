@@ -321,7 +321,7 @@
       ctx.stroke();
       ctx.beginPath(); ctx.arc(view.x, view.y, vr * 0.16, 0, TAU); ctx.stroke();
       ctx.restore();
-      if (Math.abs(off) < vr) starGlyph(ctx, view.x, view.y + off, compact ? 5 : 6.5, ink);
+      if (Math.abs(off) < vr) starReticle(ctx, view.x, view.y + off, compact ? 5 : 6.5, ink);
     }, { title: 'EYEPIECE VIEW', compact });
     if (Math.abs(off) >= vr) {
       const sg = Math.sign(off);
