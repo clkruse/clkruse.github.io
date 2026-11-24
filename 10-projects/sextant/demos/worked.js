@@ -340,15 +340,14 @@
     if (s === 1) {
       const st = STARS[sight.cur], hs = sight.hs[sight.cur];
       const fTop = tabY + (compact ? 14 : 20);
-      const state = sight.taken[sight.cur] === hs ? 'SIGHT TAKEN' : hs === st.alt ? 'ON THE HORIZON' : 'DRAG THE ARM';
       // on a phone the caption sits far below, so the eyepiece goes in the
       // room under the sextant
       const eyeH = compact ? 138 : 0;
       ctx.save();
       ctx.translate(0, fTop);
       sx = drawSextantPlate(ctx, w, h - fTop - (compact ? 4 : 8) - eyeH, {
-        hs, starAlt: st.alt, starName: st.name, fmt: fmtDM, k: sx && sx.k,
-        title: `SIGHT ${sight.cur + 1} OF 2 · ${st.name} · ${state}`,
+        hs, starAlt: st.alt, starName: st.name, fmt: fmtDM, k: sx && sx.k, steady: true,
+        title: `SIGHT ${sight.cur + 1} OF 2 · ${st.name}`,
       });
       ctx.restore();
       sx.top = fTop;
