@@ -96,8 +96,11 @@ const SEXTANT_THIN_WEIGHTS = { HEAVY: 0.75, MEDIUM: 0.5, THIN: 0.4 };
 
 function drawSextantPlate(ctx, w, h, {
   hs, starAlt, starName = 'STAR', title = null, fmt = v => `${v.toFixed(1)}°`,
-  armLabel = 'INDEX ARM · DRAG', fov = 4, k = null,
+  armLabel = 'INDEX ARM · DRAG', fov = 4, k = null, steady = false,
 }) {
+  // steady: the lines of sight and the telescope's field keep one reach
+  // whatever the reading, and nothing in the drawing changes when the
+  // reading meets the star, so only the eyepiece tells you
   const dirOf = deg => ({ x: Math.cos(deg * D2R), y: -Math.sin(deg * D2R) });
   // line weights: outlines, lesser parts, and the thin work of
   // dimensions, leaders and hatching. The instrument itself is drawn in
@@ -356,12 +359,13 @@ function drawSextantPlate(ctx, w, h, {
   // and out into the sky at the scale reading above the horizon; set on
   // the star, it ends there
   const od = dirOf(hs);
-  const outLen = onHorizon ? sReach - starR - 4 : edgeLen(od);
+  const reach = sReach + starR + 2;
+  const outLen = steady ? Math.min(reach, edgeLen(od)) : onHorizon ? sReach - starR - 4 : edgeLen(od);
   const outEnd = { x: Pv.x + od.x * outLen, y: Pv.y + od.y * outLen };
   // the field the telescope takes in about it: the star shows in the
   // eyepiece once it falls between these
   for (const sg of [-1, 1]) {
-    const fd = dirOf(hs + sg * fov), fl = Math.min(edgeLen(fd), outLen) * 0.9;
+    const fd = dirOf(hs + sg * fov), fl = Math.min(edgeLen(fd), steady ? reach : outLen) * 0.9;
     const f0 = R * 0.16;
     plateLine(ctx, { x: Pv.x + fd.x * f0, y: Pv.y + fd.y * f0 }, { x: Pv.x + fd.x * fl, y: Pv.y + fd.y * fl }, { kind: 'short', weight: THIN });
   }
@@ -371,6 +375,11 @@ function drawSextantPlate(ctx, w, h, {
   // a finger can also take the line of sight, clear of the arm at the pivot
   geo.sight = [[{ x: Pv.x + od.x * R * 0.3, y: Pv.y + od.y * R * 0.3 }, outEnd]];
   const starSeen = Math.abs(starAlt - hs) < fov * 0.95;
+  if (steady) {
+    // the star over any line that runs through it
+    ctx.save(); ctx.fillStyle = PLATE.paper;
+    ctx.beginPath(); ctx.arc(star.x, star.y, starR + 2, 0, TAU); ctx.fill(); ctx.restore();
+  }
   starGlyph(ctx, star.x, star.y, starR, ink);
   // the angle it is turned through, from the horizontal at the index mirror
   {
@@ -480,7 +489,7 @@ function drawSextantPlate(ctx, w, h, {
     const along = R * 0.5 + (outLen - R * 0.5) * 0.45;
     const m = { x: Pv.x + od.x * along, y: Pv.y + od.y * along };
     const nrm = { x: od.y, y: -od.x };
-    const above = hs >= starAlt;
+    const above = !steady && hs >= starAlt;
     const sg = above ? 1 : -1;
     const q = { x: m.x + nrm.x * 10 * sg, y: m.y + nrm.y * 10 * sg };
     // kept inside the drawing's edges
