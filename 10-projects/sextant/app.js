@@ -1499,7 +1499,8 @@ function drawEarthCrust(ctx, cx, cy, R, thickness = 20) {
   ctx.stroke();
 }
 
-(function demoAltitude() {
+// on the figure bench page only
+document.getElementById('demo-altitude') && (function demoAltitude() {
   const d = createDemo('demo-altitude', {
     aspect: 1.5,
     maxH: 520,

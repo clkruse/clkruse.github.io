@@ -93,17 +93,11 @@ Astronomers and navigators settled on using a point in the sky called the First 
 
 <Figure 7-1, built: One Aries column, plus one offset per star. A slide rule: the sky's scale holds still with Aries and each star a fixed offset west of it, while a world map slides east beneath. Drag the map east to run the clock; only Aries's longitude changes. A small globe in the caption shows the same moment, with Vega's offset from Aries as an arc on the equator>
 
-**8\. Putting it all together**
-
-
-
-
-
-**N\. A worked example**
+**8\. A worked example**
 
 Let's find a position from start to finish. It's 05:16:24 UTC on 19 August 2026, and you're sailing somewhere in the Pacific. You measure two stars, Vega and Arcturus. Follow along in the figure, one step at a time.
 
-<Figure 9-1, built: From two sights to a position. Five steps, driven by Back and Next or the tabs along the top, with each step's text and data sheet shown under the figure one at a time. In step 1 you take both sights yourself with the sextant from Figure 4-2: drag its arm, then the eyepiece, until Vega, then Arcturus, sits on the horizon, and press Take sight. Take sight records whatever the scale reads, right or wrong, and the rings, the fix and the sheets all follow from it; step 5 says how far off a bad sight puts you. The rest build a globe: Aries's longitude from Greenwich, each star's offset from Aries to its ground position, Vega's ring, then Arcturus's ring crossing it at you and at a far point ruled out>
+<Figure 8-1, built: From two sights to a position. Five steps, driven by Back and Next or the tabs along the top, with each step's text and data sheet shown under the figure one at a time. In step 1 you take both sights yourself with the sextant from Figure 4-2: drag its arm, then the eyepiece, until Vega, then Arcturus, sits on the horizon, and press Take sight. Take sight records whatever the scale reads, right or wrong, and the rings, the fix and the sheets all follow from it; step 5 says how far off a bad sight puts you. The rest build a globe: Aries's longitude from Greenwich, each star's offset from Aries to its ground position, Vega's ring, then Arcturus's ring crossing it at you and at a far point ruled out>
 
 **Step 1. Measure the stars**
 Start with Vega. Drag the sextant's arm until Vega shows in the eyepiece, then drag in the eyepiece to set it exactly on the horizon. Press Take sight to record the altitude on the scale, then do the same for Arcturus.
