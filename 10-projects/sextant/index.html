@@ -129,8 +129,28 @@
         <canvas class="grab"></canvas>
         <div class="demo-controls"></div>
       </div>
-      <figcaption><span class="fig-title">A star’s altitude changes as you move</span> Move away from a star’s ground position. Because the angle of the horizon shifts as you move
-        around the globe, the angle between the star and the horizon changes.</figcaption>
+      <figcaption><span class="fig-title">A star’s altitude changes as you move</span> Move away from a star’s
+        ground position. The line from you and the line through the GP carry matching marks because they are
+        parallel: both run on to the same star, far off the page. Your horizon tilts as you move, so the angle
+        between it and the star changes.</figcaption>
+    </figure>
+
+    <p>
+      You might wonder why the line extending from you to the star runs parallel to the line through the GP.
+      If both point at the same star, shouldn’t they lean toward each other and meet there? They do meet, but
+      only at the star, and stars are almost unfathomably far away. As the distance to the point increases,
+      the line aimed at the star from anywhere on the earth points in the same direction.
+    </p>
+
+    <figure class="demo" id="demo-pullaway">
+      <div class="demo-panel">
+        <canvas class="grab"></canvas>
+        <div class="demo-controls"></div>
+      </div>
+      <figcaption><span class="fig-title">Starlight arrives in parallel</span> Drag the slider to move the
+        star away from the Earth. When the star is close, the line from you and the line from its ground position
+        meet at the star at a clear angle. As the star gets farther away, the lines get closer and closer to
+        parallel.</figcaption>
     </figure>
 
     <p>
@@ -141,6 +161,14 @@
       you’ve traveled 90° away from your starting position, where the star will be found right on the
       horizon (0°).
     </p>
+
+    <figure class="demo in-text" id="demo-threealt">
+      <div class="demo-panel">
+        <canvas></canvas>
+      </div>
+      <figcaption><span class="fig-title">One star from four places</span> The farther you move from the
+        ground position, the lower the star sits in your sky.</figcaption>
+    </figure>
 
     <p>
       This observation is the heart of celestial navigation. If you measure the altitude of a star, it tells
@@ -631,6 +659,8 @@
   <script src="demos/center.js" defer></script>
   <script src="demos/sightline.js" defer></script>
   <script src="demos/walk.js" defer></script>
+  <script src="demos/pullaway.js" defer></script>
+  <script src="demos/threealt.js" defer></script>
   <script src="demos/northstar.js" defer></script>
   <script src="demos/arcminute.js" defer></script>
   <script src="demos/globes.js" defer></script>

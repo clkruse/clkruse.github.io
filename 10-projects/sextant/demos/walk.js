@@ -119,20 +119,52 @@
     }
 
     // the star is so far away that the lines to it from the GP and from you
-    // are parallel; both run outward with an arrow toward it, and yours is
-    // labelled as aimed at the same star
+    // are parallel: both run on to the top of the drawing and carry the
+    // drafter's matching chevrons for parallel lines. The star itself is
+    // named at the head of the drawing, never drawn at the end of a line,
+    // where it would read as a spot on the page that one line misses
     const head = compact ? 3.2 : 4;
+    const weight = compact ? 0.8 : 1;
     const gpRay = rayFrom(gp);
-    // yours is a short arrow of fixed length: run all the way up it would
-    // read as aimed at a spot on the page instead of the far-off star
+    const youTop = rayFrom(you);
+    // where the "direction to star" label sits along your line
     const youLen = compact ? 40 : 58;
     const youRay = { x: you.x + toStar.x * youLen, y: you.y + toStar.y * youLen };
-    plateVector(ctx, gp, gpRay, { kind: 'long', weight: compact ? 0.8 : 1, head });
-    if (visible) {
-      plateVector(ctx, you, youRay, { kind: 'long', weight: compact ? 0.8 : 1, head });
-    }
-    const star = { x: gpRay.x + toStar.x * ((rayTop - starY) / -toStar.y), y: starY };
-    starGlyph(ctx, star.x, star.y, starR, PLATE.ink);
+    plateVector(ctx, gp, gpRay, { kind: 'long', weight, head });
+    if (visible) plateVector(ctx, you, youTop, { kind: 'long', weight, head });
+    const chevrons = (p, q, f) => {
+      const m = { x: lerp(p.x, q.x, f), y: lerp(p.y, q.y, f) };
+      const ang = Math.atan2(q.y - p.y, q.x - p.x);
+      const s = compact ? 4 : 5;
+      ctx.save();
+      ctx.strokeStyle = PLATE.ink;
+      ctx.lineWidth = 1.1;
+      ctx.setLineDash([]);
+      for (const o of [-s * 0.6, s * 0.6]) {
+        const c = { x: m.x + Math.cos(ang) * o, y: m.y + Math.sin(ang) * o };
+        ctx.beginPath();
+        ctx.moveTo(c.x - Math.cos(ang - 0.6) * s, c.y - Math.sin(ang - 0.6) * s);
+        ctx.lineTo(c.x, c.y);
+        ctx.lineTo(c.x - Math.cos(ang + 0.6) * s, c.y - Math.sin(ang + 0.6) * s);
+        ctx.stroke();
+      }
+      ctx.restore();
+    };
+    chevrons(gp, gpRay, 0.55);
+    if (visible) chevrons(you, youTop, 0.55);
+    // the note over both lines, with the star glyph before it
+    const noteText = compact ? 'ONE STAR, FAR OFF THE PAGE' : 'BOTH LINES RUN ON TO ONE STAR, FAR OFF THE PAGE';
+    const noteSize = compact ? 7 : 8;
+    const noteW = plateTextWidth(ctx, noteText, { size: noteSize, weight: 600 });
+    const noteMid = visible ? (gpRay.x + youTop.x) / 2 : gpRay.x;
+    const noteX = clamp(noteMid - noteW / 2 + starR, box.x + starR * 2 + 4, box.x + box.w - noteW);
+    starGlyph(ctx, noteX - starR - 5, starY, starR * 0.8, PLATE.ink);
+    ctx.save();
+    ctx.fillStyle = PLATE.paper;
+    ctx.fillRect(noteX - 3, starY - 8, noteW + 6, 16);
+    ctx.restore();
+    plateText(ctx, noteText, noteX, starY, { size: noteSize, weight: 600 });
+    const star = { x: noteX - starR - 5, y: starY };
 
     // the observer's horizon, tangent to the ground under their feet
     const horizonHalf = Math.min(R * 0.42, compact ? 32 : 48);
@@ -202,7 +234,7 @@
     reserveSegment(you, zenithEnd);
     reserveSegment({ x: cx, y: cy }, you);
     reserveSegment({ x: cx, y: cy }, gp);
-    if (visible) reserveSegment(youRay, you);
+    if (visible) reserveSegment(youTop, you);
     reserveSegment(gpRay, gp);
     labels.reserve({ x: star.x - starR - 3, y: star.y - starR - 3, w: starR * 2 + 6, h: starR * 2 + 6 });
     // the globe outline itself

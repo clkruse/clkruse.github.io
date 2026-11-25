@@ -613,6 +613,8 @@ html .article figure.demo {
 }
 
 html .article figure.demo > .demo-panel { grid-column: text-start / wide-end; grid-row: 1; }
+/* a small figure that keeps to the text column */
+html .article figure.demo.in-text > .demo-panel { grid-column: text-start / text-end; }
 
 html .article figure.demo > figcaption {
   grid-column: margin-start / margin-end;

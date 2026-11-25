@@ -7,7 +7,7 @@
 
 (function demoAlmanac() {
   const M = MOTION;
-  const d = createDemo('demo-almanac', { aspect: 1.7, maxH: 460, compactAspect: 0.9, compactMaxH: 440, draw });
+  const d = createDemo('demo-almanac', { aspect: 1.7, maxH: 460, compactAspect: 1.33, compactMaxH: 440, draw });
   const STORY_SOURCE = 'demo-almanac';
   const WORKED = SIGHT_STORY.state;
   const RATE = SIGHT_STORY.constants.stellarRate;
@@ -52,7 +52,7 @@
   const stat = {
     time: addStat(d, 'Time'),
     aries: addStat(d, 'Aries longitude'),
-    vega: addStat(d, 'Vega longitude'),
+    vega: addStat(d, 'Vega longitude', true),
   };
 
   let k = 2;
@@ -137,7 +137,10 @@
     });
 
     // the ground: a map band that slides east, tiled so it wraps
-    const mapTop = skyY + (compact ? 20 : 24), mapBot = h - pad - (compact ? 34 : 40);
+    // the map keeps the world's proportions: 135° of latitude to the 360°
+    // of longitude across, at the same scale both ways
+    const mapTop = skyY + (compact ? 20 : 24);
+    const mapBot = Math.min(h - pad - (compact ? 34 : 40), mapTop + 135 * k);
     const latY = lat => mapTop + (75 - lat) / 135 * (mapBot - mapTop);
     const xOf = L => xA + (L - lonAries) * k;
     ctx.save();
