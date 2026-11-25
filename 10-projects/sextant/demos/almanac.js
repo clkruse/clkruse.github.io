@@ -49,10 +49,36 @@
     if (source !== STORY_SOURCE) t.set(state.utcHours);
   });
   d.addPreset('worked', () => t.set(WORKED.utcHours, { emit: true }));
-  const stat = {
-    time: addStat(d, 'Time'),
-    aries: addStat(d, 'Aries longitude'),
-    vega: addStat(d, 'Vega longitude', true),
+  // under the figure, the sum as a data sheet like the worked example's:
+  // Aries's longitude, plus Vega's fixed offset west, is Vega's longitude
+  const sheet = document.createElement('table');
+  sheet.className = 'sheet';
+  sheet.innerHTML = `
+    <caption><span>Vega’s ground position</span><span data-s="time"></span></caption>
+    <tbody>
+      <tr><td class="no">01</td><th scope="row">Aries’s longitude</th><td class="op"></td><td class="val" data-s="aries"></td></tr>
+      <tr><td class="no">02</td><th scope="row">Vega’s offset west</th><td class="op">+</td><td class="val" data-s="offset"></td></tr>
+      <tr class="total"><td class="no">03</td><th scope="row">Vega’s longitude</th><td class="op">=</td><td class="val" data-s="vega"></td></tr>
+    </tbody>`;
+  d.controls.append(sheet);
+  const cell = name => sheet.querySelector(`[data-s="${name}"]`);
+  const cells = { time: cell('time'), aries: cell('aries'), offset: cell('offset'), vega: cell('vega') };
+  const shown = {};
+  const put = (name, html) => {
+    if (shown[name] === html) return;
+    shown[name] = html;
+    cells[name].innerHTML = html;
+  };
+  // an angle in the sheet's columns: degrees, minutes to a tenth, and E/W
+  const ang = (v, hem = '') => {
+    let deg = Math.floor(v), m = Math.round((v - deg) * 600) / 10;
+    if (m >= 60) { deg += 1; m = 0; }
+    return `<span class="ang"><span class="deg">${deg}°</span><span class="min">${m.toFixed(1).padStart(4, '0')}′</span>`
+      + `<span class="hem">${hem}</span></span>`;
+  };
+  const lonAng = l => {
+    const x = ((((l + 180) % 360) + 360) % 360) - 180;
+    return ang(Math.abs(x), Math.abs(x) < 1e-9 ? '' : x < 0 ? 'W' : 'E');
   };
 
   let k = 2;
@@ -197,8 +223,9 @@
     plateText(ctx, 'DRAG THE MAP EAST', x0 + W, mapBot + (compact ? 12 : 14), { size: size - 1, weight: 600, align: 'right' });
 
     drawGlobe(lonAries);
-    stat.time.set(utc(t.v));
-    stat.aries.set(M.lonText(lonAries));
-    stat.vega.set(`${M.lonText(lonAries)} + ${dm(STARS[0].sha)} = ${M.lonText(lonAries - STARS[0].sha)}`);
+    put('time', utc(t.v));
+    put('aries', lonAng(lonAries));
+    put('offset', ang(STARS[0].sha));
+    put('vega', lonAng(lonAries - STARS[0].sha));
   }
 })();
