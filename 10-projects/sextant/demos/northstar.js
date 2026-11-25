@@ -1,7 +1,7 @@
 'use strict';
 /* A worked example with Polaris, the one star whose ground position the
-   reader already knows: the North Pole. Pick a latitude (or a city) and the
-   star stands that many degrees above your horizon, while you stand 90°
+   reader already knows: the North Pole. Drag to a latitude (a few cities
+   are marked on the globe) and the star stands that many degrees above your horizon, while you stand 90°
    minus that from its GP. Built on the walk figure (demos/walk.js): the
    outside view, with "Your view" called out from where you stand. */
 
@@ -24,15 +24,12 @@
   });
   // distance from the GP, as the walk figure's code thinks of it
   const dist = { get v() { return 90 - lat.v; }, set(z, o) { lat.set(90 - z, o); } };
-  // places a reader knows, rounded to whole degrees
+  // places a reader knows, rounded to whole degrees, marked on the globe's
+  // rim; the North Pole is the GP's own label
   const CITIES = [
     ['QUITO', 0], ['SAN FRANCISCO', 38], ['OSLO', 60], ['THE NORTH POLE', 90],
   ];
-  for (const [name, deg] of CITIES) {
-    const label = name === 'THE NORTH POLE' ? 'North Pole' : name[0] + name.slice(1).toLowerCase()
-      .replace(/ (\w)/g, (m, c) => ' ' + c.toUpperCase());
-    addButton(d, `${label} ${deg}°`, () => lat.set(deg, { emit: true }));
-  }
+  const MARKED = CITIES.filter(([, deg]) => deg < 90);
   // a dragged latitude catches on a city within a couple of degrees, so a
   // sweep across the globe stops there instead of skating past
   const CITY_SNAP = 2.5;
@@ -51,7 +48,12 @@
   // pointer; dragging the globe walks you around it
   onDetailDrag(d, a => lat.set(snapLat(clamp(a, 0, 90)), { emit: false }));
   addDrag(d.canvas, {
-    hit: p => nearGrab(p, geo && geo.grab),
+    hit: p => nearGrab(p, geo && geo.grab) || (geo && geo.cityAt(p) !== null),
+    // a press on a city's mark takes you there
+    start(p) {
+      const deg = geo && geo.cityAt(p);
+      if (deg !== null && deg !== undefined) lat.set(deg, { emit: false });
+    },
     move(p) {
       if (!geo) return;
       let fromGp = Math.atan2(p.y - geo.cy, p.x - geo.cx) - geo.gpA;
@@ -118,6 +120,20 @@
     ctx.stroke();
     ctx.restore();
     plateLine(ctx, { x: cx - R, y: cy }, { x: cx + R, y: cy }, { kind: 'long', weight: compact ? 0.9 : 1.1 });
+
+    // the marked cities on your side of the globe: a short tick across the rim
+    const cityPts = MARKED.map(([name, deg]) => {
+      const ca = up + side * (90 - deg) * D2R;
+      const ux = Math.cos(ca), uy = Math.sin(ca);
+      const tk = compact ? 4 : 5;
+      plateLine(ctx, { x: cx + ux * (R - tk), y: cy + uy * (R - tk) }, { x: cx + ux * (R + tk), y: cy + uy * (R + tk) },
+        { weight: compact ? 1 : 1.2 });
+      return { name, deg, ux, uy, at: { x: cx + ux * R, y: cy + uy * R } };
+    });
+    geo.cityAt = p => {
+      const hit = cityPts.find(c => Math.hypot(p.x - c.at.x, p.y - c.at.y) < 18);
+      return hit ? hit.deg : null;
+    };
 
     const gp = { x: cx + toStar.x * R, y: cy + toStar.y * R };
     const a = up + side * z * D2R;
@@ -355,10 +371,18 @@
         });
       }
     }
-    const city = CITIES.find(([, deg]) => deg === Math.round(90 - z));
-    const youText = city && !compact
-      ? (city[1] === 90 ? 'YOU, AT THE NORTH POLE · DRAG' : `YOU, IN ${city[0]} · DRAG`)
-      : 'YOU · DRAG';
+    // each city named beside its tick: outside the rim where there is room,
+    // otherwise just inside it
+    for (const c of cityPts) {
+      const text = `${c.name} · ${c.deg}°`;
+      const outA = c.ux * side >= 0 ? (side > 0 ? 'left' : 'right') : (side > 0 ? 'right' : 'left');
+      const inA = outA === 'left' ? 'right' : 'left';
+      const cand = [];
+      for (const r of [12, 18]) cand.push({ x: c.at.x + c.ux * r, y: c.at.y + c.uy * r - (c.deg === 0 ? 10 : 0), align: outA });
+      for (const r of [12, 18]) cand.push({ x: c.at.x - c.ux * r, y: c.at.y - c.uy * r - (c.deg === 0 ? 10 : 0), align: inA });
+      labels.place(text, c.at, cand, { size: compact ? 7 : 7.5, weight: 600, leader: false, backed: false });
+    }
+    const youText = 'YOU · DRAG';
     labels.place(youText, you, youCandidates,
       { size, weight: 700, backed: false, leader: false });
     // your line aims at the same star as the GP's, far off the top of the page

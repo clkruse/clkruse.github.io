@@ -801,6 +801,45 @@ input[type="range"]::-moz-range-thumb {
   border: 1.5px solid var(--ink);
 }
 
+/* a slider whose scale marks named stops instead of ten even divisions */
+.ctl-scale {
+  --thumb: 13px;
+  position: relative;
+  min-width: 0;
+  padding-bottom: 1.05rem;
+}
+.ctl-scale input[type="range"] { display: block; background: none; }
+.ctl-scale-mark {
+  position: absolute;
+  top: 19px;
+  left: calc(var(--thumb) / 2 + (100% - var(--thumb)) * var(--at));
+  pointer-events: none;
+}
+.ctl-scale-mark i {
+  position: absolute;
+  left: 0;
+  width: 1px;
+  height: 4px;
+  background: var(--ink);
+}
+.ctl-scale-mark span {
+  position: absolute;
+  top: 6px;
+  transform: translateX(-50%);
+  font-family: var(--font-plate);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.ctl-scale-mark.end span { transform: translateX(calc(-100% + var(--thumb) / 2)); }
+/* its value ("10.1 billion miles") changes length as it runs, so its
+   column is fixed and the scale keeps one width */
+@media (min-width: 721px) {
+  .ctl:has(> .ctl-scale) { grid-template-columns: minmax(7.5rem, max-content) minmax(90px, 1fr) 7rem; }
+}
+
 /* ––––– footer ––––– */
 
 .footer {
@@ -848,10 +887,15 @@ input[type="range"]::-moz-range-thumb {
     row-gap: 0;
     padding: 0.2rem 0;
   }
-  .ctl input[type="range"] { grid-column: 1 / -1; grid-row: 2; }
+  .ctl input[type="range"],
+  .ctl .ctl-scale { grid-column: 1 / -1; grid-row: 2; }
+  .ctl-scale input[type="range"] { grid-column: auto; grid-row: auto; }
   .ctl-readouts { margin: 0; }
   .demo-controls { background-position: 0.75rem 0, 0 0; background-size: calc(100% - 1.5rem) 1px, auto; }
   .ctl-readout { padding: 0.5rem 0.75rem 0.55rem; }
+  /* a wide readout takes a row of its own on a phone, flush with the strip's
+     left edge like the first cell */
+  .ctl-readout.wide { flex-basis: 100%; padding-left: 0; box-shadow: 0 -1px 0 var(--hair); }
   .sight-log dl { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .sight-log--split dl > .sight-log__result,
   .sight-log--final dl > .sight-log__result { grid-column: auto; }
