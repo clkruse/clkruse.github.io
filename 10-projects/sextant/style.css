@@ -1074,4 +1074,5 @@ input[type="range"]::-moz-range-thumb {
   vertical-align: 0.12em;
 }
 .demo-panel .worked-stages { padding: 0 0 var(--half-rhythm); }
-#demo-worked .demo-controls { background: var(--paper); }
+#demo-worked .demo-controls,
+#demo-almanac .demo-controls { background: var(--paper); }

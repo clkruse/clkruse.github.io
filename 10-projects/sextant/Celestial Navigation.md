@@ -91,7 +91,7 @@ It turns out that all the stars move at the same rate. The stars are fixed in th
 
 Astronomers and navigators settled on using a point in the sky called the First Point of Aries, or just Aries, as this reference. Aries isn't a star. It is the place in the sky where the Sun sits at the March equinox, when the Sun's ground position crosses the equator heading north. The Nautical Almanac lists the position of Aries each hour of the day across a year, along with a table of offsets for 57 stars of interest. You mark the time of day for your sight, look up the position of Aries at that time, and then add the offset for your star of interest to find the longitude of your star's ground position. Latitude is simply listed in the book, as it barely changes over months. 
 
-<Figure 7-1, built: One Aries column, plus one offset per star. A slide rule: the sky's scale holds still with Aries and each star a fixed offset west of it, while a world map slides east beneath. Drag the map east to run the clock; only Aries's longitude changes. A small globe in the caption shows the same moment, with Vega's offset from Aries as an arc on the equator>
+<Figure 7-1, built: One Aries column, plus one offset per star. A slide rule: the sky's scale holds still with Aries and each star a fixed offset west of it, while a world map slides east beneath. Drag the map east to run the clock; only Aries's longitude changes. A small globe in the caption shows the same moment, with Vega's offset from Aries as an arc on the equator. Under the figure, a data sheet like the worked example's adds Vega's offset to Aries's longitude to give Vega's longitude, with the time in its title>
 
 **8\. A worked example**
 
