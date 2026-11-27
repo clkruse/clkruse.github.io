@@ -140,7 +140,7 @@ The two rings cross at two points. One is in the Arctic, thousands of miles from
 
 As you can imagine, there are a number of additional tools and complexities when navigating at sea. For example, a "noon sight" that uses the sun, the "intercept method" that makes finding your intersection point more tractable on a map, or corrections to your sights based on atmospheric refraction and your deck height. I've also used common terms for many of the concepts in this article so you can understand them intuitively. There's a full dictionary of celestial navigation with terms for angles like Ho, Hc, Zn and AP that would be used in reality.
 
-I hope this has helped give you an intuitive understanding of how celestial navigation works. It's a beautiful system with a basis in finding the ground positions of stars, making circles of position based on the angle from you to the star, and identifying the intersection of those circles to find your location.
+Celestial navigation is a beautiful system with a basis in finding the ground positions of stars, making circles of position based on the angle from you to the star, and identifying the intersection of those circles to find your location. I hope this has helped give you an intuitive understanding of how it works.
 
 <Photo: Me, navigating aboard the [Robert C. Seamans](https://tallshipsamerica.org/vessels/robert-c-seamans/) in the Pacific>
 
