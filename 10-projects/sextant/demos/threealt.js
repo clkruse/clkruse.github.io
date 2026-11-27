@@ -13,7 +13,7 @@
   ];
 
   const d = createDemo('demo-threealt', {
-    aspect: 3.6, maxH: 200, compactAspect: 1.1, compactMaxH: 340, draw,
+    aspect: 3.6, maxH: 200, compactAspect: 1.1, compactMaxH: 340, draw, still: true,
   });
 
   function draw(ctx, w, h) {
