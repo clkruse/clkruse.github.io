@@ -575,6 +575,9 @@ strong { font-weight: 800; }
 
 .demo { margin: var(--rhythm) 0; width: 100%; }
 
+/* a photograph, set in a figure's panel like a plate */
+.photo img { display: block; width: 100%; height: auto; }
+
 .demo-panel {
   background: var(--paper);
   overflow: hidden;
