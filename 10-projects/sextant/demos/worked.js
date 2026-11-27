@@ -162,6 +162,9 @@
   const stageBox = document.getElementById('worked-stages');
   const stages = stageBox ? [...stageBox.querySelectorAll('.worked-stage')] : [];
   if (stageBox) d.fig.querySelector('.demo-panel').append(stageBox);
+  // one step from the start, so the page doesn't change height when the
+  // figure first draws
+  stages.forEach(el => { el.hidden = +el.dataset.stage !== 1; });
   let shown = 0;
   const showStage = n => {
     if (n === shown) return;

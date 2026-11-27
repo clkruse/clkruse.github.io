@@ -60,6 +60,7 @@
   const rollAt = t => 6.5 * Math.sin(t * 1.25) + 2.2 * Math.sin(t * 2.7 + 1.1);
   // eased in and out as the deck switch flips
   let sea = 0;
+  d.animating = () => atSea || sea > 0;
 
   // line weights: the instrument's outline, its lesser parts, and the
   // thin work of dimensions, leaders and hatching

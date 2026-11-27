@@ -70,7 +70,7 @@ function readPalette() {
   P.starlight = '#e9edf3';
 }
 readPalette();
-matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readPalette);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { readPalette(); wake(); });
 
 const MONO = '"Helvetica Neue", Helvetica, Arial, sans-serif';
 
@@ -140,6 +140,7 @@ if (document.fonts?.load) {
   // face; once Jost arrives, let every figure choose again
   document.fonts.ready.then(() => {
     document.querySelectorAll('canvas').forEach(c => { c._plateLabelMemory = new Map(); });
+    wake();
   });
 }
 
@@ -766,6 +767,7 @@ const io = new IntersectionObserver(entries => {
     if (!d) continue;
     if (e.isIntersecting) visibleDemos.add(d); else visibleDemos.delete(d);
   }
+  wake();
 }, { rootMargin: '80px' });
 
 function createDemo(figId, {
@@ -774,6 +776,8 @@ function createDemo(figId, {
   compactAspect = aspect,
   compactMaxH = maxH,
   draw,
+  // a figure with nothing to drag or step: read out as an image, not a tab stop
+  still = false,
 }) {
   const fig = document.getElementById(figId);
   const canvas = fig.querySelector('canvas');
@@ -808,8 +812,15 @@ function createDemo(figId, {
   };
   allDemos.push(d);
 
-  canvas.tabIndex = 0;
-  canvas.setAttribute('aria-label', `${humanName} interactive figure`);
+  // named by its caption title, so a screen reader hears what the figure is
+  const figTitle = fig.querySelector('.fig-title')?.textContent.trim() || humanName;
+  if (still) {
+    canvas.setAttribute('role', 'img');
+    canvas.setAttribute('aria-label', `Figure: ${figTitle}`);
+  } else {
+    canvas.tabIndex = 0;
+    canvas.setAttribute('aria-label', `${figTitle}: interactive figure`);
+  }
   canvas._demo = d;
   io.observe(canvas);
   const fit = () => {
@@ -828,6 +839,7 @@ function createDemo(figId, {
     canvas.style.height = cssH + 'px';
     canvas.width = Math.round(cssW * d.dpr);
     canvas.height = Math.round(cssH * d.dpr);
+    wake();
   };
   new ResizeObserver(fit).observe(canvas.parentElement);
   allFits.push(fit);
@@ -841,9 +853,21 @@ window.addEventListener('resize', () => allFits.forEach(f => f()));
 // controls are added after createDemo returns, so size once more when the page settles
 window.addEventListener('load', () => allFits.forEach(f => f()));
 
-let lastTS = 0;
+/* The figures draw only while something is changing. wake() runs the loop
+   for a couple of seconds (long enough for eased views and label fades to
+   settle) and anything the reader does calls it; a figure that keeps
+   moving by itself sets d.animating to say so. An idle page draws nothing. */
+const WAKE_MS = 2500;
+let lastTS = 0, awakeUntil = 0, looping = false;
+function wake(ms = WAKE_MS) {
+  awakeUntil = Math.max(awakeUntil, performance.now() + ms);
+  if (looping) return;
+  looping = true;
+  lastTS = 0;
+  requestAnimationFrame(frame);
+}
 function frame(ts) {
-  const dt = clamp((ts - lastTS) / 1000 || 0.016, 0, 0.05);
+  const dt = lastTS ? clamp((ts - lastTS) / 1000, 0, 0.05) : 0.016;
   lastTS = ts;
   // cold-load race: on a first (uncached) load the stylesheet may not have
   // applied when readPalette() first ran, leaving every color empty and the
@@ -852,19 +876,35 @@ function frame(ts) {
     readPalette();
     if (!P.ink) { requestAnimationFrame(frame); return; }
   }
+  let animating = false;
   for (const d of visibleDemos) {
     if (!d.w) continue;
     d.t += dt;
     const ctx = d.ctx;
     ctx.save();
-    ctx.setTransform(d.dpr, 0, 0, d.dpr, 0, 0);
-    ctx.clearRect(0, 0, d.w, d.h);
-    d.draw(ctx, d.w, d.h, d.t);
+    // one figure failing must not stop the rest
+    try {
+      ctx.setTransform(d.dpr, 0, 0, d.dpr, 0, 0);
+      ctx.clearRect(0, 0, d.w, d.h);
+      d.draw(ctx, d.w, d.h, d.t);
+    } catch (err) {
+      if (!d.failed) { d.failed = true; console.error(`figure ${d.fig.id}:`, err); }
+    }
     ctx.restore();
+    if (d.animating && d.animating()) animating = true;
   }
-  requestAnimationFrame(frame);
+  if (animating || performance.now() < awakeUntil) requestAnimationFrame(frame);
+  else looping = false;
 }
-requestAnimationFrame(frame);
+['pointerdown', 'pointerup', 'pointercancel', 'keydown', 'keyup', 'input', 'change', 'click', 'touchstart', 'touchmove', 'focusin', 'demo:preset']
+  .forEach(type => document.addEventListener(type, () => wake(), { capture: true, passive: true }));
+// a moving pointer matters only over a figure, or mid-drag
+document.addEventListener('pointermove', e => {
+  if (e.buttons || e.pointerType === 'touch' || e.target.closest?.('figure.demo')) wake();
+}, { capture: true, passive: true });
+['resize', 'load', 'pageshow'].forEach(type => window.addEventListener(type, () => wake()));
+document.addEventListener('visibilitychange', () => wake());
+wake();
 
 /* "Your view": your own sight of the star, as a small navigation schematic
    set in the figure's caption. The globe calls it out from where you stand,
@@ -1347,7 +1387,16 @@ function addDrag(canvas, handlers) {
     handlers.move && handlers.move(p, { dx: p.x - last.x, dy: p.y - last.y });
     last = p;
   });
-  const up = () => {
+  const up = e => {
+    // a finger that came down on a grab zone and lifted without moving is a
+    // tap (the step tabs), even where swipes are being sorted by direction
+    if (pending && e.type === 'pointerup' && e.pointerId === pending.id && handlers.hit && handlers.hit(pending.p)) {
+      const p = pending.p;
+      pending = null;
+      handlers.start && handlers.start(p);
+      handlers.end && handlers.end();
+      return;
+    }
     pending = null;
     if (!dragging) return;
     dragging = false;
