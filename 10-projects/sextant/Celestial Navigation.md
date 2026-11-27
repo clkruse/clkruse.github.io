@@ -3,7 +3,7 @@ How to use a sextant and the stars to figure out where you are on the Earth
 
 **Section 1: The fundamentals**
 
-**1\. Stellar ground positions and altitudes**  
+**1\. A star has a ground position and altitude**  
 Imagine that you are standing at the center of a transparent Earth looking outward at the stars. If you pointed a laser at a star, your ray would draw a straight line that passes through the surface of the Earth at a single point. That point is called the star’s **ground position** or **GP** for short.
 <Figure showing a line from the center of the Earth to a star. Figure caption: If you draw a line between the center of the Earth and a star, it will intersect the surface of the Earth at one point. That point is called the star's ground position.>
 
