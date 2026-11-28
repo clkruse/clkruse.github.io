@@ -862,7 +862,7 @@ function createDemo(figId, {
     const chrome = (controls?.offsetHeight || 0) + 56;
     const availH = Math.max(260, Math.round(window.innerHeight * 0.94) - chrome);
     const cssH = Math.min(activeMaxH, Math.round(cssW / activeAspect), availH);
-    d.dpr = Math.min(2, window.devicePixelRatio || 1);
+    d.dpr = pixelRatio();
     d.w = cssW; d.h = cssH;
     canvas.style.height = cssH + 'px';
     canvas.width = Math.round(cssW * d.dpr);
@@ -875,6 +875,10 @@ function createDemo(figId, {
   fit();
   return d;
 }
+
+/* Backing-store pixels per CSS pixel. Phones are commonly 3x, and browser
+   zoom raises the ratio too, so the cap is there only to bound memory. */
+function pixelRatio() { return Math.min(3, window.devicePixelRatio || 1); }
 
 const allFits = [];
 window.addEventListener('resize', () => allFits.forEach(f => f()));
@@ -979,7 +983,7 @@ function plateCaptionDetail(ctx) {
   const phone = window.innerWidth <= 720;
   const cw = phone ? 132 : Math.min(cap.clientWidth || 160, 170);
   const ch = Math.round(cw * (phone ? 1.12 : 1.02));
-  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  const dpr = pixelRatio();
   if (cv.width !== Math.round(cw * dpr) || cv.height !== Math.round(ch * dpr)) {
     cv.width = Math.round(cw * dpr);
     cv.height = Math.round(ch * dpr);
