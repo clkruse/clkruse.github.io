@@ -115,6 +115,7 @@ function label(ctx, text, x, y, opts = {}) {
     ctx.strokeText(text, x, y);
   }
   ctx.fillText(text, x, y);
+  platePen(ctx, text, x, y, opts.weight || 500, opts.size || 12, opts.font || MONO);
   ctx.restore();
 }
 
@@ -125,19 +126,44 @@ const PLATE = Object.freeze({
   get ink() { return P.ink; },
   get paper() { return P.paper; },
   // one bundled face (assets/fonts, declared in style.css) for labels and
-  // values alike, as the period plates set everything in Futura.
+  // values alike: Routed Gothic, drawn after the Leroy stencil lettering of
+  // period engineering drawings. Jost is the fallback while it loads.
   // plateDataText still differs: untracked and case-preserving.
-  font: 'Jost, "Avenir Next Condensed", "Helvetica Neue", Helvetica, sans-serif',
-  dataFont: 'Jost, "Avenir Next Condensed", "Helvetica Neue", Helvetica, sans-serif',
+  font: '"Routed Gothic", Jost, "Avenir Next Condensed", "Helvetica Neue", Helvetica, sans-serif',
+  dataFont: '"Routed Gothic", Jost, "Avenir Next Condensed", "Helvetica Neue", Helvetica, sans-serif',
 });
+
+// Routed Gothic has one weight, as a lettering template does. Emphasis
+// (weight 600 and up) is the same letter drawn with a thicker pen: stroke
+// the glyph just filled, in the same ink. Call with the font and fill set.
+const PLATE_PEN = 0.052;
+let plateFaceReady = false;
+function platePen(ctx, text, x, y, weight, size, font) {
+  if (!plateFaceReady || weight < 600 || !String(font).includes('Routed Gothic')) return;
+  ctx.save();
+  ctx.strokeStyle = ctx.fillStyle;
+  ctx.lineWidth = size * PLATE_PEN;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.setLineDash([]);
+  ctx.strokeText(text, x, y);
+  ctx.restore();
+}
 
 // Canvas text never asks the browser to fetch a web font, so request the
 // plate faces up front; visible figures redraw every frame and pick them
 // up as soon as they arrive.
 if (document.fonts?.load) {
   ['400', '600'].forEach(weight => document.fonts.load(`${weight} 12px Jost`));
+  document.fonts.load('12px "Routed Gothic"')
+    .then(faces => {
+      plateFaceReady = faces.length > 0;
+      document.querySelectorAll('canvas').forEach(c => { c._plateLabelMemory = new Map(); });
+      wake();
+    })
+    .catch(() => {});
   // labels pick their seats on the first frames, possibly in a fallback
-  // face; once Jost arrives, let every figure choose again
+  // face; once the plate face arrives, let every figure choose again
   document.fonts.ready.then(() => {
     document.querySelectorAll('canvas').forEach(c => { c._plateLabelMemory = new Map(); });
     wake();
@@ -183,9 +209,11 @@ function plateText(ctx, text, x, y, opts = {}) {
     if (DIGIT.test(char)) {
       const glyph = ctx.measureText(char).width;
       ctx.fillText(char, cursor + (figure - glyph) / 2, y);
+      platePen(ctx, char, cursor + (figure - glyph) / 2, y, opts.weight || 500, size, opts.font || PLATE.font);
       cursor += figure + tracking;
     } else {
       ctx.fillText(char, cursor, y);
+      platePen(ctx, char, cursor, y, opts.weight || 500, size, opts.font || PLATE.font);
       cursor += ctx.measureText(char).width + tracking;
     }
   }

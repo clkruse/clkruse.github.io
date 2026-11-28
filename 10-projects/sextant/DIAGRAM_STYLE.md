@@ -255,11 +255,13 @@ When a region becomes crowded, the preferred response is:
 
 Inside the diagram:
 
-- Use one geometric face for everything in the figure, labels and numbers alike, as the
-  period plates set everything in Futura. The project bundles Jost (a free Futura revival,
-  `assets/fonts`, SIL OFL), so every device draws the same plate. Avenir Next Condensed and
-  Helvetica are only fallbacks. Real Futura is commercial; do not swap in an unlicensed copy.
-- Jost is wider than a condensed face. Size boxes, table columns, and label lanes from measured
+- Use one face for everything in the figure, labels and numbers alike. The project bundles
+  Routed Gothic (`assets/fonts`, SIL OFL), drawn after the Leroy stencil lettering of period
+  engineering drawings, so every device draws the same plate. Jost, which sets the captions
+  and margins, is the fallback while it loads.
+- Routed Gothic has one weight. Weight 600 and up is drawn as the same letter with a thicker
+  pen (`platePen` in `app.js`), not a bold font.
+- Routed Gothic is wider than a condensed face. Size boxes, table columns, and label lanes from measured
   text, never from hard-coded widths, so a font change cannot overflow them.
 - Use uppercase, modest tracking, and regular weight for short diagram labels. Weight 600 is
   for the figure's title line and the one label that carries its conclusion, not for emphasis
